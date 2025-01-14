@@ -246,6 +246,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     function col_SortCommentsByCount(key, tdata, order) {
       const sortedData = [...tdata].sort((a, b) => {
+        if (!a[key].count) return 1; // Move undefined or '' to the bottom regardless of sort order
+        if (!b[key].count) return -1; // Move undefined or '' the bottom regardless of sort order
         if (a[key].count < b[key].count) return order;
         if (a[key].count > b[key].count) return order * -1;
         return 0;
