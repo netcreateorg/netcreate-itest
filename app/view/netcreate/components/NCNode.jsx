@@ -781,8 +781,8 @@ class NCNode extends UNISYS.Component {
           <div className="titlebar">
             <div className="nodenumber">NODE {id}</div>
             <div className="nodelabel">{NCUI.RenderLabel('label', label)}</div>
-            <URCommentVBtn cref={collection_ref} />
-            {/* using key resets with a new URComment <URCommentBtn cref={collection_ref} key={collection_ref} /> */}
+            <URCommentVBtn cref={collection_ref} key={collection_ref} />
+            {/* use key to make sure URCommentVBtn refreshes */}
           </div>
           {/* Special handling for `type` field */}
           {defs['type'] && !defs['type'].hidden && (

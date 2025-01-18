@@ -947,7 +947,7 @@ class NCEdge extends UNISYS.Component {
           <div className="titlebar" style={{ marginBottom: '3px' }}>
             <div className="nodenumber">EDGE {id} </div>
             <div></div>
-            <URCommentVBtn cref={collection_ref} />
+            <URCommentVBtn cref={collection_ref} key={collection_ref} />
           </div>
           <div className="formview">
             {NCUI.RenderLabel('source', defs['source'].displayLabel)}
