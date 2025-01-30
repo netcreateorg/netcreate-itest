@@ -88,7 +88,7 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     const data = UDB.RequestEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
     return data;
   });
   /**
@@ -99,7 +99,7 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     const data = UDB.ReleaseEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
     return data;
   });
 
@@ -113,7 +113,7 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_TEMPLATESAVE', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    UNET.NetCall('NET_TEMPLATE_UPDATE', pkt.data.template); // Broadcast template to other computers on the net
+    UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template); // Broadcast template to other computers on the net
     return UDB.WriteTemplateTOML(pkt);
   });
   UNET.HandleMessage('SRV_GET_TEMPLATETOML_FILENAME', () => {
@@ -278,7 +278,7 @@ UNISYS.RegisterHandlers = () => {
     const res = UDB.PKT_RequestUnlockAll(pkt);
     // Broadcast Lock State
     const data = UDB.GetEditStatus(pkt);
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
     return res;
   });
 
