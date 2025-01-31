@@ -86,10 +86,10 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_REQ_EDIT_LOCK', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    const data = UDB.RequestEditLock(pkt);
+    const editStatus = UDB.RequestEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
-    return data;
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    return editStatus;
   });
   /**
    * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
@@ -97,10 +97,10 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_RELEASE_EDIT_LOCK', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    const data = UDB.ReleaseEditLock(pkt);
+    const editStatus = UDB.ReleaseEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
-    return data;
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    return editStatus;
   });
 
   /** TEMPLATE EDITING **/
