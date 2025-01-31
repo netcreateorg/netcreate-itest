@@ -40,7 +40,7 @@ class NCSearch extends UNISYS.Component {
     }; // initialized on componentDidMount and clearSelection
 
     this.UpdateSession = this.UpdateSession.bind(this);
-    this.SetPermissions = this.SetPermissions.bind(this);
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.UIOnChange = this.UIOnChange.bind(this);
     this.UIOnSelect = this.UIOnSelect.bind(this);
     this.UINewNode = this.UINewNode.bind(this);
@@ -50,12 +50,12 @@ class NCSearch extends UNISYS.Component {
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
     UDATA.OnAppStateChange('SESSION', this.UpdateSession);
-    UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', this.SetPermissions);
+    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
     UDATA.AppStateChangeOff('SESSION', this.UpdateSession);
-    UDATA.UnhandleMessage('EDIT_PERMISSIONS_UPDATE', this.SetPermissions);
+    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /**
@@ -71,13 +71,12 @@ class NCSearch extends UNISYS.Component {
     this.setState({ isLoggedIn: decoded.isValid });
   }
 
-  SetPermissions(data) {
-    UDATA.NetCall('SRV_GET_EDIT_STATUS').then(data => {
-      this.setState({
-        uIsLockedByComment: data.commentBeingEditedByMe
-      });
+  urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({
+      uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe
     });
   }
+
   /**
    * The callback function (cb) is used to restore the selection point
    * otherwise the `value` state update will leave the cursor at the end of the field.
