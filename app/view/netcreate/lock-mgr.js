@@ -111,6 +111,22 @@ function RequestUnlockEdge(edgeId, cb) {
     if (typeof cb === 'function') cb(data.locked);
   });
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function RequestEditLock(editorType, cb) {
+  if (cb)
+    UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: editorType }).then(data => {
+      if (typeof cb === 'function') cb(data);
+    });
+  else UDATA.NetSignal('SRV_REQ_EDIT_LOCK', { editor: editorType });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function RequestEditUnlock(editorType, cb) {
+  if (cb)
+    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: editorType }).then(data => {
+      if (typeof cb === 'function') cb(data.locked);
+    });
+  else UDATA.NetSignal('SRV_RELEASE_EDIT_LOCK', { editor: editorType });
+}
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -118,5 +134,7 @@ module.exports = {
   RequestLockNode,
   RequestUnlockNode,
   RequestLockEdge,
-  RequestUnlockEdge
+  RequestUnlockEdge,
+  RequestEditLock,
+  RequestEditUnlock
 };
