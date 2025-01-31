@@ -1832,9 +1832,10 @@ DB.GetEditStatus = pkt => {
     (m_open_editors.includes(EDITORTYPE.NODE) ||
       m_open_editors.includes(EDITORTYPE.EDGE));
   // Used to disable local editing if a comment is being edited, but ignores network comment edits
-  const commentBeingEditedByMe = [...m_locked_comments.values()].find(
-    comment_uaddr => comment_uaddr === my_uaddr
-  );
+  const commentBeingEditedByMe =
+    [...m_locked_comments.values()].find(
+      comment_uaddr => comment_uaddr === my_uaddr
+    ) || false; // returns `false` if not found -- necessary otherwise `commentBeingEditedByMe` is removed and not updated
   return {
     templateBeingEdited,
     importActive,
