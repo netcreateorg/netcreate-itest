@@ -59,7 +59,7 @@ MOD.Hook('INITIALIZE', () => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_Init() {
   const LOCKSTATE = {
-    templateIsBeingEdited: false,
+    templateBeingEdited: false,
     importActive: false,
     nodeOrEdgeBeingEdited: false,
     commentBeingEditedByMe: false,
@@ -73,7 +73,7 @@ function m_Init() {
 /**
  *
  * @param {object} data
- * @param {boolean} data.templateIsBeingEdited
+ * @param {boolean} data.templateBeingEdited
  * @param {boolean} data.importActive
  * @param {boolean} data.nodeOrEdgeBeingEdited
  * @param {boolean} data.commentBeingEditedByMe
