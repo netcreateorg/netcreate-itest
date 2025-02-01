@@ -145,6 +145,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   onEditNodeTypes() {
+    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
     UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaNodeTypeOptions = SCHEMA.NODETYPEOPTIONS;
@@ -171,6 +172,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   onEditEdgeTypes() {
+    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
     UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaEdgeTypeOptions = SCHEMA.EDGETYPEOPTIONS;
