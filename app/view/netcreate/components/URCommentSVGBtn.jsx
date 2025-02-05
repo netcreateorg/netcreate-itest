@@ -29,11 +29,14 @@
 
 
   NOTE: Unlike MEME's implementation, we do not use svgjs
+        we retain svgjs for documentation purposes only.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import React, { useRef, useState, useEffect } from 'react';
 import CMTMGR from '../comment-mgr';
+
+// MEME implementation
 // import { SVG } from '@svgdotjs/svg.js'; // esm version // MEME implementation
 // import './URComment.css'; // MEME implementation
 
@@ -49,18 +52,25 @@ function URCommentSVGBtn({
   small,
   onClick
 }) {
+  // REVIEW: Remove?  not being used?
   const svgRef = useRef(null);
-  const [label, setLabel] = useState('');
-  const [css, setCss] = useState('');
-  const [svgClass, setSVGClass] = useState('');
+
+  const [state, setState] = useState({
+    label: '',
+    css: '',
+    svgClass: ''
+  });
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   useEffect(() => {
+    // MEME implementation
     // const draw = SVG(svgRef.current);
+
     c_DrawCommentIcon();
 
     return () => {
+      // MEME implementation
       // draw.remove();
     };
   }, []);
@@ -78,10 +88,8 @@ function URCommentSVGBtn({
     else if (hasReadComments) css += 'hasReadComments ';
     css += selected ? 'isOpen ' : '';
     css += disabled ? 'disabled ' : '';
-    setCss(css);
 
-    const commentCountLabel = count > 0 ? count : '';
-    setLabel(commentCountLabel);
+    const commentCountLabel = count > 0 ? count : ' ';
 
     let SVGClass = 'svgcmt-unread';
     if ((hasReadComments && !hasUnreadComments) || count === '' || count === 0) {
@@ -94,8 +102,14 @@ function URCommentSVGBtn({
       if (selected) SVGClass = 'svgcmt-unreadSelected';
       else SVGClass = 'svgcmt-unread';
     }
-    setSVGClass(SVGClass);
 
+    setState({
+      label: commentCountLabel,
+      css,
+      svgClass: SVGClass
+    });
+
+    // MEME implementation
     // const draw = SVG(svgRef.current);
     // draw.clear();
     // draw
@@ -116,10 +130,10 @@ function URCommentSVGBtn({
 
   const size = small ? '24' : '32';
   return (
-    <div id={uiref} className={'commentbtn' + css} onClick={onClick}>
-      <div className="comment-count">{label}</div>
+    <div id={uiref} className={'commentbtn' + state.css} onClick={onClick}>
+      <div className="comment-count">{state.label}</div>
       <svg width={size} height={size}>
-        <g className={svgClass}>{CMTMGR.COMMENTICON}</g>
+        <g className={state.svgClass}>{CMTMGR.COMMENTICON}</g>
       </svg>
     </div>
   );
