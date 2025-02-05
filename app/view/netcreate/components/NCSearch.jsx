@@ -72,9 +72,10 @@ class NCSearch extends UNISYS.Component {
   }
 
   urstate_LOCKSTATE(LOCKSTATE) {
-    this.setState({
-      uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe
-    });
+    // DEPRECATED -- comment editing lock state is only relevant if you are editing your own comment
+    //   this.setState({
+    //   // uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe  // NOT IMPLEMENTED
+    // });
   }
 
   /**

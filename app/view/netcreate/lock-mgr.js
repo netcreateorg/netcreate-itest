@@ -62,7 +62,7 @@ function m_Init() {
     templateBeingEdited: false,
     importActive: false,
     nodeOrEdgeBeingEdited: false,
-    commentBeingEditedByMe: false,
+    // commentBeingEditedByMe: false, // NOT IMPLEMENTED
     lockedNodes: [],
     lockedEdges: [],
     lockedComments: []
@@ -76,7 +76,7 @@ function m_Init() {
  * @param {boolean} data.templateBeingEdited
  * @param {boolean} data.importActive
  * @param {boolean} data.nodeOrEdgeBeingEdited
- * @param {boolean} data.commentBeingEditedByMe
+//  * @param {boolean} data.commentBeingEditedByMe // NOT IMPLEMENTED
  * @param {Array} data.lockedNodes
  * @param {Array} data.lockedEdges
  * @param {Array} data.lockedComments

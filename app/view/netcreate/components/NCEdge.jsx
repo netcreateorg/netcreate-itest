@@ -271,7 +271,15 @@ class NCEdge extends UNISYS.Component {
     const uIsLockedByDB = LOCKSTATE.lockedEdges.includes(edgeId);
     const uIsLockedByTemplate = LOCKSTATE.templateBeingEdited;
     const uIsLockedByImport = LOCKSTATE.importActive;
-    const uIsLockedByComment = LOCKSTATE.commentBeingEditedByMe;
+    // NOT IMPLEMENTED
+    // FUTURE: We may want to lock the edge if a comment is being edited
+    //         but currently there isn't an easy way to do this
+    //         because while we know that a comment is being edited (via LOCKSTATE.lockedComments)
+    //         we don't know if the comment is being edited by the current user or someone else.
+    //         So for now, we allow the edge to be edited while a comment is being edited.
+    //         If we wanted to implement this, we probably need to introduce a new parameter
+    //         or properly implement commentBeingEditedByMe.
+    // const uIsLockedByComment = LOCKSTATE.commentBeingEditedByMe;
 
     // Derive new message and EditBtn status
     let uEditLockMessage = '';
@@ -291,10 +299,11 @@ class NCEdge extends UNISYS.Component {
       uEditBtnDisable = true;
       uEditLockMessage += TEMPLATE.importIsLockedMessage;
     }
-    if (uIsLockedByComment) {
-      uEditBtnDisable = true;
-      // no change to lock message for comments
-    }
+    // NOT IMPLEMENTED
+    // if (uIsLockedByComment) {
+    //   uEditBtnDisable = true;
+    //   // no change to lock message for comments
+    // }
 
     // return all state values
     return {
@@ -303,7 +312,7 @@ class NCEdge extends UNISYS.Component {
       uIsLockedByDB,
       uIsLockedByTemplate,
       uIsLockedByImport,
-      uIsLockedByComment,
+      // uIsLockedByComment, // NOT IMPLEMENTED
       // UI State
       uEditBtnDisable,
       uEditBtnHide,
