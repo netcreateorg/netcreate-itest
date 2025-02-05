@@ -248,12 +248,34 @@ UNISYS.RegisterHandlers = () => {
 
   UNET.HandleMessage('SRV_DBLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestLockComment(pkt);
+    const lockResult = UDB.PKT_RequestLockComment(pkt);
+    if (lockResult.locked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.COMMENT;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return lockResult; // handle callback
   });
 
   UNET.HandleMessage('SRV_DBUNLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestUnlockComment(pkt);
+    const unlockResult = UDB.PKT_RequestUnlockComment(pkt);
+    if (unlockResult.unlocked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.COMMENT;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return unlockResult; // handle callback
   });
 
   UNET.HandleMessage('SRV_DBISCOMMENTLOCKED', function (pkt) {
