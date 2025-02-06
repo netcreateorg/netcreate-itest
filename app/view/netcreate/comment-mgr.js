@@ -422,9 +422,17 @@ MOD.OpenCommentStatusComment = (cref, cid) => {
   // - don't close all comments
   // - don't open a new one
   if (MOD.GetCommentsAreBeingEdited()) {
-    UR.Publish('DIALOG_OPEN', {
-      text: `Please finish editing your comment before opening a different comment!`
-    });
+    const CMTSTATUS = UDATA.AppState('CMTSTATUS');
+    CMTSTATUS.dialog = {
+      isOpen: true,
+      message: `Please finish editing your comment before opening a different comment!`,
+      okmessage: 'OK',
+      onOK: m_CloseRemoveCommentDialog,
+      cancelmessage: '',
+      onCancel: undefined
+    };
+
+    UDATA.SetAppState('CMTSTATUS', CMTSTATUS);
     return;
   }
 
