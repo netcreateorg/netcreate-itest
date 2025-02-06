@@ -50,14 +50,12 @@ MOD.Hook('INITIALIZE', () => {
    *  @param {Object} data.comments
    */
   // Comment AddOn Handlers
-  UDATA.HandleMessage('LOAD_COMMENT_DATACORE', MOD.LoadDB);
+  UDATA.HandleMessage('LOAD_COMMENT_DATACORE', MOD.LoadDB); // MEME equivalent: DATA_UPDATED
   /// STATE UPDATES and Message Handlers
   UDATA.OnAppStateChange('LOCKSTATE', m_urstate_LOCKSTATE);
   UDATA.HandleMessage('COMMENTS_UPDATE', MOD.HandleCOMMENTS_UPDATE);
   UDATA.HandleMessage('COMMENT_UPDATE', MOD.HandleCOMMENT_UPDATE);
   UDATA.HandleMessage('READBY_UPDATE', MOD.HandleREADBY_UPDATE);
-  // Net.Create Handlers
-
   // Currently not used
   // UDATA.OnAppStateChange('COMMENTCOLLECTION', COMMENTCOLLECTION => console.log('comment-mgr.COMMENTCOLLECTION state updated:', COMMENTCOLLECTION));
   // UDATA.OnAppStateChange('COMMENTVOBJS', COMMENTVOBJS => console.error('comment-mgr.COMMENTVOBJS state updated', COMMENTVOBJS));
@@ -137,12 +135,6 @@ function m_UpdateComment(comment) {
   COMMENT.UpdateComment(cobj, uid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_UpdatePermissions(data) {
-  UDATA.NetCall('SRV_GET_EDIT_STATUS').then(data => {
-    // disable comment button if someone is editing a comment
-    UDATA.LocalCall('COMMENT_UPDATE_PERMISSIONS', data);
-  });
-}
 function m_urstate_LOCKSTATE(LOCKSTATE) {
   UDATA.SetAppState('CMTLOCKSTATE', LOCKSTATE);
 }
