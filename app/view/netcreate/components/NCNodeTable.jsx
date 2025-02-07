@@ -25,6 +25,7 @@
 import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
 import NCUI from '../nc-ui';
+import UTILS from '../nc-utils';
 import FILTER from './filter/FilterEnums';
 import CMTMGR from '../comment-mgr';
 
@@ -145,8 +146,13 @@ function NCNodeTable({ tableHeight, isOpen }) {
 
     // Only include built in fields
     // Only include non-hidden fields
+    // Only include non-provenance fields
     const attributeDefs = Object.keys(defs).filter(
-      k => !BUILTIN_FIELDS_NODE.includes(k) && !defs[k].hidden
+      k =>
+        !BUILTIN_FIELDS_NODE.includes(k) && !defs[k].isProvenance && !defs[k].hidden
+    );
+    const provenanceDefs = Object.keys(defs).filter(
+      k => !BUILTIN_FIELDS_NODE.includes(k) && defs[k].isProvenance && !defs[k].hidden
     );
 
     /// CLICK HANDLERS
@@ -208,7 +214,7 @@ function NCNodeTable({ tableHeight, isOpen }) {
           className="outline"
           onClick={event => ui_ClickViewNode(event, tdata.id)}
         >
-          <span style={{ color: 'blue' }}>{value}</span>
+          <span>{value}</span>
         </button>
       );
     }
@@ -232,11 +238,16 @@ function NCNodeTable({ tableHeight, isOpen }) {
     // column definitions for custom attributes
     // (built in columns are: view, degrees, label)
     const ATTRIBUTE_COLUMNDEFS = attributeDefs.map(key => {
-      const title = defs[key].displayLabel;
-      const type = defs[key].type;
       return {
-        title,
-        type,
+        title: defs[key].displayLabel,
+        type: defs[key].type,
+        data: key
+      };
+    });
+    const PROVENANCE_COLUMNDEFS = provenanceDefs.map(key => {
+      return {
+        title: defs[key].displayLabel,
+        type: defs[key].type,
         data: key
       };
     });
@@ -244,21 +255,23 @@ function NCNodeTable({ tableHeight, isOpen }) {
       {
         title: '', // View/Edit
         data: 'id',
-        type: 'number',
+        type: defs['id'].type,
         width: 45, // in px
         renderer: col_RenderViewOrEdit,
-        sortDisabled: true
+        sortDisabled: true,
+        tipDisabled: true
       },
       {
         title: defs['degrees'].displayLabel,
-        type: 'number',
+        type: defs['degrees'].type,
         width: 50, // in px
         data: 'degrees'
       },
       {
         title: defs['label'].displayLabel,
+        type: 'text-case-insensitive',
         data: 'label',
-        width: 300, // in px
+        width: 200, // in px
         renderer: col_RenderNode
       }
     ];
@@ -270,12 +283,45 @@ function NCNodeTable({ tableHeight, isOpen }) {
         data: 'type'
       });
     }
-    COLUMNDEFS.push(...ATTRIBUTE_COLUMNDEFS, {
-      title: 'Comments',
+    COLUMNDEFS.push(...ATTRIBUTE_COLUMNDEFS);
+    COLUMNDEFS.push(...PROVENANCE_COLUMNDEFS);
+    // History
+    if (defs['createdBy'] && !defs['createdBy'].hidden)
+      COLUMNDEFS.push({
+        title: defs['createdBy'].displayLabel,
+        type: 'text-case-insensitive',
+        width: 60, // in px
+        data: 'createdBy'
+      });
+    if (defs['created'] && !defs['created'].hidden)
+      COLUMNDEFS.push({
+        title: defs['created'].displayLabel,
+        type: 'timestamp-short',
+        width: 60, // in px
+        data: 'created'
+      });
+    if (defs['updatedBy'] && !defs['updatedBy'].hidden)
+      COLUMNDEFS.push({
+        title: defs['updatedBy'].displayLabel,
+        type: 'text-case-insensitive',
+        width: 60, // in px
+        data: 'updatedBy'
+      });
+    if (defs['updated'] && !defs['updated'].hidden)
+      COLUMNDEFS.push({
+        title: defs['updated'].displayLabel,
+        type: 'timestamp-short',
+        width: 60, // in px
+        data: 'updated'
+      });
+    // Comment is last
+    COLUMNDEFS.push({
+      title: ' ',
       data: 'commentVBtnDef',
-      width: 50, // in px
+      width: 40, // in px
       renderer: col_RenderCommentBtn,
-      sorter: col_SortCommentsByCount
+      sorter: col_SortCommentsByCount,
+      tipDisabled: true
     });
     return COLUMNDEFS;
   }
@@ -283,8 +329,17 @@ function NCNodeTable({ tableHeight, isOpen }) {
   /// TABLE DATA GENERATION ///////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function DeriveTableData({ nodeDefs, nodes }) {
+    // Only include built in fields
+    // Only include non-hidden fields
+    // Only include non-provenance fields
     const attributeDefs = Object.keys(nodeDefs).filter(
-      k => !BUILTIN_FIELDS_NODE.includes(k) && !nodeDefs[k].hidden
+      k =>
+        !BUILTIN_FIELDS_NODE.includes(k) &&
+        !nodeDefs[k].hidden &&
+        !nodeDefs[k].isProvenance
+    );
+    const provenanceDefs = Object.keys(nodeDefs).filter(
+      k => nodeDefs[k].isProvenance
     );
 
     return nodes.map((node, i) => {
@@ -300,9 +355,17 @@ function NCNodeTable({ tableHeight, isOpen }) {
           // b. provide the HTML string
           data.html = NCUI.Markdownify(node[key]);
           data.raw = node[key];
-        } else if (nodeDefs[key].type === 'hdate')
+        } else if (nodeDefs[key].type === 'hdate') {
           data = node[key] && node[key].formattedDateString;
-        else data = node[key];
+        } else if (nodeDefs[key].type === 'infoOrigin') {
+          data =
+            node[key] === undefined || node[key] === ''
+              ? UTILS.DeriveInfoOriginString(
+                  node.createdBy,
+                  node.meta ? node.meta.created : ''
+                )
+              : node[key];
+        } else data = node[key];
         attributes[key] = data;
       });
 
@@ -319,6 +382,38 @@ function NCNodeTable({ tableHeight, isOpen }) {
         selected
       };
 
+      // provenance
+      const provenance = {};
+      provenanceDefs.forEach((key, i) => {
+        let data = {};
+        if (nodeDefs[key].type === 'markdown') {
+          // for markdown:
+          // a. provide the raw markdown string
+          // b. provide the HTML string
+          data.html = NCUI.Markdownify(node[key]);
+          data.raw = node[key];
+        } else if (nodeDefs[key].type === 'hdate') {
+          data = node[key] && node[key].formattedDateString;
+        } else if (nodeDefs[key].type === 'infoOrigin') {
+          data =
+            node[key] === undefined || node[key] === ''
+              ? UTILS.DeriveInfoOriginString(
+                  node.createdBy,
+                  node.meta ? node.meta.created : ''
+                )
+              : node[key];
+        } else data = node[key] || '';
+        provenance[key] = data;
+      });
+
+      // history
+      const history = {
+        createdBy: node.createdBy,
+        created: node.meta ? node.meta.created : '', // meta may not be defined when a new node is creatd
+        updatedBy: node.updatedBy,
+        updated: node.meta ? node.meta.updated : '' // meta may not be defined when a new node is creatd
+      };
+
       return {
         id,
         label,
@@ -326,6 +421,8 @@ function NCNodeTable({ tableHeight, isOpen }) {
         degrees,
         ...attributes,
         commentVBtnDef,
+        ...provenance,
+        ...history,
         meta: {
           filteredTransparency: node.filteredTransparency
         }

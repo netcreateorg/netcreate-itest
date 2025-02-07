@@ -23,6 +23,10 @@ Used also on https://github.com/netcreateorg/netcreate-itest/
   * Column widths can be set in the column definition
   * Columns without a width will be evenly distributed
 
+## Column Types
+  Note that `type` determines both the default renderer and sorter
+  but they can be separately overriden.
+
 
 # User Interaction - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,6 +50,10 @@ Used also on https://github.com/netcreateorg/netcreate-itest/
     so re-selecting the column will restore the previous sort order
   * A column can be designated unsortable by setting `sortDisabled` to `true`
 
+## Tooltips
+  * Tooltips are displayed when hovering over a cell
+  * The tooltip text is the same as the cell text
+  * Tooltips can be disabled by setting `tipDisabled` to `true`
 
 # PROPS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   `tableData`: array
@@ -72,6 +80,7 @@ Used also on https://github.com/netcreateorg/netcreate-itest/
         renderer: (value: any) => JSX.Element
         sorter: (key: string, tdata: any[], order: number) => any[]
         sortDisabled: boolean
+        tipDisabled: boolean
 
   Example usage:
 
@@ -179,6 +188,7 @@ function URTable({ isOpen, data, columns }) {
 
   /// UTILITIES ///////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// e.g. Jan 7 10:05:29 AM
   function u_HumanDate(timestamp) {
     if (timestamp === undefined || timestamp === '') return '<no date>';
     const date = new Date(timestamp);
@@ -189,7 +199,24 @@ function URTable({ isOpen, data, columns }) {
     });
     const datestring = date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      year: 'numeric'
+    });
+    return `${datestring} ${timestring}`;
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// e.g. 1/7/25 10:05a
+  function u_HumanDateShort(timestamp) {
+    if (timestamp === undefined || timestamp === '') return '<no date>';
+    const date = new Date(timestamp);
+    const timestring = date.toLocaleTimeString('en-Us', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const datestring = date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: '2-digit'
     });
     return `${datestring} ${timestring}`;
   }
@@ -302,6 +329,8 @@ function URTable({ isOpen, data, columns }) {
       // NC's markdown format from NCNodeTable will pass:
       // { html, raw}
       // We will sort by the raw text
+      if (!a[key].raw) return 1; // Move undefined or '' to the bottom regardless of sort order
+      if (!b[key].raw) return -1; // Move undefined or '' the bottom regardless of sort order
       if (a[key].raw < b[key].raw) return order;
       if (a[key].raw > b[key].raw) return order * -1;
       return 0;
@@ -362,27 +391,43 @@ function URTable({ isOpen, data, columns }) {
    * @returns The final value to be rendered in the table cell
    */
   function m_ExecuteRenderer(key, tdata, coldef) {
+    let result = '';
     const customRenderer = coldef.renderer;
     if (customRenderer) {
       if (typeof customRenderer !== 'function')
         throw new Error('Invalid renderer for', coldef);
-      return customRenderer(key, tdata, coldef);
+      result = customRenderer(key, tdata, coldef);
     } else {
       // Run built-in renderers
       const value = tdata[key];
       switch (coldef.type) {
         case 'markdown': // Net.Create
-          return value.html;
+          result = value.html;
+          break;
         case 'hdate': // Net.Create
+          result = value; // display the raw user-entered string
+          break;
         case 'timestamp':
-          return u_HumanDate(value);
+          result = u_HumanDate(value);
+          break;
+        case 'hdate-short': // Net.Create
+        case 'timestamp-short':
+          result = u_HumanDateShort(value);
+          break;
         case 'number':
         case 'text':
         case 'text-case-insensitive':
         default:
-          return value;
+          result = value;
       }
     }
+    if (coldef.tipDisabled) return result;
+    return (
+      <div className="tabletip">
+        <div className="tabletip-source">{result}</div>
+        <div className="tabletip-text">{result}</div>
+      </div>
+    );
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Sorts then sets the table data
