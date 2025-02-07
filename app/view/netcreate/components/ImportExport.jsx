@@ -62,7 +62,7 @@ class ImportExport extends UNISYS.Component {
     };
     this.checkUnload = this.checkUnload.bind(this);
     this.doUnload = this.doUnload.bind(this);
-    this.handleEditStateUpdate = this.handleEditStateUpdate.bind(this);
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.updateEditState = this.updateEditState.bind(this);
     this.onNodesExportSelect = this.onNodesExportSelect.bind(this);
     this.onEdgesExportSelect = this.onEdgesExportSelect.bind(this);
@@ -75,7 +75,7 @@ class ImportExport extends UNISYS.Component {
     this.unlockAll = this.unlockAll.bind(this);
 
     UDATA = UNISYS.NewDataLink(this);
-    UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', this.handleEditStateUpdate);
+    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
 
   componentDidMount() {
@@ -85,8 +85,8 @@ class ImportExport extends UNISYS.Component {
   }
 
   componentWillUnmount() {
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
-    UDATA.UnhandleMessage('EDIT_PERMISSIONS_UPDATE', this.handleEditStateUpdate);
+    UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     window.removeEventListener('beforeunload', this.checkUnload);
     window.removeEventListener('unload', this.doUnload);
   }
@@ -103,26 +103,28 @@ class ImportExport extends UNISYS.Component {
 
   doUnload(e) {
     if (this.state.importIsActive) {
-      this.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+      this.NetSignal('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     }
   }
 
   /// UI EVENT HANDLERS /////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  handleEditStateUpdate(data) {
+  urstate_LOCKSTATE(LOCKSTATE) {
     const { importIsActive } = this.state;
     if (!importIsActive) {
       const preventImport =
-        data.templateBeingEdited ||
-        data.importActive ||
-        data.nodeOrEdgeBeingEdited ||
+        LOCKSTATE.templateBeingEdited ||
+        LOCKSTATE.importActive ||
+        LOCKSTATE.nodeOrEdgeBeingEdited ||
         UNISYS.IsStandaloneMode();
       this.setState({ preventImport });
     }
   }
+
   updateEditState() {
     // disable edit if someone else is editing a template, node, or edge
-    UDATA.NetCall('SRV_GET_EDIT_STATUS').then(this.handleEditStateUpdate);
+    this.urstate_LOCKSTATE(UDATA.AppState('LOCKSTATE'));
+    // REVIEW: Reduce setState calls?
     DATASTORE.PromiseCalculateMaxNodeId().then(data => {
       this.setState({ nextNodeId: data + 1 });
     });
@@ -195,7 +197,7 @@ class ImportExport extends UNISYS.Component {
     });
     // Clear validated data so it doesn't get imported
     if (!importIsActive)
-      UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+      UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     IMPORTEXPORT.ResetNodeImportData();
   }
 
@@ -211,13 +213,13 @@ class ImportExport extends UNISYS.Component {
     });
     // Clear validated data so it doesn't get imported
     if (!importIsActive)
-      UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+      UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     IMPORTEXPORT.ResetEdgeImportData();
   }
 
   clearFileSelect() {
     // User Cancelled, reset to default
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+    UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     document.getElementById('nodefileInput').value = '';
     document.getElementById('edgefileInput').value = '';
     this.clearNodefileSelect();

@@ -65,10 +65,12 @@ const PR = 'URCommentVBtn';
  */
 function URCommentVBtn({ cref }) {
   const btnRef = useRef(null);
-  const [count, setCount] = useState(0);
-  const [hasUnreadComments, setHasUnreadComments] = useState(false);
-  const [hasReadComments, setHasReadComments] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [state, setState] = useState({
+    count: 0,
+    hasUnreadComments: false,
+    hasReadComments: false,
+    isOpen: false
+  });
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -103,23 +105,26 @@ function URCommentVBtn({ cref }) {
   function c_Update() {
     const ccol = CMTMGR.GetCommentCollection(cref) || {};
     const { hasReadComments, hasUnreadComments } = ccol;
-    setHasReadComments(hasReadComments);
-    setHasUnreadComments(hasUnreadComments);
 
     const uistate = CMTMGR.GetCommentUIState(cref);
     const isOpen = uistate ? uistate.isOpen : false;
-    setIsOpen(isOpen);
 
     // commentCountLabel
     const commentCount = CMTMGR.GetCommentCollectionCount(cref);
-    setCount(commentCount);
+
+    setState({
+      count: commentCount,
+      hasUnreadComments,
+      hasReadComments,
+      isOpen
+    });
   }
   /// COMPONENT UI HANDLERS ///////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** handle URCommentBtn click, which opens and closes the URCommentThread */
   function evt_OnClick(event) {
     event.stopPropagation();
-    if (isOpen) {
+    if (state.isOpen) {
       // is currently open, so close it
       const uid = CMTMGR.GetCurrentUserId();
       CMTMGR.CloseCommentCollection(cref, cref, uid);
@@ -145,10 +150,10 @@ function URCommentVBtn({ cref }) {
     <div ref={btnRef}>
       <URCommentSVGBtn
         uiref={cref}
-        count={count}
-        hasUnreadComments={hasUnreadComments}
-        hasReadComments={hasReadComments}
-        selected={isOpen}
+        count={state.count}
+        hasUnreadComments={state.hasUnreadComments}
+        hasReadComments={state.hasReadComments}
+        selected={state.isOpen}
         onClick={evt_OnClick}
       />
     </div>

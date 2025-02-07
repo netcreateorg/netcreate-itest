@@ -32,6 +32,7 @@ const React = require('react');
 const UNISYS = require('unisys/client');
 const { EDITORTYPE } = require('system/util/enum');
 const TEMPLATE_MGR = require('../templateEditor-mgr');
+const LOCKMGR = require('../lock-mgr');
 const SCHEMA = require('../template-schema');
 const DATASTORE = require('system/datastore');
 
@@ -58,7 +59,8 @@ class NCTemplate extends UNISYS.Component {
       tomlfileErrors: undefined,
       tomlfilename: 'loading...'
     };
-    this.updateEditState = this.updateEditState.bind(this);
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
+    this.loadEditor = this.loadEditor.bind(this);
     this.disableOrigLabelFields = this.disableOrigLabelFields.bind(this);
     this.releaseOpenEditor = this.releaseOpenEditor.bind(this);
     this.onNewTemplate = this.onNewTemplate.bind(this);
@@ -71,11 +73,12 @@ class NCTemplate extends UNISYS.Component {
     this.onCancelEdit = this.onCancelEdit.bind(this);
 
     UDATA = UNISYS.NewDataLink(this);
-    UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', this.updateEditState);
+    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
 
   componentDidMount() {
-    this.updateEditState();
+    const LOCKSTATE = UDATA.AppState('LOCKSTATE');
+    this.urstate_LOCKSTATE(LOCKSTATE);
     DATASTORE.GetTemplateTOMLFileName().then(result => {
       this.setState({ tomlfilename: result.filename });
     });
@@ -83,19 +86,33 @@ class NCTemplate extends UNISYS.Component {
 
   componentWillUnmount() {
     this.releaseOpenEditor();
-    UDATA.UnhandleMessage('EDIT_PERMISSIONS_UPDATE', this.updateEditState);
+    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /// UI EVENT HANDLERS /////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  updateEditState() {
-    // disable edit if someone else is editing a template, node, or edge
-    let disableEdit = false;
-    UDATA.NetCall('SRV_GET_EDIT_STATUS').then(data => {
-      // someone else might be editing a template or importing or editing node or edge
-      disableEdit =
-        data.templateBeingEdited || data.importActive || data.nodeOrEdgeBeingEdited;
-      this.setState({ disableEdit });
+  urstate_LOCKSTATE(LOCKSTATE) {
+    // someone else might be editing a template or importing or editing node or edge
+    const disableEdit =
+      LOCKSTATE.templateBeingEdited ||
+      LOCKSTATE.importActive ||
+      LOCKSTATE.nodeOrEdgeBeingEdited;
+    this.setState({ disableEdit });
+  }
+
+  /// METHODS /////////////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /**
+   * Was Load JSON Editor
+   * -- If schema is not defined, the default schema is used
+   * -- If startval is not defined, an empty template created from the default
+   *    schema is used.
+   * @param {object} parms { schema, startval }
+   * @param {function} cb - Callback function
+   */
+  loadEditor(parms, cb) {
+    LOCKMGR.RequestEditLock(EDITORTYPE.TEMPLATE).then(data => {
+      console.error('NCTemplate.loadEditor NOT IMPLEMENTED', data);
     });
   }
 
@@ -111,7 +128,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   releaseOpenEditor() {
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.TEMPLATE });
+    LOCKMGR.RequestEditUnlock(EDITORTYPE.TEMPLATE);
   }
 
   onNewTemplate() {
@@ -128,6 +145,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   onEditNodeTypes() {
+    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
     UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaNodeTypeOptions = SCHEMA.NODETYPEOPTIONS;
@@ -154,6 +172,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   onEditEdgeTypes() {
+    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
     UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaEdgeTypeOptions = SCHEMA.EDGETYPEOPTIONS;
@@ -193,6 +212,7 @@ class NCTemplate extends UNISYS.Component {
           tomlfileStatus: 'Invalid template file!!!',
           tomlfileErrors: errorMsg
         });
+        this.releaseOpenEditor();
       }
     });
   }
@@ -210,8 +230,8 @@ class NCTemplate extends UNISYS.Component {
         alert(`Template Saved: ${templateJSON.name}`);
         this.setState({ isBeingEdited: false });
       }
+      this.releaseOpenEditor();
     });
-    this.releaseOpenEditor();
   }
 
   onCancelEdit() {
@@ -266,12 +286,19 @@ class NCTemplate extends UNISYS.Component {
           >
             <i className="small text-muted">Edit Current Template Options</i>
             <br />
-            <button size="sm" onClick={this.onEditNodeTypes}>
+            <button size="sm" onClick={this.onEditNodeTypes} disabled>
               Edit Node Types
             </button>
-            <button size="sm" onClick={this.onEditEdgeTypes}>
+            <button size="sm" onClick={this.onEditEdgeTypes} disabled>
               Edit Edge Types
             </button>
+          </div>
+          <div>
+            <div style={{ color: 'red' }}>
+              [Edit Node Types] and [Edit Edge Types] are currently disabled because
+              JSON Editor has been deprecated. Stay tuned for return of that
+              functionality.
+            </div>
             <p></p>
             <p></p>
             <hr />
@@ -306,9 +333,14 @@ class NCTemplate extends UNISYS.Component {
             <p></p>
             <i className="small text-muted">Create New Template</i>
             <br />
-            <button size="sm" onClick={this.onNewTemplate}>
+            <button size="sm" onClick={this.onNewTemplate} disabled>
               New Template
             </button>
+            <br />
+            <div style={{ color: 'red' }}>
+              [New Template] is disabled because JSON Editor has been deprecated. Stay
+              tuned for return of that functionality.
+            </div>
             <p></p>
           </div>
           <hr />

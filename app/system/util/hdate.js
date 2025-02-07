@@ -13,7 +13,7 @@ const HDATE = {};
 /// HISTORICAL CHRONO /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Create a custom parser for BCE/CE dates
-///   ex: erasChrono.parseDate("I'll arrive at 2.30AM tomorrow");
+///   ex: erasChrono.parseDate("I'll arUrive at 2.30AM tomorrow");
 HDATE.erasChrono = chrono.casual.clone();
 HDATE.erasChrono.parsers.push(
   {

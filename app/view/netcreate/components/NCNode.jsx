@@ -40,8 +40,9 @@
 const React = require('react');
 const UNISYS = require('unisys/client');
 const EDGEMGR = require('../edge-mgr'); // handles edge synthesis
+const LOCKMGR = require('../lock-mgr');
 const CMTMGR = require('../comment-mgr');
-const { EDITORTYPE, BUILTIN_FIELDS_NODE } = require('system/util/enum');
+const { BUILTIN_FIELDS_NODE } = require('system/util/enum');
 const { EDGE_NOT_SET_LABEL, ARROW_RIGHT } = require('system/util/constant');
 const NCLOGIC = require('../nc-logic');
 const NCUI = require('../nc-ui');
@@ -79,32 +80,31 @@ class NCNode extends UNISYS.Component {
 
     // STATE MANAGEMENT
     this.ResetState = this.ResetState.bind(this);
-    this.UpdateSession = this.UpdateSession.bind(this);
-    this.UpdateNCData = this.UpdateNCData.bind(this);
-    this.SetPermissions = this.SetPermissions.bind(this);
-    this.UpdatePermissions = this.UpdatePermissions.bind(this);
+    this.urstate_SESSION = this.urstate_SESSION.bind(this);
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
+    this.urstate_NCDATA = this.urstate_NCDATA.bind(this);
+    this.IsLoggedIn = this.IsLoggedIn.bind(this);
+    this.DerivePermissions = this.DerivePermissions.bind(this);
 
     // EVENT HANDLERS
     this.CheckUnload = this.CheckUnload.bind(this);
     this.DoUnload = this.DoUnload.bind(this);
     this.ClearSelection = this.ClearSelection.bind(this);
-    this.UpdateSelection = this.UpdateSelection.bind(this);
+    this.urstate_SELECTION = this.urstate_SELECTION.bind(this);
     this.SelectEdgeAndEdit = this.SelectEdgeAndEdit.bind(this);
     this.SelectEdge = this.SelectEdge.bind(this);
     this.DeselectEdge = this.DeselectEdge.bind(this);
     // DATA LOADING
     this.LoadNode = this.LoadNode.bind(this);
-    this.LoadEdges = this.LoadEdges.bind(this);
+    this.FindLinkedEdges = this.FindLinkedEdges.bind(this);
     this.LoadAttributes = this.LoadAttributes.bind(this);
-    this.LockNode = this.LockNode.bind(this);
     this.UnlockNode = this.UnlockNode.bind(this);
-    this.IsNodeLocked = this.IsNodeLocked.bind(this);
     // DATA SAVING
     this.SaveNode = this.SaveNode.bind(this);
     this.DeleteNode = this.DeleteNode.bind(this);
     // HELPER METHODS
-    this.SetBackgroundColor = this.SetBackgroundColor.bind(this);
-    this.UpdateMatchingList = this.UpdateMatchingList.bind(this);
+    this.LookupBackgroundColor = this.LookupBackgroundColor.bind(this);
+    this.FindMatchingList = this.FindMatchingList.bind(this);
     // UI HANDLERS
     this.UISelectTab = this.UISelectTab.bind(this);
     this.UIRequestEditNode = this.UIRequestEditNode.bind(this);
@@ -127,14 +127,14 @@ class NCNode extends UNISYS.Component {
     this.RenderEdgesTab = this.RenderEdgesTab.bind(this);
 
     /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
+    UDATA = this; // UNISYS.NewDataLink(this);
 
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
-    UDATA.OnAppStateChange('SESSION', this.UpdateSession);
-    UDATA.OnAppStateChange('NCDATA', this.UpdateNCData);
-    UDATA.OnAppStateChange('SELECTION', this.UpdateSelection);
-    UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', this.SetPermissions);
+    UDATA.OnAppStateChange('SESSION', this.urstate_SESSION);
+    UDATA.OnAppStateChange('NCDATA', this.urstate_NCDATA);
+    UDATA.OnAppStateChange('SELECTION', this.urstate_SELECTION);
+    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
     UDATA.HandleMessage('NODE_EDIT', this.UIRequestEditNode); // Node Table request
     UDATA.HandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
     UDATA.HandleMessage('EDGE_SELECT', this.SelectEdge);
@@ -147,10 +147,10 @@ class NCNode extends UNISYS.Component {
     window.addEventListener('unload', this.DoUnload);
   }
   componentWillUnmount() {
-    UDATA.AppStateChangeOff('SESSION', this.UpdateSession);
-    UDATA.AppStateChangeOff('NCDATA', this.UpdateNCData);
-    UDATA.AppStateChangeOff('SELECTION', this.UpdateSelection);
-    UDATA.UnhandleMessage('EDIT_PERMISSIONS_UPDATE', this.SetPermissions);
+    UDATA.AppStateChangeOff('SESSION', this.urstate_SESSION);
+    UDATA.AppStateChangeOff('NCDATA', this.urstate_NCDATA);
+    UDATA.AppStateChangeOff('SELECTION', this.urstate_SELECTION);
+    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     UDATA.UnhandleMessage('NODE_EDIT', this.UIRequestEditNode);
     UDATA.UnhandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
     UDATA.UnhandleMessage('EDGE_SELECT', this.SelectEdge);
@@ -193,7 +193,8 @@ class NCNode extends UNISYS.Component {
       uIsLockedByDB: false, // shows db lock message next to Edit Node button
       uIsLockedByTemplate: false,
       uIsLockedByImport: false,
-      uIsLockedByComment: false,
+      // uIsLockedByComment: false,     // NOT IMPLEMENTED
+
       uEditLockMessage: '',
       uHideDeleteNodeButton: TEMPLATE.hideDeleteNodeButton,
       uReplacementNodeId: '',
@@ -217,8 +218,7 @@ class NCNode extends UNISYS.Component {
   }
   DoUnload(event) {
     if (this.state.uViewMode === NCUI.VIEWMODE.EDIT) {
-      UDATA.NetCall('SRV_DBUNLOCKNODE', { nodeID: this.state.id });
-      UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.NODE });
+      LOCKMGR.RequestUnlockNode(this.state.id);
     }
   }
 
@@ -231,54 +231,61 @@ class NCNode extends UNISYS.Component {
    * its handleChange() when active typing is occuring, and also during
    * SessionShell.componentWillMount()
    */
-  UpdateSession(decoded) {
-    this.setState({ isLoggedIn: decoded.isValid }, () => this.UpdatePermissions());
+  urstate_SESSION(decoded) {
+    this.urstate_LOCKSTATE();
+  }
+
+  urstate_LOCKSTATE() {
+    const permissionsState = this.DerivePermissions(this.state.id);
+    this.setState({ ...permissionsState });
   }
   /*
       Called by NCDATA AppState updates
   */
-  UpdateNCData(data) {
+  urstate_NCDATA(data) {
     // If NCDATA is updated, reload the node AND the edges b/c db has changed
     const updatedNode = data.nodes.find(n => n.id === this.state.id);
     this.LoadNode(updatedNode);
-    this.LoadEdges(this.state.id);
   }
-  SetPermissions(data) {
-    UDATA.NetCall('SRV_GET_EDIT_STATUS').then(data => {
-      // someone else might be editing a template or importing or editing node or edge
-      const { id } = this.state;
-      const nodeIsLocked = data.lockedNodes.includes(id);
 
-      // skip updates if there are no changes in values to optimize renders
-      const newState = {
-        uIsLockedByDB: nodeIsLocked,
-        uIsLockedByTemplate: data.templateBeingEdited,
-        uIsLockedByImport: data.importActive,
-        uIsLockedByComment: data.commentBeingEditedByMe
-      };
-      if (
-        newState.uIsLockedByDB === this.state.uIsLockedByDB &&
-        newState.uIsLockedByTemplate === this.state.uIsLockedByTemplate &&
-        newState.uIsLockedByImport === this.state.uIsLockedByImport &&
-        newState.uIsLockedByComment === this.state.uIsLockedByComment
-      ) {
-        return;
-      }
-      this.setState(newState, () => this.UpdatePermissions());
-    });
+  /**
+   * Checks current SESSION state to see if user is logged in.
+   * Since NCNode is dynamically created and closed, we can't rely on
+   * SESSION AppState updates messages.
+   * NOTE updates state.
+   * @returns {boolean} True if user is logged in
+   */
+  IsLoggedIn() {
+    const SESSION = UDATA.AppState('SESSION');
+    const isLoggedIn = SESSION.isValid;
+    return isLoggedIn;
   }
-  UpdatePermissions() {
-    const {
-      isLoggedIn,
-      uIsLockedByDB,
-      uIsLockedByTemplate,
-      uIsLockedByImport,
-      uIsLockedByComment
-    } = this.state;
-    const TEMPLATE = UDATA.AppState('TEMPLATE');
+
+  // 1. Read the LOCKSTATE
+  // 2. Derive the permissions state (hide/disable the edit button)
+  // 3. Look up any lock messages
+  DerivePermissions(nodeId) {
+    const isLoggedIn = this.IsLoggedIn();
+
+    const LOCKSTATE = UDATA.AppState('LOCKSTATE');
+    const uIsLockedByDB = LOCKSTATE.lockedNodes.includes(nodeId);
+    const uIsLockedByTemplate = LOCKSTATE.templateBeingEdited;
+    const uIsLockedByImport = LOCKSTATE.importActive;
+    // NOT IMPLEMENTED
+    // FUTURE: We may want to lock the node if a comment is being edited
+    //         but currently there isn't an easy way to do this
+    //         because while we know that a comment is being edited (via LOCKSTATE.lockedComments)
+    //         we don't know if the comment is being edited by the current user or someone else.
+    //         So for now, we allow the node to be edited while a comment is being edited.
+    //         If we wanted to implement this, we probably need to introduce a new parameter
+    //         or properly implement commentBeingEditedByMe.
+    // const uIsLockedByComment = LOCKSTATE.commentBeingEditedByMe;
+
+    // Derive new message and EditBtn status
     let uEditLockMessage = '';
     let uEditBtnDisable = false;
     let uEditBtnHide = true;
+    const TEMPLATE = UDATA.AppState('TEMPLATE');
     if (isLoggedIn) uEditBtnHide = false;
     if (uIsLockedByDB) {
       uEditBtnDisable = true;
@@ -292,16 +299,31 @@ class NCNode extends UNISYS.Component {
       uEditBtnDisable = true;
       uEditLockMessage += TEMPLATE.importIsLockedMessage;
     }
-    if (uIsLockedByComment) {
-      uEditBtnDisable = true;
-      uEditLockMessage += '';
-    }
-    this.setState({ uEditBtnDisable, uEditBtnHide, uEditLockMessage });
+    // NOT IMPLEMENTED
+    // if (uIsLockedByComment) {
+    //   uEditBtnDisable = true;
+    //   // no change to lock message for comments
+    // }
+
+    // return all state values
+    return {
+      // User Permissions
+      isLoggedIn,
+      uIsLockedByDB,
+      uIsLockedByTemplate,
+      uIsLockedByImport,
+      // uIsLockedByComment,  // NOT IMPLEMENTED
+      // UI State
+      uEditBtnDisable,
+      uEditBtnHide,
+      uEditLockMessage
+    };
   }
+
   ClearSelection() {
     this.ResetState();
   }
-  UpdateSelection(data) {
+  urstate_SELECTION(data) {
     if (!data.nodes) return; // SELECTION cleared?
     const node = data.nodes[0]; // select the first node
     this.LoadNode(node);
@@ -358,38 +380,33 @@ class NCNode extends UNISYS.Component {
     if (node.id !== id) UDATA.LocalCall('EDGE_DESELECT');
 
     // Load the node
+    const edges = this.FindLinkedEdges(node.id);
     const attributes = this.LoadAttributes(node);
     const provenance = this.LoadProvenance(node);
-    this.setState(
-      {
-        id: node.id,
-        label: node.label,
-        type: node.type,
-        degrees: node.degrees,
-        attributes: attributes,
-        provenance: provenance,
-        created: node.meta ? new Date(node.meta.created).toLocaleString() : '',
-        createdBy: node.createdBy,
-        updated: node.meta ? new Date(node.meta.updated).toLocaleString() : '',
-        updatedBy: node.updatedBy,
-        revision: node.meta ? node.meta.revision : ''
-      },
-      () => {
-        this.SetBackgroundColor();
-        this.UpdateMatchingList(node.label);
-        this.LoadEdges(node.id);
-        this.IsNodeLocked(nodeIsLocked => {
-          this.setState(
-            {
-              uIsLockedByDB: nodeIsLocked
-            },
-            () => this.UpdatePermissions()
-          );
-        });
-      }
-    );
+    const uBackgroundColor = this.LookupBackgroundColor(node.type);
+    const matchingNodes = this.FindMatchingList(node.label);
+    const permissionsState = this.DerivePermissions(node.id);
+    this.setState({
+      // node parameters
+      id: node.id,
+      label: node.label,
+      type: node.type,
+      degrees: node.degrees,
+      attributes: attributes,
+      provenance: provenance,
+      created: node.meta ? new Date(node.meta.created).toLocaleString() : '',
+      createdBy: node.createdBy,
+      updated: node.meta ? new Date(node.meta.updated).toLocaleString() : '',
+      updatedBy: node.updatedBy,
+      revision: node.meta ? node.meta.revision : '',
+      edges,
+      // UI parameters
+      uBackgroundColor,
+      matchingNodes,
+      ...permissionsState
+    });
   }
-  LoadEdges(id) {
+  FindLinkedEdges(id) {
     // -- First, sort edges by source, then target
     const NCDATA = UDATA.AppState('NCDATA');
     const linkedEdges = NCDATA.edges.filter(e => e.source === id || e.target === id);
@@ -407,7 +424,7 @@ class NCNode extends UNISYS.Component {
       if (a.sourceLabel > b.sourceLabel) return 1;
       return 0;
     });
-    this.setState({ edges: linkedEdges });
+    return linkedEdges;
   }
   /**
    * Loads up the `attributes` object defined by the TEMPLATE
@@ -452,60 +469,8 @@ class NCNode extends UNISYS.Component {
     return provenance;
   }
 
-  /**
-   * Tries to lock the node for editing.
-   * If the lock fails, then it means the node was already locked
-   * previously and we're not allowed to edit
-   * @param {function} cb callback function
-   * @returns {boolean} true if lock was successful
-   */
-  LockNode(cb) {
-    const { id } = this.state;
-    let lockSuccess = false;
-    UDATA.NetCall('SRV_DBLOCKNODE', { nodeID: id }).then(data => {
-      if (data.NOP) {
-        console.log(`SERVER SAYS: ${data.NOP} ${data.INFO}`);
-      } else if (data.locked) {
-        console.log(`SERVER SAYS: lock success! you can edit Node ${data.nodeID}`);
-        console.log(`SERVER SAYS: unlock the node after successful DBUPDATE`);
-        lockSuccess = true;
-        // When a node is being edited, lock the Template from being edited
-        UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: EDITORTYPE.NODE });
-      }
-      if (typeof cb === 'function') cb(lockSuccess);
-    });
-  }
   UnlockNode(cb) {
-    const { id } = this.state;
-    let unlockSuccess = false;
-    UDATA.NetCall('SRV_DBUNLOCKNODE', { nodeID: id }).then(data => {
-      if (data.NOP) {
-        console.log(`SERVER SAYS: ${data.NOP} ${data.INFO}`);
-      } else if (data.unlocked) {
-        console.log(
-          `SERVER SAYS: unlock success! you have released Node ${data.nodeID}`
-        );
-        unlockSuccess = true;
-        // Release Template lock
-        UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.NODE });
-      }
-      if (typeof cb === 'function') cb(unlockSuccess);
-    });
-  }
-  IsNodeLocked(cb) {
-    const { id } = this.state;
-    let nodeIsLocked = false;
-    UDATA.NetCall('SRV_DBISNODELOCKED', { nodeID: id }).then(data => {
-      if (data.NOP) {
-        console.log(`SERVER SAYS: ${data.NOP} ${data.INFO}`);
-      } else if (data.locked) {
-        console.log(
-          `SERVER SAYS: Node is locked! You cannot edit Node ${data.nodeID}`
-        );
-        nodeIsLocked = true;
-      }
-      if (typeof cb === 'function') cb(nodeIsLocked);
-    });
+    LOCKMGR.RequestUnlockNode(this.state.id, cb);
   }
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -537,9 +502,7 @@ class NCNode extends UNISYS.Component {
         // setting dbWrite to true will distinguish this update
         // from a remote one
         this.AppCall('DB_UPDATE', { node }).then(() => {
-          this.UnlockNode(() => {
-            this.setState({ uIsLockedByDB: false });
-          });
+          this.UnlockNode();
         });
       }
     );
@@ -563,23 +526,22 @@ class NCNode extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// HELPER METHODS
   /**
-   * Sets the background color of the node editor via `uBackgroundColor` state.
+   * Looks up the background color of the node editor for the
+   * `uBackgroundColor` state.
    * Currently the background color is determined by the template node type
    * color mapping.  This will eventually be replaced with a color manager.
    */
-  SetBackgroundColor() {
-    const { type } = this.state;
+  LookupBackgroundColor(type) {
     const COLORMAP = UDATA.AppState('COLORMAP');
     const uBackgroundColor = COLORMAP.nodeColorMap[type] || '#555555';
-    this.setState({ uBackgroundColor });
+    return uBackgroundColor;
   }
 
-  UpdateMatchingList(value) {
+  FindMatchingList(label) {
     const { id } = this.state;
-    UDATA.LocalCall('FIND_MATCHING_NODES', { searchString: value }).then(data => {
-      const matchingNodes = data.nodes.filter(n => n.id !== id); // don't include self
-      this.setState({ matchingNodes });
-    });
+    const foundNodes = NCLOGIC.FindMatchingNodesByLabel(label);
+    const matchingNodes = foundNodes.filter(n => n.id !== id); // don't include self
+    return matchingNodes;
   }
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -600,7 +562,7 @@ class NCNode extends UNISYS.Component {
   UIRequestEditNode() {
     const { isLoggedIn } = this.state;
     if (!isLoggedIn) return;
-    this.LockNode(lockSuccess => {
+    LOCKMGR.RequestLockNode(this.state.id, lockSuccess => {
       this.setState({ uIsLockedByDB: !lockSuccess }, () => {
         if (lockSuccess) this.UIEnableEditMode();
       });
@@ -641,8 +603,8 @@ class NCNode extends UNISYS.Component {
     const previousState = {
       label,
       type,
-      attributes: Object.assign({}, attributes)
-      // provenance: Object.assign({}, provenance) // uncomment after provenence is implemented
+      attributes: Object.assign({}, attributes),
+      provenance: Object.assign({}, provenance)
     };
     this.setState({
       uViewMode: NCUI.VIEWMODE.EDIT,
@@ -677,8 +639,8 @@ class NCNode extends UNISYS.Component {
       {
         label: previousState.label,
         type: previousState.type,
-        attributes: previousState.attributes
-        // provenance: previousState.provenance // uncomment after provenence is implemented
+        attributes: previousState.attributes,
+        provenance: previousState.provenance
       },
       () => this.UIDisableEditMode()
     );
@@ -690,7 +652,6 @@ class NCNode extends UNISYS.Component {
       this.setState({
         uViewMode: NCUI.VIEWMODE.VIEW
       });
-      UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.NODE });
     });
   }
   UIInputUpdate(key, value) {
@@ -701,7 +662,11 @@ class NCNode extends UNISYS.Component {
     } else {
       const { attributes } = this.state;
       attributes[key] = value;
-      this.setState({ attributes }, () => this.SetBackgroundColor());
+
+      // special handling to update the background color immediately if `type` is changed
+      const type = key === `type` ? value : this.state.type;
+      const uBackgroundColor = this.LookupBackgroundColor(type);
+      this.setState({ attributes, uBackgroundColor });
     }
   }
   UIProvenanceInputUpdate(key, value) {
@@ -712,14 +677,14 @@ class NCNode extends UNISYS.Component {
     } else {
       const { provenance } = this.state;
       provenance[key] = value;
-      this.setState({ provenance }, () => this.SetBackgroundColor());
+      this.setState({ provenance });
     }
   }
   UILabelInputUpdate(key, value) {
     const data = {};
     data[key] = value;
+    data.matchingNodes = this.FindMatchingList(value);
     this.setState(data);
-    this.UpdateMatchingList(value);
   }
 
   UIViewEdge(edgeId) {
@@ -781,8 +746,8 @@ class NCNode extends UNISYS.Component {
           <div className="titlebar">
             <div className="nodenumber">NODE {id}</div>
             <div className="nodelabel">{NCUI.RenderLabel('label', label)}</div>
-            <URCommentVBtn cref={collection_ref} />
-            {/* using key resets with a new URComment <URCommentBtn cref={collection_ref} key={collection_ref} /> */}
+            <URCommentVBtn cref={collection_ref} key={collection_ref} />
+            {/* use key to make sure URCommentVBtn refreshes */}
           </div>
           {/* Special handling for `type` field */}
           {defs['type'] && !defs['type'].hidden && (

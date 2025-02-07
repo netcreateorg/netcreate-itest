@@ -998,6 +998,9 @@ function m_FindMatchingNodeByProp(match_me = {}) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Return array of nodes with labels that partially match str
  */
+MOD.FindMatchingNodesByLabel = label => {
+  return m_FindMatchingNodesByLabel(label);
+};
 function m_FindMatchingNodesByLabel(str = '') {
   if (!str) return [];
   str = u_EscapeRegexChars(str.trim());

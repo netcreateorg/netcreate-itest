@@ -8,6 +8,7 @@ const UNET = require('./server-network');
 const UDB = require('./server-database');
 const LOGGER = require('./server-logger');
 const PROMPTS = require('../system/util/prompts');
+const { EDITORTYPE } = require('../system/util/enum');
 
 /// CONSTANTS & DECLARATIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -85,10 +86,10 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_REQ_EDIT_LOCK', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    const data = UDB.RequestEditLock(pkt);
+    const editStatus = UDB.RequestEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
-    return data;
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    return editStatus;
   });
   /**
    * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
@@ -96,10 +97,10 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_RELEASE_EDIT_LOCK', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    const data = UDB.ReleaseEditLock(pkt);
+    const editStatus = UDB.ReleaseEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
-    return data;
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    return editStatus;
   });
 
   /** TEMPLATE EDITING **/
@@ -112,7 +113,7 @@ UNISYS.RegisterHandlers = () => {
   UNET.HandleMessage('SRV_TEMPLATESAVE', pkt => {
     // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    UNET.NetCall('NET_TEMPLATE_UPDATE', pkt.data.template); // Broadcast template to other computers on the net
+    UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template); // Broadcast template to other computers on the net
     return UDB.WriteTemplateTOML(pkt);
   });
   UNET.HandleMessage('SRV_GET_TEMPLATETOML_FILENAME', () => {
@@ -173,29 +174,71 @@ UNISYS.RegisterHandlers = () => {
     return UDB.PKT_GetNewNodeIDs(pkt);
   });
 
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// DB LOCKING
+  /**
+   * @param {object} pkt
+   * @param {string} pkt.data.nodeID
+   */
   UNET.HandleMessage('SRV_DBLOCKNODE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestLockNode(pkt);
+    const lockResult = UDB.PKT_RequestLockNode(pkt);
+    if (lockResult.locked) {
+      // successfully locked, broadcast edit state
+      //  - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.NODE;
+      pkt.SetData(pktData);
+      const editStatus = UDB.RequestEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return lockResult; // handle callback
   });
-
   UNET.HandleMessage('SRV_DBUNLOCKNODE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestUnlockNode(pkt);
+    const unlockResult = UDB.PKT_RequestUnlockNode(pkt);
+    if (unlockResult.unlocked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.NODE;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return unlockResult; // handle callback
   });
-
-  UNET.HandleMessage('SRV_DBISNODELOCKED', function (pkt) {
-    if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_IsNodeLocked(pkt);
-  });
-
   UNET.HandleMessage('SRV_DBLOCKEDGE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestLockEdge(pkt);
+    const lockResult = UDB.PKT_RequestLockEdge(pkt);
+    if (lockResult.locked) {
+      // successfully locked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.EDGE;
+      pkt.SetData(pktData);
+      const editStatus = UDB.RequestEditLock(pkt);
+      // = broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return lockResult; // handle callback
   });
-
   UNET.HandleMessage('SRV_DBUNLOCKEDGE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestUnlockEdge(pkt);
+    const unlockResult = UDB.PKT_RequestUnlockEdge(pkt);
+    if (unlockResult.unlocked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.EDGE;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return unlockResult; // handle callback
   });
 
   UNET.HandleMessage('SRV_DBISEDGELOCKED', function (pkt) {
@@ -205,12 +248,34 @@ UNISYS.RegisterHandlers = () => {
 
   UNET.HandleMessage('SRV_DBLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestLockComment(pkt);
+    const lockResult = UDB.PKT_RequestLockComment(pkt);
+    if (lockResult.locked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.COMMENT;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return lockResult; // handle callback
   });
 
   UNET.HandleMessage('SRV_DBUNLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_RequestUnlockComment(pkt);
+    const unlockResult = UDB.PKT_RequestUnlockComment(pkt);
+    if (unlockResult.unlocked) {
+      // successfully unlocked, broadcast edit state
+      // - inject editor type into the pkt
+      const pktData = pkt.Data();
+      pktData.editor = EDITORTYPE.COMMENT;
+      pkt.SetData(pktData);
+      const editStatus = UDB.ReleaseEditLock(pkt);
+      // - broadcast lock state
+      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    }
+    return unlockResult; // handle callback
   });
 
   UNET.HandleMessage('SRV_DBISCOMMENTLOCKED', function (pkt) {
@@ -235,7 +300,7 @@ UNISYS.RegisterHandlers = () => {
     const res = UDB.PKT_RequestUnlockAll(pkt);
     // Broadcast Lock State
     const data = UDB.GetEditStatus(pkt);
-    UNET.NetCall('EDIT_PERMISSIONS_UPDATE', data);
+    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
     return res;
   });
 

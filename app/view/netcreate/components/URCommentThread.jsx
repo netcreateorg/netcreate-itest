@@ -50,10 +50,10 @@ function URCommentThread({ uiref, cref, uid, x, y }) {
 
   /** Component Effect - set up listeners on mount */
   useEffect(() => {
-    UDATA.HandleMessage('COMMENT_UPDATE_PERMISSIONS', urmsg_ForceRender);
+    UDATA.OnAppStateChange('CMTLOCKSTATE', urmsg_ForceRender);
 
     return () => {
-      UDATA.UnhandleMessage('COMMENT_UPDATE_PERMISSIONS', urmsg_ForceRender);
+      UDATA.AppStateChangeOff('CMTLOCKSTATE', urmsg_ForceRender);
     };
   }, []);
 

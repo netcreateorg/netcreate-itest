@@ -10,6 +10,7 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const UNISYS = require('unisys/client');
+const LOCKMGR = require('./lock-mgr');
 const { COMMENT } = require('@ursys/addons');
 const DATASTORE = require('system/datastore');
 const { ARROW_RIGHT } = require('system/util/constant');
@@ -49,14 +50,12 @@ MOD.Hook('INITIALIZE', () => {
    *  @param {Object} data.comments
    */
   // Comment AddOn Handlers
-  UDATA.HandleMessage('LOAD_COMMENT_DATACORE', MOD.LoadDB);
+  UDATA.HandleMessage('LOAD_COMMENT_DATACORE', MOD.LoadDB); // MEME equivalent: DATA_UPDATED
   /// STATE UPDATES and Message Handlers
+  UDATA.OnAppStateChange('LOCKSTATE', m_urstate_LOCKSTATE);
   UDATA.HandleMessage('COMMENTS_UPDATE', MOD.HandleCOMMENTS_UPDATE);
   UDATA.HandleMessage('COMMENT_UPDATE', MOD.HandleCOMMENT_UPDATE);
   UDATA.HandleMessage('READBY_UPDATE', MOD.HandleREADBY_UPDATE);
-  // Net.Create Handlers
-  UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', m_UpdatePermissions);
-
   // Currently not used
   // UDATA.OnAppStateChange('COMMENTCOLLECTION', COMMENTCOLLECTION => console.log('comment-mgr.COMMENTCOLLECTION state updated:', COMMENTCOLLECTION));
   // UDATA.OnAppStateChange('COMMENTVOBJS', COMMENTVOBJS => console.error('comment-mgr.COMMENTVOBJS state updated', COMMENTVOBJS));
@@ -136,11 +135,8 @@ function m_UpdateComment(comment) {
   COMMENT.UpdateComment(cobj, uid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_UpdatePermissions(data) {
-  UDATA.NetCall('SRV_GET_EDIT_STATUS').then(data => {
-    // disable comment button if someone is editing a comment
-    UDATA.LocalCall('COMMENT_UPDATE_PERMISSIONS', data);
-  });
+function m_urstate_LOCKSTATE(LOCKSTATE) {
+  UDATA.SetAppState('CMTLOCKSTATE', LOCKSTATE);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -418,9 +414,17 @@ MOD.OpenCommentStatusComment = (cref, cid) => {
   // - don't close all comments
   // - don't open a new one
   if (MOD.GetCommentsAreBeingEdited()) {
-    UR.Publish('DIALOG_OPEN', {
-      text: `Please finish editing your comment before opening a different comment!`
-    });
+    const CMTSTATUS = UDATA.AppState('CMTSTATUS');
+    CMTSTATUS.dialog = {
+      isOpen: true,
+      message: `Please finish editing your comment before opening a different comment!`,
+      okmessage: 'OK',
+      onOK: m_CloseRemoveCommentDialog,
+      cancelmessage: '',
+      onCancel: undefined
+    };
+
+    UDATA.SetAppState('CMTSTATUS', CMTSTATUS);
     return;
   }
 
@@ -554,7 +558,7 @@ MOD.CloseAllCommentCollectionsWithoutMarkingRead = () => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MOD.GetCommentCollectionCount = cref => {
   const ccol = COMMENT.GetCommentCollection(cref);
-  return ccol ? ccol.commentCount : '';
+  return ccol ? ccol.commentCount : 0;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MOD.GetCommentStats = () => {
@@ -674,7 +678,7 @@ MOD.AddComment = cobj => {
 MOD.UIEditComment = comment_id => {
   MOD.RegisterCommentBeingEdited(comment_id);
   MOD.LockComment(comment_id);
-  UDATA.NetCall('COMMENT_UPDATE_PERMISSIONS');
+  UDATA.NetSend('COMMENT_UPDATE_PERMISSIONS');
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** User clicks Cancel on a comment
@@ -683,7 +687,7 @@ MOD.UIEditComment = comment_id => {
 MOD.UICancelComment = comment_id => {
   MOD.DeRegisterCommentBeingEdited(comment_id);
   MOD.UnlockComment(comment_id);
-  UDATA.NetCall('COMMENT_UPDATE_PERMISSIONS');
+  UDATA.NetSend('COMMENT_UPDATE_PERMISSIONS');
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** User clicks Save coment
@@ -693,6 +697,7 @@ MOD.UISaveComment = cobj => {
   MOD.UnlockComment(cobj.comment_id);
   MOD.DeRegisterCommentBeingEdited(cobj.comment_id);
   MOD.UpdateComment(cobj);
+  UDATA.NetSend('COMMENT_UPDATE_PERMISSIONS');
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
@@ -909,13 +914,11 @@ MOD.HandleREADBY_UPDATE = data => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MOD.LockComment = comment_id => {
   UDATA.NetCall('SRV_DBLOCKCOMMENT', { commentID: comment_id }).then(() => {
-    UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: EDITORTYPE.COMMENT });
     UDATA.LocalCall('SELECTMGR_SET_MODE', { mode: 'comment_edit' });
   });
 };
 MOD.UnlockComment = comment_id => {
   UDATA.NetCall('SRV_DBUNLOCKCOMMENT', { commentID: comment_id }).then(() => {
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.COMMENT });
     UDATA.LocalCall('SELECTMGR_SET_MODE', { mode: 'normal' });
   });
 };

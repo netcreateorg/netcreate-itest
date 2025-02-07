@@ -204,10 +204,10 @@ isRequired = true
 isProvenance = false
 hidden = false
 
-[edgeDefs.infoSource]
+[edgeDefs.infoOrigin]
 type = "string"
-displayLabel = "Info Source"
-exportLabel = "InfoSource"
+displayLabel = "Info Origin"
+exportLabel = "InfoOrigin"
 help = "Who created this?  (aka Source)"
 includeInGraphTooltip = true
 isProvenance = true

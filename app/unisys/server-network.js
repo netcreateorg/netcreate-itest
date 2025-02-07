@@ -505,6 +505,10 @@ function m_SocketDelete(socket) {
       if (handlers) handlers.delete(uaddr);
     });
   }
+
+  // Unlock everything if the socket is being removed
+  DB.RequestUnlock(uaddr);
+
   if (DBG) m_ListSockets(`del ${socket.UADDR}`);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

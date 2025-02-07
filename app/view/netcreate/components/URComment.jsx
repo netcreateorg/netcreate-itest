@@ -78,28 +78,39 @@ function URComment({ cref, cid, uid }) {
 
   /** Component Effect - updated comment */
   useEffect(() => {
-    // declare helpers
-    const urmsg_UpdatePermissions = data => {
+    const urstate_CMT_LOCKSTATE = data => {
       setState(prevState => ({
         ...prevState,
-        uIsDisabled: data.commentBeingEditedByMe
+        uIsDisabled: c_IsDisabled()
       }));
     };
     const urstate_UpdateCommentVObjs = () => c_LoadCommentVObj();
 
     // hook UNISYS state change and message handlers
     UDATA.OnAppStateChange('COMMENTVOBJS', urstate_UpdateCommentVObjs);
-    UDATA.HandleMessage('COMMENT_UPDATE_PERMISSIONS', urmsg_UpdatePermissions);
+    UDATA.OnAppStateChange('CMTLOCKSTATE', urstate_CMT_LOCKSTATE);
 
     // cleanup methods for functional component unmount
     return () => {
       if (state.uIsBeingEdited) CMTMGR.UnlockComment(cid);
       UDATA.AppStateChangeOff('COMMENTVOBJS', urstate_UpdateCommentVObjs);
-      UDATA.UnhandleMessage('COMMENT_UPDATE_PERMISSIONS', urmsg_UpdatePermissions);
+      UDATA.AppStateChangeOff('CMTLOCKSTATE', urstate_CMT_LOCKSTATE);
     };
   }, [state.uIsBeingEdited]); // run when uIsBeingEdited changes
 
   /// COMPONENT HELPER METHODS ////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UI is disabled if either:
+   *  - the comment is being edited by this user
+   *  - someone else is editing this comment
+   */
+  function c_IsDisabled() {
+    const LOCKSTATE = UDATA.AppState('LOCKSTATE');
+    return (
+      LOCKSTATE.lockedComments.includes(cid) || CMTMGR.GetCommentsAreBeingEdited()
+    );
+  }
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** Declare helper method to load viewdata from comment manager into the
    *  component state */
@@ -149,7 +160,7 @@ function URComment({ cref, cid, uid }) {
       uIsBeingEdited: cvobj.isBeingEdited,
       uIsEditable: cvobj.isEditable,
       uAllowReply: cvobj.allowReply,
-      uIsDisabled: CMTMGR.GetCommentsAreBeingEdited() // if I'm not editing, but someone else is, disable edit
+      uIsDisabled: c_IsDisabled()
     });
 
     // Lock edit upon creation of a new comment or a new reply
