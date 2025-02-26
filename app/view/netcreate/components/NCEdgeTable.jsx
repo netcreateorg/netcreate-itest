@@ -314,17 +314,6 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         data: 'type'
       });
     }
-    const WEIGHT_COLUMNDEF =
-      defs['weight'] && !defs['weight'].hidden
-        ? {
-            title: defs['weight'].displayLabel,
-            type: 'number',
-            width: 45, // in px
-            data: 'weightDef',
-            renderer: col_RenderWeight,
-            sorter: col_SortWeight
-          }
-        : undefined;
     COLUMNDEFS.push(
       {
         title: defs['target'].displayLabel,
@@ -333,10 +322,18 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         renderer: col_RenderNode,
         sorter: col_SortNodes
       },
-      ...ATTRIBUTE_COLUMNDEFS,
-      WEIGHT_COLUMNDEF,
-      ...PROVENANCE_COLUMNDEFS
+      ...ATTRIBUTE_COLUMNDEFS
     );
+    if (defs['weight'] && !defs['weight'].hidden)
+      COLUMNDEFS.push({
+        title: defs['weight'].displayLabel,
+        type: 'number',
+        width: 45, // in px
+        data: 'weightDef',
+        renderer: col_RenderWeight,
+        sorter: col_SortWeight
+      });
+    COLUMNDEFS.push(...PROVENANCE_COLUMNDEFS);
     // History
     if (defs['createdBy'] && !defs['createdBy'].hidden)
       COLUMNDEFS.push({

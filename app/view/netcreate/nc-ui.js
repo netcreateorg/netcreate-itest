@@ -244,7 +244,7 @@ function RenderAttributesTabView(state, defs) {
     items.push(RenderStringValue('degrees', degrees));
   }
   // weight hack -- `weight` is a built-in field, but is displayed in attributes
-  if (defs['weight']) {
+  if (defs['weight'] && !defs['weight'].hidden) {
     // only if defined, e.g. for nodeDefs
     items.push(RenderLabel('weight', defs['weight'].displayLabel));
     items.push(RenderStringValue('weight', `${weight} (${size})`));
@@ -301,7 +301,7 @@ function RenderAttributesTabEdit(state, defs, onchange) {
     items.push(RenderStringValue('degrees', degrees));
   }
   // weight hack -- `weight` is a built-in field, but is displayed in attributes
-  if (defs['weight']) {
+  if (defs['weight'] && !defs['weight'].hidden) {
     // only if defined, e.g. for nodeDefs
     items.push(RenderLabel('weight', defs['weight'].displayLabel));
     items.push(m_RenderNumberInput('weight', weight, onchange, defs['weight'].help));
