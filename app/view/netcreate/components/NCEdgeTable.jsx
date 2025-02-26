@@ -230,6 +230,12 @@ function NCEdgeTable({ tableHeight, isOpen }) {
       const value = tdata[key];
       return <URCommentVBtn cref={value.cref} />;
     }
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// tdata = { weight: Number, size: Number }
+    function col_RenderWeight(key, tdata, coldef) {
+      const value = tdata[key];
+      return `${value.weight} (${value.size})`;
+    }
     /// CUSTOM SORTERS
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// tdata = TTblNodeObject[] = { id: String, label: String }
@@ -250,6 +256,16 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         if (!b[key].count) return -1; // Move undefined or '' the bottom regardless of sort order
         if (a[key].count < b[key].count) return order;
         if (a[key].count > b[key].count) return order * -1;
+        return 0;
+      });
+      return sortedData;
+    }
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// tdata = { weight: Number, size: Number }
+    function col_SortWeight(key, tdata, order) {
+      const sortedData = [...tdata].sort((a, b) => {
+        if (a[key].weight < b[key].weight) return order;
+        if (a[key].weight > b[key].weight) return order * -1;
         return 0;
       });
       return sortedData;
@@ -298,6 +314,17 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         data: 'type'
       });
     }
+    const WEIGHT_COLUMNDEF =
+      defs['weight'] && !defs['weight'].hidden
+        ? {
+            title: defs['weight'].displayLabel,
+            type: 'number',
+            width: 45, // in px
+            data: 'weightDef',
+            renderer: col_RenderWeight,
+            sorter: col_SortWeight
+          }
+        : undefined;
     COLUMNDEFS.push(
       {
         title: defs['target'].displayLabel,
@@ -307,6 +334,7 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         sorter: col_SortNodes
       },
       ...ATTRIBUTE_COLUMNDEFS,
+      WEIGHT_COLUMNDEF,
       ...PROVENANCE_COLUMNDEFS
     );
     // History
@@ -367,9 +395,13 @@ function NCEdgeTable({ tableHeight, isOpen }) {
     );
 
     return edges.map((edge, i) => {
-      const { id, source, target, sourceLabel, targetLabel, type } = edge;
+      const { id, source, target, sourceLabel, targetLabel, type, weight, size } =
+        edge;
       const sourceDef = { id: source, label: sourceLabel };
       const targetDef = { id: target, label: targetLabel };
+
+      // weightDef
+      const weightDef = { weight, size };
 
       // custom attributes
       const attributes = {};
@@ -445,6 +477,9 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         sourceDef, // { id: String, label: String }
         targetDef, // { id: String, label: String }
         type,
+        weightDef, // { weight: Number, size: Number }
+        weight,
+        size,
         ...attributes,
         commentVBtnDef,
         ...provenance,
