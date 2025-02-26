@@ -32,7 +32,7 @@ ENUM.BUILTIN_FIELDS_EDGE = [
   'source',
   'type',
   'target',
-  'weight',
+  'weight', // displayed in attributew tab
   'degrees',
   'created',
   'createdBy',
