@@ -72,6 +72,7 @@ function NCEdgeTable({ tableHeight, isOpen }) {
 
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// FILTEREDNCDATA is the reduced list of nodes, not ALL edges
   function urstate_FILTEREDNCDATA(data) {
     if (data.edges) {
       // If we're transitioning from "COLLAPSE" or "FOCUS" to "HILIGHT/FADE", then we
@@ -88,35 +89,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function m_updateEdgeFilterState(edges) {
-    const filteredEdges = m_deriveFilteredEdges(edges);
-    setState(prevState => ({ ...prevState, edges: filteredEdges }));
-  }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  /// Set node filtered status based on current filteredNodes
-  function m_deriveFilteredEdges(edges) {
-    // set filter status
-    let filteredEdges = [];
-    // If we're transitioning from "HILIGHT/FADE" to "COLLAPSE" or "FOCUS", then we
-    // also need to remove edges that are not in filteredEdges
-    const FILTERDEFS = UDATA.AppState('FILTERDEFS');
-    if (
-      FILTERDEFS.filterAction === FILTER.ACTION.REDUCE ||
-      FILTERDEFS.filterAction === FILTER.ACTION.FOCUS
-    ) {
-      // Reduce (remove) or Focus
-      filteredEdges = edges.filter(edge => {
-        const filteredEdge = filteredEdges.find(e => e.id === edge.id);
-        return filteredEdge; // keep if it's in the list of filtered edges
-      });
-    } else {
-      // Fade
-      // Fading is handled by setting edge.filteredTransparency which is
-      // directly handled by the filter now.  So no need to process it
-      // here in the table.
-      filteredEdges = edges;
-    }
-    // }
-    return filteredEdges;
+    setState(prevState => ({ ...prevState, edges }));
+    return;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {

@@ -94,18 +94,16 @@ function m_RenderEdges(data) {
       edgeColorWeightMap.set(edgeKey, colorWeightMap);
     }
 
-
-    // 4. Save value
+    // 3. Save value
     edgeMap.set(edgeKey, e);
   });
 
-  // 6. Set Color and Cumulative Size
+  // 4. Set Color and Cumulative Size
   VDATA.edges.forEach(e => {
     e.size = cumulativeSize.get(m_GetEdgeKey(e));
     e.color = m_GetWeightiestColor(e, edgeColorWeightMap);
   });
 
-  VDATA.edges = [...edgeMap.values()];
   UDATA.SetAppState('VDATA', VDATA);
 }
 
