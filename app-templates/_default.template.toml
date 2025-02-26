@@ -194,7 +194,7 @@ isProvenance = false
 hidden = false
 
 [edgeDefs.weight]
-type = "number"
+type = "weight"
 defaultValue = 1
 displayLabel = "Weight"
 exportLabel = "Weight"
