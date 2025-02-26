@@ -72,15 +72,16 @@ function NCNodeTable({ tableHeight, isOpen }) {
 
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// FILTEREDNCDATA is the reduced list of nodes, not ALL nodes
   function urstate_FILTEREDNCDATA(data) {
     if (data.nodes) {
       // If we're transitioning from "COLLAPSE" or "FOCUS" to "HILIGHT/FADE", then we
       // also need to add back in nodes that are not in filteredNodes
       // (because "COLLAPSE" and "FOCUS" removes nodes that are not matched)
-      const NCDATA = UDATA.AppState('NCDATA');
       const FILTERDEFS = UDATA.AppState('FILTERDEFS');
       if (FILTERDEFS.filterAction === FILTER.ACTION.FADE) {
         // show ALL nodes
+        const NCDATA = UDATA.AppState('NCDATA');
         m_updateNodeFilterState(NCDATA.nodes);
       } else {
         // show only filtered nodes from the filter update
@@ -90,35 +91,8 @@ function NCNodeTable({ tableHeight, isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function m_updateNodeFilterState(nodes) {
-    const filteredNodes = m_deriveFilteredNodes(nodes);
-    setState(prevState => ({ ...prevState, nodes: filteredNodes }));
-  }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  /// Set node filtered status based on current filteredNodes
-  function m_deriveFilteredNodes(nodes) {
-    // set filter status
-    let filteredNodes = [];
-    // If we're transitioning from "HILIGHT/FADE" to "COLLAPSE" or "FOCUS", then we
-    // also need to remove nodes that are not in filteredNodes
-    const FILTERDEFS = UDATA.AppState('FILTERDEFS');
-    if (
-      FILTERDEFS.filterAction === FILTER.ACTION.REDUCE ||
-      FILTERDEFS.filterAction === FILTER.ACTION.FOCUS
-    ) {
-      // Reduce (remove) or Focus
-      filteredNodes = nodes.filter(node => {
-        const filteredNode = filteredNodes.find(n => n.id === node.id);
-        return filteredNode; // keep if it's in the list of filtered nodes
-      });
-    } else {
-      // Fade
-      // Fading is handled by setting node.filteredTransparency which is
-      // directly handled by the filter now.  So no need to process it
-      // here in the table.
-      filteredNodes = nodes;
-    }
-    // }
-    return filteredNodes;
+    setState(prevState => ({ ...prevState, nodes }));
+    return;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
