@@ -118,6 +118,7 @@ MOD.Hook('INITIALIZE', () => {
   /** FILTER_DEFINE is called by StringFilter when user has updated filter.
    */
   UDATA.HandleMessage('FILTER_DEFINE', data => {
+    if (DBG) console.log(PR + 'FILTER_DEFINE', data);
     m_FilterDefine(data);
     UNISYS.Log('define filter', JSON.stringify(data));
   });
@@ -126,6 +127,7 @@ MOD.Hook('INITIALIZE', () => {
   /** FILTER_CLEAR is called by FiltersPanel when user clicks "Clear Filters" button
    */
   UDATA.HandleMessage('FILTER_CLEAR', () => {
+    if (DBG) console.log(PR + 'FILTER_CLEAR');
     m_ClearFilters();
     UNISYS.Log('clear filters');
   });
@@ -134,6 +136,7 @@ MOD.Hook('INITIALIZE', () => {
   /** FILTERS_UPDATE is called by FiltersPanel switches between filters and highlights
    */
   UDATA.HandleMessage('FILTERS_UPDATE', data => {
+    if (DBG) console.log(PR + 'FILTERS_UPDATE', data);
     const FILTERDEFS = UDATA.AppState('FILTERDEFS');
     FILTERDEFS.filterAction = data.filterAction;
     // if the Focus panel is being selected, grab update the selection so that
@@ -156,12 +159,14 @@ MOD.Hook('INITIALIZE', () => {
   /** Listen for NCDATA updates so we know to trigger change?
    */
   UDATA.OnAppStateChange('NCDATA', data => {
+    if (DBG) console.log(PR + 'OnAppStateChange: NCDATA', data);
     m_UpdateFilters();
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** Listen for TEMPLATE updates so we know to trigger change?
    */
   UDATA.OnAppStateChange('TEMPLATE', data => {
+    if (DBG) console.log(PR + 'OnAppStateChange: TEMPLATE', data);
     // this is critical -- graph will not draw if this is
     // not called from nc-logic.LOADASSETS
     m_ImportFilters();
@@ -172,6 +177,7 @@ MOD.Hook('INITIALIZE', () => {
       Listen for SELECTION changes for setting Focus
    */
   UDATA.OnAppStateChange('SELECTION', data => {
+    if (DBG) console.log(PR + 'OnAppStateChange: SELECTION', data);
     // Only if Focus is active
     const FILTERDEFS = UDATA.AppState('FILTERDEFS');
     if (FILTERDEFS.filterAction === FILTER.ACTION.FOCUS) {

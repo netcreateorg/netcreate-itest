@@ -16,10 +16,12 @@
 # Unreleased <a name="unreleased"></a>
 
 Candidate version 2.0 "Commenting"
-To be released August 2024
-For Septemeber 2024 pilot testing.
+* Initially released August 2024
+* For Septemeber 2024 pilot testing.
+* Tagged Jan 15, 2025 for pilot testing.
+* Tagged Mar 1, 2025 for pilot testing.
 
-v2.0.0 introduces "commenting".  Database/file data format has changed significantly with 1.5.x so pre-1.4.x data (*.loki) and template (*.json) files are no longer compatible.
+v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data format has changed significantly with 1.5.x so pre-1.4.x data (*.loki) and template (*.json) files are no longer compatible.
 
 **Breaking Changes**
 - Pre-Version 1.5.x project files are no longer compatible.
@@ -31,12 +33,7 @@ v2.0.0 introduces "commenting".  Database/file data format has changed significa
   - When opening projects, the template version (or lack of a template version) will allow the system to decide how to migrate or ignore data fields. e.g. previously built-in fields like comments will continue to be displayed and will not break in table views.
 
 **Significant Features**
-- Add Historical Date support #228 -- including support for:
-  - input of arbitrary date strings
-  - validation and parsing of date strings into sortable, filterable dates
-  - display and sorting of dates in Node and Edge Tables
-  - filtering of Nodes and Edge based on a simple date comparison
-  - definition of new custom fields using the new "hdate" field type
+- User Interface has been restyled
 - Add Comment System  #133 -- including support for:
 	- floating draggable comment windows
 	- displays of comment counts
@@ -51,10 +48,21 @@ v2.0.0 introduces "commenting".  Database/file data format has changed significa
 	- comments that have been added or updated now broadcast alerts to other users on the network #157
 	- "Unread" and "Unread replies to me" are now displayed both as summary statistics in a "Unread Comment Panel" that lists all unread comments. In addition, comments (as well as source nodes/edge) can be opened directly from the panel #157
 	- during comment edit, node and edge selection from the graph and NodeTable and EdgeTable are disabled
-- The Provenance tab has been reformatted to show two sections: "PROVENANCE" and "HISTORY".
+- Add Historical Date support #228 -- including support for:
+  - input of arbitrary date strings
+  - validation and parsing of date strings into sortable, filterable dates
+  - display and sorting of dates in Node and Edge Tables
+  - filtering of Nodes and Edge based on a simple date comparison
+  - definition of new custom fields using the new "hdate" field type
+- The Provenance tab has been reformatted to show two sections: "PROVENANCE" and "HISTORY" #213 #322.
   - Any fields that are designated isProvenance will be added to the "PROVENANCE" tab.
   - Added a createdBy and updatedBy built-in fields 6fc8dee
-- Module Infrastructure -- #132 #134 #138
+  - Added a 'infoOrigin' field that shows "Created by <user> on <date>" #322
+- Log in tokens can now be shared across graphs #241
+- Tables now have resizable columns and can be sorted #247
+- "Type" is now a built-in field and displayed above the Attributes tab. #272
+- Edge "Weight" is now a built-in field and displayd "weight (sum)" #292
+- Add ability to deploy Net.Create to Turbo360 #305
 
 **Changes (Minor)**
 - AutoSuggest now has a placeholder text and scrolls #123
@@ -70,10 +78,12 @@ v2.0.0 introduces "commenting".  Database/file data format has changed significa
 - Importing exported csv files into Windows Excel no longer chokes on blank lines #137
 
 **Developer Improvements**
+- Module Infrastructure -- #132 #134 #138
 - Adds support for `addons` for the core URSYS library #132
 - Adds a testing framework and V2 state manager #134
 - Rewrite URNET messaging system for the following communication interfaces: Unix Domain Sockets, WebSocketServer, and Browser WebSockets. #138
 - Adds support for object spread operator #219
+- Optimize state updates for better performance with Turbo360 #345
 
 ### Added
 ### Fixed

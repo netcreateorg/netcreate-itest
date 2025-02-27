@@ -56,7 +56,6 @@ function m_RenderEdges(data) {
   const VDATA = data;
 
   const TEMPLATE = UDATA.AppState('TEMPLATE');
-  const edgeSizeMax = TEMPLATE.edgeSizeMax;
 
   /*/ ISSUES
       * How do we handle direction?
@@ -74,14 +73,17 @@ function m_RenderEdges(data) {
 
   // Synthesize duplicate edges into a single edge.
   const edgeMap = new Map(); // key = {source}{target}
+  const cumulativeSize = new Map(); // key = {source}{target}
   const edgeColorWeightMap = new Map(); // key = {source}{target}, value = colorMap[[color, weightTotal]]
   VDATA.edges.forEach(e => {
     const edgeKey = m_GetEdgeKey(e); // single key for both directions
-    const currEdge = edgeMap.get(edgeKey);
     const eWeight = Number(e.weight) || DEFAULT_SIZE; // weight defaults to 1, force Number
 
     // 1. Set Size
-    e.size = eWeight + (currEdge ? currEdge.size : 0); // cumulative size
+    e.size = eWeight;
+    //     Calculate cumulative size
+    const sum = (cumulativeSize.get(edgeKey) || 0) + e.size;
+    cumulativeSize.set(edgeKey, sum);
 
     // 2. Update Color Weight Map
     if (colorsAreDefined) {
@@ -92,19 +94,16 @@ function m_RenderEdges(data) {
       edgeColorWeightMap.set(edgeKey, colorWeightMap);
     }
 
-    // 3. Limit to Max Edge Size
-    if (edgeSizeMax > 0) e.size = Math.min(edgeSizeMax, e.size);
-
-    // 4. Save value
+    // 3. Save value
     edgeMap.set(edgeKey, e);
   });
 
-  // 5. Set Color
+  // 4. Set Color and Cumulative Size
   VDATA.edges.forEach(e => {
+    e.size = cumulativeSize.get(m_GetEdgeKey(e));
     e.color = m_GetWeightiestColor(e, edgeColorWeightMap);
   });
 
-  VDATA.edges = [...edgeMap.values()];
   UDATA.SetAppState('VDATA', VDATA);
 }
 

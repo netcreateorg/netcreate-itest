@@ -176,6 +176,8 @@ class NCEdge extends UNISYS.Component {
       type: '',
       attributes: {},
       provenance: {},
+      weight: 0,
+      size: 0,
       created: undefined,
       updated: undefined,
       revision: 0,
@@ -387,6 +389,8 @@ class NCEdge extends UNISYS.Component {
       type: edge.type,
       attributes: attributes,
       provenance: provenance,
+      weight: edge.weight,
+      size: edge.size, // `size` is the sum of all weights
       created: edge.meta ? new Date(edge.meta.created).toLocaleString() : '',
       createdBy: edge.createdBy,
       updated: edge.meta ? new Date(edge.meta.updated).toLocaleString() : '',
@@ -609,13 +613,16 @@ class NCEdge extends UNISYS.Component {
   /// DATA SAVING
   ///
   SaveEdge() {
-    const { id, sourceId, targetId, type, attributes, provenance } = this.state;
+    const { id, sourceId, targetId, type, weight, size, attributes, provenance } =
+      this.state;
     const uid = NCLOGIC.GetCurrentUserId();
     const edge = {
       id,
       source: sourceId,
       target: targetId,
       type,
+      weight,
+      size,
       updatedBy: uid
     };
     Object.keys(attributes).forEach(k => (edge[k] = attributes[k]));
@@ -707,12 +714,23 @@ class NCEdge extends UNISYS.Component {
    * Save `previousState` so that we can undo/restore data if user cancels
    */
   UIEnableEditMode() {
-    const { uSelectedTab, id, sourceId, targetId, type, attributes, provenance } =
-      this.state;
+    const {
+      uSelectedTab,
+      id,
+      sourceId,
+      targetId,
+      type,
+      weight,
+      size,
+      attributes,
+      provenance
+    } = this.state;
     const previousState = {
       sourceId,
       targetId,
       type,
+      weight,
+      size,
       attributes: Object.assign({}, attributes),
       provenance: Object.assign({}, provenance)
     };
@@ -728,6 +746,8 @@ class NCEdge extends UNISYS.Component {
       source: sourceId,
       target: targetId,
       type,
+      weight,
+      size,
       provenance
     };
     Object.keys(attributes).forEach(k => (edge[k] = attributes[k]));
@@ -769,6 +789,8 @@ class NCEdge extends UNISYS.Component {
         sourceId: previousState.sourceId,
         targetId: previousState.targetId,
         type: previousState.type,
+        weight: previousState.weight,
+        size: previousState.size,
         attributes: previousState.attributes,
         provenance: previousState.provenance,
         uSelectSourceTarget: undefined

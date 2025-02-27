@@ -652,6 +652,14 @@ MOD.Hook('INITIALIZE', () => {
     const createdBy = MOD.GetCurrentUserId();
     const updatedBy = createdBy;
 
+    // weight -- weight is a built in property, so always record it even it is not displayed
+    TEMPLATE = UDATA.AppState('TEMPLATE');
+    const DEFAULT_EDGE_WEIGHT = 1; // default to 1 in case `weight` is not defined in the template
+    const weight =
+      TEMPLATE.edgeDefs['weight'] && TEMPLATE.edgeDefs['weight'].defaultValue
+        ? TEMPLATE.edgeDefs['weight'].defaultValue
+        : DEFAULT_EDGE_WEIGHT;
+
     // call server to retrieve an unused edge ID
     return DATASTORE.PromiseNewEdgeID().then(newEdgeID => {
       // Add it to local state for now
@@ -661,6 +669,7 @@ MOD.Hook('INITIALIZE', () => {
         target: undefined,
         attributes: {},
         provenance,
+        weight,
         createdBy,
         updatedBy
       };

@@ -133,6 +133,7 @@ function m_UpdateNodes(nodes) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateEdges(edges) {
   const TEMPLATE = UDATA.AppState('TEMPLATE');
+  const edgeSizeMax = TEMPLATE.edgeSizeMax;
   const HILITE = UDATA.AppState('HILITE');
   const { userHighlightNodeId } = HILITE;
   return edges.map(e => {
@@ -148,7 +149,7 @@ function m_UpdateEdges(edges) {
       targetId === userHighlightNodeId // or target
     ) {
       // leave size alone, max size checking is in edge-mgr
-      e.width = e.size;
+      e.width = edgeSizeMax > 0 ? Math.min(edgeSizeMax, e.size) : e.size;
       e.opacity = e.filteredTransparency;
     } else {
       e.width = TEMPLATE.edgeSizeDefault; // mouse over a node, so just show thin line

@@ -116,6 +116,7 @@ isProvenance = false
 hidden = false
 
 [nodeDefs.created]
+type = "timestamp"
 displayLabel = "Created"
 exportLabel = "Created"
 help = "Date and time node was created"
@@ -123,6 +124,7 @@ includeInGraphTooltip = true
 hidden = false
 
 [nodeDefs.createdBy]
+type = "string"
 displayLabel = "Created By"
 help = "Author who created the node"
 exportLabel = "Created By"
@@ -130,6 +132,7 @@ includeInGraphTooltip = true
 hidden = false
 
 [nodeDefs.updated]
+type = "timestamp"
 displayLabel = "Updated"
 exportLabel = "Updated"
 help = "Date and time node was last modified"
@@ -137,6 +140,7 @@ includeInGraphTooltip = true
 hidden = false
 
 [nodeDefs.updatedBy]
+type = "string"
 displayLabel = "Updated By"
 exportLabel = "Updated By"
 help = "Author who updated the node"
@@ -194,7 +198,7 @@ isProvenance = false
 hidden = false
 
 [edgeDefs.weight]
-type = "number"
+type = "weight"
 defaultValue = 1
 displayLabel = "Weight"
 exportLabel = "Weight"
@@ -230,6 +234,7 @@ isProvenance = false
 hidden = true
 
 [edgeDefs.created]
+type = "timestamp"
 displayLabel = "Created"
 exportLabel = "Created"
 includeInGraphTooltip = true
@@ -237,6 +242,7 @@ help = "Date and time edge was created"
 hidden = false
 
 [edgeDefs.createdBy]
+type = "string"
 displayLabel = "Created By"
 exportLabel = "Created By"
 includeInGraphTooltip = true
@@ -244,6 +250,7 @@ help = "Author who created the edge"
 hidden = false
 
 [edgeDefs.updated]
+type = "timestamp"
 displayLabel = "Updated"
 exportLabel = "Updated"
 includeInGraphTooltip = true
@@ -251,6 +258,7 @@ help = "Date and time edge was last modified"
 hidden = false
 
 [edgeDefs.updatedBy]
+type = "string"
 displayLabel = "Updated By"
 exportLabel = "Updated By"
 includeInGraphTooltip = true

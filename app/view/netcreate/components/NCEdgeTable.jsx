@@ -72,6 +72,7 @@ function NCEdgeTable({ tableHeight, isOpen }) {
 
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// FILTEREDNCDATA is the reduced list of nodes, not ALL edges
   function urstate_FILTEREDNCDATA(data) {
     if (data.edges) {
       // If we're transitioning from "COLLAPSE" or "FOCUS" to "HILIGHT/FADE", then we
@@ -88,35 +89,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function m_updateEdgeFilterState(edges) {
-    const filteredEdges = m_deriveFilteredEdges(edges);
-    setState(prevState => ({ ...prevState, edges: filteredEdges }));
-  }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  /// Set node filtered status based on current filteredNodes
-  function m_deriveFilteredEdges(edges) {
-    // set filter status
-    let filteredEdges = [];
-    // If we're transitioning from "HILIGHT/FADE" to "COLLAPSE" or "FOCUS", then we
-    // also need to remove edges that are not in filteredEdges
-    const FILTERDEFS = UDATA.AppState('FILTERDEFS');
-    if (
-      FILTERDEFS.filterAction === FILTER.ACTION.REDUCE ||
-      FILTERDEFS.filterAction === FILTER.ACTION.FOCUS
-    ) {
-      // Reduce (remove) or Focus
-      filteredEdges = edges.filter(edge => {
-        const filteredEdge = filteredEdges.find(e => e.id === edge.id);
-        return filteredEdge; // keep if it's in the list of filtered edges
-      });
-    } else {
-      // Fade
-      // Fading is handled by setting edge.filteredTransparency which is
-      // directly handled by the filter now.  So no need to process it
-      // here in the table.
-      filteredEdges = edges;
-    }
-    // }
-    return filteredEdges;
+    setState(prevState => ({ ...prevState, edges }));
+    return;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
@@ -230,6 +204,12 @@ function NCEdgeTable({ tableHeight, isOpen }) {
       const value = tdata[key];
       return <URCommentVBtn cref={value.cref} />;
     }
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// tdata = { weight: Number, size: Number }
+    function col_RenderWeight(key, tdata, coldef) {
+      const value = tdata[key];
+      return `${value.weight} (${value.size})`;
+    }
     /// CUSTOM SORTERS
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// tdata = TTblNodeObject[] = { id: String, label: String }
@@ -250,6 +230,16 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         if (!b[key].count) return -1; // Move undefined or '' the bottom regardless of sort order
         if (a[key].count < b[key].count) return order;
         if (a[key].count > b[key].count) return order * -1;
+        return 0;
+      });
+      return sortedData;
+    }
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// tdata = { weight: Number, size: Number }
+    function col_SortWeight(key, tdata, order) {
+      const sortedData = [...tdata].sort((a, b) => {
+        if (a[key].weight < b[key].weight) return order;
+        if (a[key].weight > b[key].weight) return order * -1;
         return 0;
       });
       return sortedData;
@@ -306,9 +296,18 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         renderer: col_RenderNode,
         sorter: col_SortNodes
       },
-      ...ATTRIBUTE_COLUMNDEFS,
-      ...PROVENANCE_COLUMNDEFS
+      ...ATTRIBUTE_COLUMNDEFS
     );
+    if (defs['weight'] && !defs['weight'].hidden)
+      COLUMNDEFS.push({
+        title: defs['weight'].displayLabel,
+        type: 'number',
+        width: 45, // in px
+        data: 'weightDef',
+        renderer: col_RenderWeight,
+        sorter: col_SortWeight
+      });
+    COLUMNDEFS.push(...PROVENANCE_COLUMNDEFS);
     // History
     if (defs['createdBy'] && !defs['createdBy'].hidden)
       COLUMNDEFS.push({
@@ -367,9 +366,13 @@ function NCEdgeTable({ tableHeight, isOpen }) {
     );
 
     return edges.map((edge, i) => {
-      const { id, source, target, sourceLabel, targetLabel, type } = edge;
+      const { id, source, target, sourceLabel, targetLabel, type, weight, size } =
+        edge;
       const sourceDef = { id: source, label: sourceLabel };
       const targetDef = { id: target, label: targetLabel };
+
+      // weightDef
+      const weightDef = { weight, size };
 
       // custom attributes
       const attributes = {};
@@ -445,6 +448,9 @@ function NCEdgeTable({ tableHeight, isOpen }) {
         sourceDef, // { id: String, label: String }
         targetDef, // { id: String, label: String }
         type,
+        weightDef, // { weight: Number, size: Number }
+        weight,
+        size,
         ...attributes,
         commentVBtnDef,
         ...provenance,

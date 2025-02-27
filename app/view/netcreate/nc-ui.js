@@ -208,7 +208,7 @@ function RenderTabSelectors(TABS, state, onclick) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RenderAttributesTabView(state, defs) {
-  const { attributes, degrees } = state;
+  const { attributes, degrees, weight, size } = state;
   const items = [];
   Object.keys(attributes).forEach(k => {
     items.push(RenderLabel(k, defs[k].displayLabel, defs[k].help));
@@ -243,12 +243,18 @@ function RenderAttributesTabView(state, defs) {
     items.push(RenderLabel('degrees', defs['degrees'].displayLabel));
     items.push(RenderStringValue('degrees', degrees));
   }
+  // weight hack -- `weight` is a built-in field, but is displayed in attributes
+  if (defs['weight'] && !defs['weight'].hidden) {
+    // only if defined, e.g. for nodeDefs
+    items.push(RenderLabel('weight', defs['weight'].displayLabel));
+    items.push(RenderStringValue('weight', `${weight} (${size})`));
+  }
 
   return <div className="formview">{items}</div>;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RenderAttributesTabEdit(state, defs, onchange) {
-  const { attributes, degrees } = state;
+  const { attributes, degrees, weight } = state;
   const items = [];
   Object.keys(attributes).forEach(k => {
     items.push(RenderLabel(k, defs[k].displayLabel));
@@ -293,6 +299,12 @@ function RenderAttributesTabEdit(state, defs, onchange) {
     // only if defined, e.g. for nodeDefs
     items.push(RenderLabel('degrees', defs['degrees'].displayLabel));
     items.push(RenderStringValue('degrees', degrees));
+  }
+  // weight hack -- `weight` is a built-in field, but is displayed in attributes
+  if (defs['weight'] && !defs['weight'].hidden) {
+    // only if defined, e.g. for nodeDefs
+    items.push(RenderLabel('weight', defs['weight'].displayLabel));
+    items.push(m_RenderNumberInput('weight', weight, onchange, defs['weight'].help));
   }
 
   return <div className="formview">{items}</div>;
@@ -361,6 +373,7 @@ function RenderProvenanceItemsEdit(state, defs, onchange) {
       case 'infoOrigin':
         items.push(RenderInfoOriginInput(k, value, onchange, helpText, state));
         break;
+      case 'weight':
       case 'number':
         items.push(m_RenderNumberInput(k, value, onchange, helpText));
         break;
