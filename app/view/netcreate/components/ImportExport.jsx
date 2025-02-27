@@ -321,6 +321,17 @@ class ImportExport extends UNISYS.Component {
               <li>Next unused NODE ID: {nextNodeId}</li>
               <li>Next unused EDGE ID: {nextEdgeId}</li>
             </ul>
+            Importing data will <b>merge</b> the new nodes and edges into the existing
+            nodes and edges.
+            <ul>
+              <li>
+                Imported nodes/edges with matching ids will replace existing objects
+              </li>
+              <li>
+                Existing objects that do not match imported nodes/edges will not be
+                modified or removed
+              </li>
+            </ul>
           </div>
           <label className="small text-muted">
             Nodes:&nbsp;

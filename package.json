@@ -84,7 +84,6 @@
     "minimist": "^1.2.8",
     "popper.js": "^1.14.3",
     "react": "^16.4.2",
-    "react-autosuggest": "^10.1.0",
     "react-dom": "^16.4.2",
     "react-draggable": "^4.4.6",
     "react-faux-dom": "^4.5.0",
