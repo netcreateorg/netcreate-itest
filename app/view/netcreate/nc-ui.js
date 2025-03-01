@@ -48,6 +48,7 @@ MD.use(MDEMOJI);
 const MDPARSE = require('html-react-parser').default;
 const NCDialogInsertImageURL = require('./components/NCDialogInsertImageURL');
 import URDateField from './components/URDateField';
+import TEMPLATE_MGR from './template-mgr';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -207,24 +208,21 @@ function RenderTabSelectors(TABS, state, onclick) {
   );
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderAttributesTabView(state, defs) {
+function RenderAttributesTabView(state, defs, BUILTIN_FIELDS) {
   const { attributes, degrees, weight, size } = state;
   const items = [];
-  Object.keys(attributes).forEach(k => {
-    items.push(RenderLabel(k, defs[k].displayLabel, defs[k].help));
-    const type = defs[k].type;
+  const attributeDefKeys = TEMPLATE_MGR.GetAttributeDefKeys(defs, BUILTIN_FIELDS);
+  attributeDefKeys.forEach(k => {
+    const def = defs[k];
+    items.push(RenderLabel(k, def.displayLabel, def.help));
+    const type = def.type;
     switch (type) {
       case 'markdown':
         items.push(RenderMarkdownValue(k, attributes[k]));
         break;
       case 'hdate':
         items.push(
-          RenderDateValue(
-            k,
-            attributes[k],
-            defs[k].format,
-            defs[k].allowFormatSelection
-          )
+          RenderDateValue(k, attributes[k], def.format, def.allowFormatSelection)
         );
         break;
       case 'infoOrigin':
@@ -253,14 +251,16 @@ function RenderAttributesTabView(state, defs) {
   return <div className="formview">{items}</div>;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderAttributesTabEdit(state, defs, onchange) {
+function RenderAttributesTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
   const { attributes, degrees, weight } = state;
   const items = [];
-  Object.keys(attributes).forEach(k => {
-    items.push(RenderLabel(k, defs[k].displayLabel));
-    const type = defs[k].type;
+  const attributeDefKeys = TEMPLATE_MGR.GetAttributeDefKeys(defs, BUILTIN_FIELDS);
+  attributeDefKeys.forEach(k => {
+    const def = defs[k];
+    items.push(RenderLabel(k, def.displayLabel));
+    const type = def.type;
     const value = attributes[k] || ''; // catch `undefined` or React will complain about changing from uncontrolled to controlled
-    const helpText = defs[k].help;
+    const helpText = def.help;
     switch (type) {
       case 'markdown':
         items.push(RenderMarkdownInput(k, value, onchange, helpText));
@@ -270,8 +270,8 @@ function RenderAttributesTabEdit(state, defs, onchange) {
           RenderDateInput(
             k,
             value,
-            defs[k].format,
-            defs[k].allowFormatSelection,
+            def.format,
+            def.allowFormatSelection,
             onchange,
             helpText
           )
@@ -310,24 +310,21 @@ function RenderAttributesTabEdit(state, defs, onchange) {
   return <div className="formview">{items}</div>;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderProvenanceItemsView(state, defs) {
+function RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS) {
   const { provenance } = state;
   const items = [];
-  Object.keys(provenance).forEach(k => {
-    items.push(RenderLabel(k, defs[k].displayLabel, defs[k].help));
-    const type = defs[k].type;
+  const provenanceDefKeys = TEMPLATE_MGR.GetProvenanceDefKeys(defs, BUILTIN_FIELDS);
+  provenanceDefKeys.forEach(k => {
+    const def = defs[k];
+    items.push(RenderLabel(k, def.displayLabel, def.help));
+    const type = def.type;
     switch (type) {
       case 'markdown':
         items.push(RenderMarkdownValue(k, provenance[k]));
         break;
       case 'hdate':
         items.push(
-          RenderDateValue(
-            k,
-            provenance[k],
-            defs[k].format,
-            defs[k].allowFormatSelection
-          )
+          RenderDateValue(k, provenance[k], defs.format, defs.allowFormatSelection)
         );
         break;
       case 'infoOrigin':
@@ -343,14 +340,16 @@ function RenderProvenanceItemsView(state, defs) {
   return items;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderProvenanceItemsEdit(state, defs, onchange) {
+function RenderProvenanceItemsEdit(state, defs, onchange, BUILTIN_FIELDS) {
   const { provenance, degrees } = state;
   const items = [];
-  Object.keys(provenance).forEach(k => {
-    items.push(RenderLabel(k, defs[k].displayLabel));
-    const type = defs[k].type;
+  const provenanceDefKeys = TEMPLATE_MGR.GetProvenanceDefKeys(defs, BUILTIN_FIELDS);
+  provenanceDefKeys.forEach(k => {
+    const def = defs[k];
+    items.push(RenderLabel(k, def.displayLabel));
+    const type = def.type;
     const value = provenance[k] || ''; // catch `undefined` or React will complain about changing from uncontrolled to controlled
-    const helpText = defs[k].help;
+    const helpText = def.help;
     switch (type) {
       case 'markdown':
         items.push(RenderMarkdownInput(k, value, onchange, helpText));
@@ -360,8 +359,8 @@ function RenderProvenanceItemsEdit(state, defs, onchange) {
           RenderDateInput(
             k,
             value,
-            defs[k].format,
-            defs[k].allowFormatSelection,
+            def.format,
+            def.allowFormatSelection,
             onchange,
             helpText
           )
@@ -387,13 +386,13 @@ function RenderProvenanceItemsEdit(state, defs, onchange) {
   return items;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderProvenanceTabView(state, defs) {
+function RenderProvenanceTabView(state, defs, BUILTIN_FIELDS) {
   const { provenance, degrees, created, createdBy, updated, updatedBy, revision } =
     state;
   return (
     <div className="provenance formview">
       <div className="category">PROVENANCE</div>
-      {RenderProvenanceItemsView(state, defs)}
+      {RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
       {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
       {!defs.created.hidden &&
@@ -408,13 +407,13 @@ function RenderProvenanceTabView(state, defs) {
   );
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RenderProvenanceTabEdit(state, defs, onchange) {
+function RenderProvenanceTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
   const { provenance, degrees, created, createdBy, updated, updatedBy, revision } =
     state;
   return (
     <div className="provenance formview">
       <div className="category">PROVENANCE</div>
-      {RenderProvenanceItemsEdit(state, defs, onchange)}
+      {RenderProvenanceItemsEdit(state, defs, onchange, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
       {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
       {!defs.created.hidden &&
