@@ -212,14 +212,7 @@ class InfoPanel extends UNISYS.Component {
     //send flag in with tableheight
     return (
       <div className="--InfoPanel">
-        <div
-          id="tabpanel"
-          style={{
-            height: tabpanelHeight,
-            overflow: 'hidden',
-            backgroundColor: '#eee'
-          }}
-        >
+        <div id="tabpanel" style={{ height: tabpanelHeight }}>
           <Nav tabs className="">
             <NavItem>
               <NavLink

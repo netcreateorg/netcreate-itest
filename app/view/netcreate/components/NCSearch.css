@@ -6,12 +6,10 @@
   margin-bottom: 20px;
 }
 .ncsearch button {
-  background-color: #fff6;
+  color: var(--clr-cat-fg);
+  background-color: var(--clr-cat-bg);
   border-radius: 5px;
-  border-color: #0006;
-  border-width: 1px;
-  border-style: solid;
-  color: #333;
+  border: none;
   margin-left: 0.5em;
 }
 .ncsearch button:disabled {

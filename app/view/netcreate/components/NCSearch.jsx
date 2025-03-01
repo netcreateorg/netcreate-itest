@@ -140,7 +140,7 @@ class NCSearch extends UNISYS.Component {
           disabled={newNodeBtnDisabled}
           onClick={this.UINewNode}
         >
-          New Node
+          + New Node
         </button>
       </div>
     );
