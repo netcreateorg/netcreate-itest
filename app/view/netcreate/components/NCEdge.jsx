@@ -1177,18 +1177,16 @@ class NCEdge extends UNISYS.Component {
       }
       const selected = isSecondarySelection ? 'selected' : '';
       return (
-        <div>
-          <button
-            id={key}
-            key={`${key}value`}
-            className={`sourcetargetbtn ${selected}`}
-            onClick={this.UIEnableSourceTargetSelect}
-            style={{ backgroundColor: color + '55', borderColor: color }}
-            disabled={disabled}
-          >
-            {value || EDGE_NOT_SET_LABEL}
-          </button>
-        </div>
+        <button
+          id={key}
+          key={`${key}value`}
+          className={`sourcetargetbtn ${selected}`}
+          onClick={this.UIEnableSourceTargetSelect}
+          style={{ backgroundColor: color + '55', borderColor: color }}
+          disabled={disabled}
+        >
+          {value || EDGE_NOT_SET_LABEL}
+        </button>
       );
     }
   }
