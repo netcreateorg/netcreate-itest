@@ -198,33 +198,21 @@ class NetCreate extends UNISYS.Component {
             handleMessageUpdate={handleMessageUpdate}
           />
           <div style={{ flexGrow: 1 }}></div>
+          <img
+            src="images/netcreate-logo.svg"
+            height="40px"
+            style={{ padding: '10px' }}
+            alt="NetCreate Logo"
+          />
         </div>
 
         <div
-          className="--NetCreate_Rows"
+          className="--NetCreate_Rows nc-rows"
           style={{
-            display: 'flex',
-            flexFlow: 'row nowrap',
-            backgroundColor: '#EEE',
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
             visibility: hideGraph
           }}
         >
-          <div
-            className="--NetCreate_Columns"
-            id="left"
-            style={{
-              backgroundColor: '#EEE',
-              flex: '1 1 25%',
-              maxWidth: '400px',
-              padding: '10px',
-              overflowY: 'scroll',
-              overflowX: 'auto',
-              marginTop: '38px'
-            }}
-          >
+          <div className="--NetCreate_Columns nc-cols" id="left">
             {/*** LEFT EDITOR COLUMN ***************/}
             <div
               className="--NetCreate_Column_Left"
@@ -232,8 +220,6 @@ class NetCreate extends UNISYS.Component {
             >
               <NCSearch />
               <NCNode />
-              {/* <Search /> */}
-              {/* <NodeSelector /> */}
             </div>
           </div>
           {/*** CENTER NETVIEW COLUMN***************/}
