@@ -279,25 +279,6 @@ class NetCreate extends UNISYS.Component {
             </div>
           </div>
         </div>
-        <div
-          className="--NetCreate_Column_Break_Info"
-          style={{
-            fontSize: '10px',
-            // position: 'fixed',
-            left: '0px',
-            bottom: '0px',
-            right: '0px',
-            zIndex: '1500',
-            color: '#aaa',
-            backgroundColor: '#eee',
-            padding: '5px 10px'
-          }}
-        >
-          Please contact Professor Kalani Craig, Institute for Digital Arts &
-          Humanities at (812) 856-5721 (BH) or craigkl@indiana.edu with questions or
-          concerns and/or to request information contained on this website in an
-          accessible format.
-        </div>
         <div id="dialog-container"></div>
       </div>
     ); // end return
