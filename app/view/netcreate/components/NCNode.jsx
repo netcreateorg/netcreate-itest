@@ -563,9 +563,8 @@ class NCNode extends UNISYS.Component {
     const { isLoggedIn } = this.state;
     if (!isLoggedIn) return;
     LOCKMGR.RequestLockNode(this.state.id, lockSuccess => {
-      this.setState({ uIsLockedByDB: !lockSuccess }, () => {
-        if (lockSuccess) this.UIEnableEditMode();
-      });
+      if (!lockSuccess) this.setState({ uIsLockedByDB: !lockSuccess });
+      else this.UIEnableEditMode();
     });
   }
 
@@ -609,6 +608,7 @@ class NCNode extends UNISYS.Component {
     this.setState({
       uViewMode: NCUI.VIEWMODE.EDIT,
       uSelectedTab: editableTab,
+      uIsLockedByDB: false,
       previousState
     });
 
