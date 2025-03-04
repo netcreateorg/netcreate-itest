@@ -9,6 +9,9 @@
   * "Add New Node" button
   * Autosuggest highlighter
 
+  Features
+  * During node/edge edit, allow search, but not new node creation
+
   USAGE
 
     <NCSearch />
@@ -35,6 +38,7 @@ class NCSearch extends UNISYS.Component {
 
     this.state = {
       isLoggedIn: false,
+      uNodeOrEdgeBeingEdited: false,
       uIsLockedByComment: false,
       value: ''
     }; // initialized on componentDidMount and clearSelection
@@ -72,6 +76,9 @@ class NCSearch extends UNISYS.Component {
   }
 
   urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({
+      uNodeOrEdgeBeingEdited: LOCKSTATE.nodeOrEdgeBeingEdited
+    });
     // DEPRECATED -- comment editing lock state is only relevant if you are editing your own comment
     //   this.setState({
     //   // uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe  // NOT IMPLEMENTED
@@ -123,9 +130,10 @@ class NCSearch extends UNISYS.Component {
   /// MAIN RENDER
   ///
   render() {
-    const { value, isLoggedIn, uIsLockedByComment } = this.state;
+    const { value, isLoggedIn, uNodeOrEdgeBeingEdited, uIsLockedByComment } =
+      this.state;
     const newNodeBtnHidden = !isLoggedIn || uIsLockedByComment;
-    const newNodeBtnDisabled = value === '';
+    const newNodeBtnDisabled = value === '' || uNodeOrEdgeBeingEdited;
     const key = 'search'; // used for search/source/target, placeholder for search
     return (
       <div className="--NCSearch ncsearch">

@@ -61,9 +61,11 @@ class NCAutoSuggest extends UNISYS.Component {
       matches: [], // {id, label}
       higlightedLine: -1,
       isValidNode: true,
-      uShowMatchlist: false
+      uShowMatchlist: false,
+      uNodeOrEdgeBeingEdited: false
     };
 
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.m_UIInputFocus = this.m_UIInputFocus.bind(this);
     this.m_UIInputClick = this.m_UIInputClick.bind(this);
     this.m_UIUpdate = this.m_UIUpdate.bind(this);
@@ -79,10 +81,16 @@ class NCAutoSuggest extends UNISYS.Component {
 
     /// Initialize UNISYS DATA LINK for REACT
     UDATA = UNISYS.NewDataLink(this);
+    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
+    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     document.removeEventListener('click', this.m_UIClickOutside);
+  }
+
+  urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({ uNodeOrEdgeBeingEdited: LOCKSTATE.nodeOrEdgeBeingEdited });
   }
 
   /**
@@ -196,7 +204,7 @@ class NCAutoSuggest extends UNISYS.Component {
    * @param {Object} event
    */
   m_UIKeyDown(event) {
-    const { matches, higlightedLine } = this.state;
+    const { matches, higlightedLine, uNodeOrEdgeBeingEdited } = this.state;
     const { parentKey, value, onSelect } = this.props;
     const keystroke = event.key;
     const lastLine = matches ? matches.length : -1;
@@ -208,8 +216,11 @@ class NCAutoSuggest extends UNISYS.Component {
         const id = matches[higlightedLine].id;
         this.m_UISelectById(event, parentKey, id); // user selects current highlight
       } else if (value !== '') {
-        // Create a new node -- see also NCSearch
-        this.m_UISelectByLabel(event, parentKey, value); // user selects current highlight
+        if (!uNodeOrEdgeBeingEdited) {
+          // Create a new node -- see also NCSearch
+          document.activeElement.blur(); // allow new node to receive focus
+          this.m_UISelectByLabel(event, parentKey, value); // user selects current highlight
+        }
       }
     }
     if (keystroke === 'Escape' || keystroke === 'Tab') {
