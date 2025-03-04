@@ -184,6 +184,11 @@ function m_UICancelInsertImageURL() {
 function RenderTabSelectors(TABS, state, onclick) {
   const { uSelectedTab, uViewMode, degrees } = state;
   const columnsDef = `repeat(${Object.keys(TABS).length}, 1fr)`;
+  const icn = {
+    ATTRIBUTES: 'icn_attributes.svg',
+    EDGES: 'icn_edges.svg',
+    PROVENANCE: 'icn_provenance.svg'
+  };
   return (
     <div
       className="tabselectors"
@@ -201,6 +206,7 @@ function RenderTabSelectors(TABS, state, onclick) {
             disabled={uViewMode === VIEWMODE.EDIT}
           >
             {TABS[k] === 'EDGES' ? `${TABS[k]} (${degrees})` : TABS[k]}
+            <img src={`images/${icn[k]}`} />
           </button>
         );
       })}

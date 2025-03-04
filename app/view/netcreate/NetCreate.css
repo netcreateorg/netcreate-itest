@@ -147,6 +147,19 @@ svg#netgraph .nodes text {
   font-size: 0.8em;
   padding: 0.1rem 0.2rem;
 }
+/* NC Utils ---------------------------------------------------------------- */
+.tabselectors button {
+  line-height: 10px;
+}
+.tabselectors button > img {
+  opacity: 0.5;
+  width: 16px;
+  height: 16px;
+  padding-left: 0.25rem;
+}
+.tabselectors button.selected > img {
+  opacity: 1;
+}
 /* Buttons ----------------------------------------------------------------- */
 button {
   border-radius: 8px;
