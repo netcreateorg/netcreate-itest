@@ -879,7 +879,9 @@ class NCNode extends UNISYS.Component {
                   {matchList}
                 </div>
               )}
-              {isDuplicate && <div className="message">{duplicateWarning}</div>}
+              {isDuplicate && (
+                <div className="message warning">{duplicateWarning}</div>
+              )}
             </div>
             {/* Special handling for `type` field */}
             {defs['type'] && !defs['type'].hidden && (

@@ -123,6 +123,7 @@
 /* Text Style */
 .nccomponent .message {
   font-size: 12px;
+  padding-bottom: 0.5rem;
 }
 .nccomponent .nodelabel .message {
   font-size: 10px;
