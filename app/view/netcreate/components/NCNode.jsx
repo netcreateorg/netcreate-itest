@@ -875,12 +875,20 @@ class NCNode extends UNISYS.Component {
               )}
               {uShowMatchlist && matchList && (
                 <div className="matchlist">
-                  {isDuplicate && <div className="warning">{duplicateWarning}</div>}
+                  {isDuplicate && (
+                    <div className="warning">
+                      <img src={`images/icn_caution.svg`} />
+                      <span>{duplicateWarning}</span>
+                    </div>
+                  )}
                   {matchList}
                 </div>
               )}
               {isDuplicate && (
-                <div className="message warning">{duplicateWarning}</div>
+                <div className="message warning">
+                  <img src={`images/icn_caution.svg`} />
+                  <span>{duplicateWarning}</span>
+                </div>
               )}
             </div>
             {/* Special handling for `type` field */}
