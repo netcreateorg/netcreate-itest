@@ -285,42 +285,14 @@ class InfoPanel extends UNISYS.Component {
         <div
           id="dragger"
           hidden={hideDragger}
-          style={{
-            position: 'relative',
-            top: '0px',
-            left: '0px',
-            right: '0px',
-            height: '10px',
-            backgroundColor: 'gray',
-            cursor: 'ns-resize'
-          }}
           onMouseDown={this.handleMouseDown}
         ></div>
 
-        <div
-          hidden={!hideDragger || filtersSummary === ''}
-          style={{
-            padding: '3px 5px',
-            fontSize: '0.8em',
-            textAlign: 'right',
-            color: '#fff',
-            backgroundColor: '#3339'
-          }}
-        >
+        <div id="filtersSummary" hidden={filtersSummary === ''}>
           {filtersSummary}&nbsp;
-          <Button
-            size="sm"
-            outline
-            onClick={this.OnClearBtnClick}
-            style={{
-              color: '#eee',
-              borderColor: '#ddd',
-              fontSize: '0.8em',
-              padding: '0.1rem 0.2rem'
-            }}
-          >
+          <button className="small outline" onClick={this.OnClearBtnClick}>
             Clear Filters
-          </Button>
+          </button>
         </div>
       </div>
     );

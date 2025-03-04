@@ -24,6 +24,7 @@
   --clr-bg: #dae9f2;
   --clr-cat-fg: #fff; /* call to action */
   --clr-cat-bg: #ea6a47; /* call to action */
+  --clr-secondary: #6a8899; /* navy */
 }
 
 /* override bootstrap */
@@ -124,7 +125,32 @@ svg#netgraph .nodes text {
   overflow: hidden;
   background-color: var(--clr-bg);
 }
-
+#dragger {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: 10px;
+  background-color: var(--clr-cat-bg);
+  cursor: ns-resize;
+}
+#filtersSummary {
+  padding: 3px 5px;
+  font-size: 0.8em;
+  text-align: right;
+  color: #fff;
+  background-color: var(--clr-secondary);
+}
+#filtersSummary button {
+  color: #eee;
+  border: 1px solid #ddd;
+  font-size: 0.8em;
+  padding: 0.1rem 0.2rem;
+}
+/* Buttons ----------------------------------------------------------------- */
+button {
+  border-radius: 8px;
+}
 /* Button Icons ------------------------------------------------------------ */
 button.cat {
   color: var(--clr-cat-fg);
