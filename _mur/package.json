@@ -1,0 +1,26 @@
+{
+  "name": "ursys-min",
+  "version": "0.0.1",
+  "description": "Minimal URSYS for backporting to legacy CommonJS systems",
+  "private": true,
+  "scripts": {
+    "build": "node ./scripts/@build.cjs",
+    "lint": "eslint .",
+    "clean": "rm -rf ./node_modules ./_dist"
+  },
+  "files": [
+    "./_dist"
+  ],
+  "browser": "./_dist/mur-web-cjs.js",
+  "main": "./_dist/mur-node.cjs",
+  "exports": {
+    "node": "./_dist/mur-node.cjs",
+    "browser": "./_dist/mur-web-cjs.js"
+  },
+  "devDependencies": {
+    "esbuild": "^v0.25.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-umd-wrapper": "^3.0.0",
+    "tsx": "^4.19.3"
+  }
+}

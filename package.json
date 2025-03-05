@@ -3,15 +3,14 @@
   "version": "2.0.0-alpha",
   "description": "research project for network graph analysis",
   "workspaces": [
-    "_ur/",
-    "_ur_addons/"
+    "_mur/"
   ],
   "scripts": {
-    "dev": ". ./@build-ursys.sh && brunch w -s",
+    "dev": ". ./@build-ursys-min.sh && brunch w -s",
     "lint": "npm exec --workspaces -- npm run lint && eslint app/",
     "dev:inspect": "node --inspect brunch-server.js",
     "classroom": "brunch build -e classroom",
-    "package": ". ./@build-ursys.sh && brunch build -e package",
+    "package": ". ./@build-ursys-min.sh && brunch build -e package",
     "package:debug": "brunch watch -e package_debug -s",
     "clean": "rm -rf ./public ./node_modules && npm exec --workspaces -- npm run clean",
     "debug": "LOGGY_STACKS=true BRUNCH_DEVTOOLS=true ./brunch-debug watch --server",
@@ -19,14 +18,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daveseah/netcreate-itest.git"
+    "url": "git+https://github.com/netcreateorg/netcreate-itest"
   },
   "author": "Inquirium LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/daveseah/netcreate-itest/issues"
+    "url": "https://github.com/netcreateorg/netcreate-itest/issues"
   },
-  "homepage": "https://github.com/daveseah/netcreate-itest#readme",
+  "homepage": "https://github.com/netcreateorg/netcreate-itest#readme",
   "devDependencies": {
     "@babel/core": "^7.11.1",
     "@types/fs-extra": "^11.0.2",
@@ -61,8 +60,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
-    "@ursys/addons": "file:./_ur_addons",
-    "@ursys/core": "file:./_ur",
+    "ursys-min": "file:./_mur",
     "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.6.2",
     "chrono-node": "^2.7.5",
