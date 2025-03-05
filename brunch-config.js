@@ -79,9 +79,7 @@ module.exports = {
     javascripts: {
       joinTo: {
         'scripts/netc-app.js': /^app/,
-        'scripts/ursys-core.js': /^node_modules\/@ursys\/core/,
-        'scripts/ursys-addons.js': /^node_modules\/@ursys\/addons/,
-        'scripts/netc-lib.js': /^(?!app)(?!node_modules\/@ursys)/
+        'scripts/netc-lib.js': /^(?!app)/
       }
     },
     stylesheets: {

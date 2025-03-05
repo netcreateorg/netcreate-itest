@@ -2,8 +2,7 @@
 
   COMMENT MANAGER
 
-  See UR ADDONS / Comment
-
+  uses new ursys-nc (minimal ursys for netcreate), see _mur/ directory
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
@@ -11,7 +10,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const UNISYS = require('unisys/client');
 const LOCKMGR = require('./lock-mgr');
-const { COMMENT } = require('@ursys/addons');
+const { COMMENT } = require('ursys-nc');
 const DATASTORE = require('system/datastore');
 const { ARROW_RIGHT } = require('system/util/constant');
 const { EDITORTYPE } = require('system/util/enum');
@@ -510,6 +509,7 @@ MOD.OpenCommentStatusComment = (cref, cid) => {
 MOD.CloseCommentCollection = (uiref, cref, uid) => {
   if (!MOD.OKtoClose(cref)) {
     // Comment is still being edited, prevent close
+    // eslint-disable-next-line no-alert
     alert(
       'This comment is still being edited!  Please Save or Cancel before closing the comment.'
     );
@@ -531,6 +531,7 @@ MOD.CloseCommentCollection = (uiref, cref, uid) => {
 MOD.CloseCommentCollectionAndMarkRead = (uiref, cref, uid) => {
   if (!MOD.OKtoClose(cref)) {
     // Comment is still being edited, prevent close
+    // eslint-disable-next-line no-alert
     alert(
       'This comment is still being edited!  Please Save or Cancel before closing the comment.'
     );

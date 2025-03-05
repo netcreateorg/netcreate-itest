@@ -33,7 +33,7 @@ async function ESBuildLibrary() {
 
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
-    entryPoints: [`${ROOT}/_ur/node-server/@server.mts`],
+    entryPoints: [`${ROOT}/_mur/node-server/@node-index.mts`],
     bundle: true,
     platform: 'node',
     target: ['node18', 'esnext'],
@@ -48,7 +48,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_DIST}/server-esm.mjs`,
+    outfile: `${DIR_UR_DIST}/mur-node.mjs`,
     format: 'esm'
   });
   if (DBG) LOG('built ur-server ESM');
@@ -56,14 +56,14 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_DIST}/server.cjs`,
+    outfile: `${DIR_UR_DIST}/mur-node.cjs`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur-server CJS');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${ROOT}/_ur/browser-client/@client.ts`],
+    entryPoints: [`${ROOT}/_mur/web-client/@web-index.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date
@@ -73,7 +73,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_DIST}/client-esm.js`,
+    outfile: `${DIR_UR_DIST}/mur-web-esm.js`,
     format: 'esm'
   });
   if (DBG) LOG('built ur-client ESM');
@@ -81,15 +81,15 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_DIST}/client-cjs.js`,
+    outfile: `${DIR_UR_DIST}/mur-web-cjs.js`,
     format: 'cjs'
   });
-  if (DBG) LOG('built ur-client CJS');
+  if (DBG) LOG('built ur-web CJS');
 
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_DIST}/client-umd.js`,
+    outfile: `${DIR_UR_DIST}/mur-web-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper option
     format: 'umd' // esbuild-plugin-umd-wrapper
   });

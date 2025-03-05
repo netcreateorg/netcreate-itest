@@ -34,9 +34,10 @@
 /// UNISYS INITIALIZE REQUIRES for REACT ROOT /////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const UNISYS = require('unisys/client');
-const UR = require('@ursys/core');
-const URADD = require('@ursys/addons');
+const UR = require('ursys-nc');
 const SessionShell = require('unisys/component/SessionShell');
+
+console.log('NetCreate: UR:', UR);
 
 /// SWITCHES //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,14 +71,12 @@ class NetCreate extends UNISYS.Component {
     super();
     UNISYS.ForceReloadOnNavigation();
 
-    /** _ur core and _ur_addons reachability tests **/
-    UR.ClientTest();
-    URADD.AddonClientTest();
     const SM = new UR.StateMgr('NETCREATE');
     SM._initializeState({ prop_1: 1 });
     console.log('SM:StateMgr contains:', SM.state());
-    /** end of _ur core and _ur_addons tests **/
-    URADD.COMMENT.Init();
+
+    console.log('NetCreate: UR:', UR);
+    UR.COMMENT.Init();
 
     this.state = {
       isConnected: true,

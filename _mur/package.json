@@ -1,26 +1,18 @@
 {
   "name": "ursys-nc",
-  "version": "0.1",
+  "version": "0.0.1",
   "description": "Minimum URSYS build host for NetCreate ITEST",
   "private": true,
   "scripts": {
-    "build-ur": "node ./scripts/@build.cjs",
+    "build": "node ./scripts/@build.cjs",
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
   },
-  "browser": "./_dist/client-cjs.js",
-  "main": "./_dist/server.cjs",
-  "exports": {
-    "node": {
-      "import": "./_dist/server-esm.mjs",
-      "require": "./_dist/server.cjs"
-    },
-    "browser": {
-      "import": "./_dist/client-esm.js",
-      "require": "./_dist/client-cjs.js",
-      "default": "./_dist/client-umd.js"
-    }
-  },
+  "files": [
+    "./_dist"
+  ],
+  "browser": "./_dist/mur-web-cjs.js",
+  "main": "./_dist/mur-node.cjs",
   "devDependencies": {
     "esbuild": "^v0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
