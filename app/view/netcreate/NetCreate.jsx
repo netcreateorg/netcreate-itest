@@ -37,8 +37,6 @@ const UNISYS = require('unisys/client');
 const UR = require('ursys-nc');
 const SessionShell = require('unisys/component/SessionShell');
 
-console.log('NetCreate: UR:', UR);
-
 /// SWITCHES //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var DBG = false;
@@ -71,11 +69,13 @@ class NetCreate extends UNISYS.Component {
     super();
     UNISYS.ForceReloadOnNavigation();
 
+    // URSYS TEST CODE - not used by NetCreate
     const SM = new UR.StateMgr('NETCREATE');
     SM._initializeState({ prop_1: 1 });
-    console.log('SM:StateMgr contains:', SM.state());
+    // console.log('NetCreate: UR:', UR);
+    // console.log('SM:StateMgr contains:', SM.state());
 
-    console.log('NetCreate: UR:', UR);
+    // URSYS COMPONENT INIT - used by comment-mgr.js
     UR.COMMENT.Init();
 
     this.state = {
