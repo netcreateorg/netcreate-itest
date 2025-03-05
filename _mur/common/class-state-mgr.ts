@@ -1,68 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  URSYS State Manager Class
-  ported from GEMSTEP circa 2021
-
-  For use by modular application core features that require a centralized
-  state object that can be shared between modules. It manages named groups
-  of flattened state (react compatible) that are not allowed to have
-  overlapping property names across any group. This is to prevent lazy
-  reuse of property names in different parts of the app.
-
-  In general, methods that begin with _ are the tricky ones that are used
-  internally by an "appcore" module that is the single source of initialization
-  and truth. 
-
-  DATA STRUCTURES
-
-  * vmStateEvent is an object with event-specific properties. When sent
-    to subscribers, it contains a groupName property matching the name of
-    the StateManager instance (e.g. LOCALE). This is not required (or even
-    settable) when using SendState( vmStateEvent )
-  * The difference between vmStateEvent and vmState is that the latter is
-    the complete state object, whereas the event has the same shape but
-    only includes the changed properties
-
-  SIMPLE EXAMPLE
-
-  // in managing appcore module
-  const STORE = new StateMgr('ScriptWizard');
-  STORE._initializeState({
-    prop1: 'value1',
-    prop2: 'value2'
-  });
-  const { prop1, prop2 } = STORE.State();
-
-  // in read-only module
-  const OTHER = StatMgr.GetStateManager('ScriptWizard');
-  const { prop1, prop2 } = OTHER.State();
-  
-  API REFERENCE
-
-  State: groupName => TStateObj;
-  SendState: TStateObj => void;
-  subscribeState: TStateChangeFunc => void;
-  unsubscribeState: TStateChangeFunc => void;
-  queueEffect: TEffectFunc => void;
-
-  INTERNAL API for APPCORE MANAGERS ONLY
-
-  _initializeState: TStateObj => void;
-  _setState: TStateObj => void;
-  _insertStateEvent: (TStateObj, TEffectFunc) => void;
-  _interceptState: TTapFunc => void;
-  _isValidState: TStateObj => boolean;
-  _mergeState: TStateObj => TStateObj;
-  _notifySubs: TStateObj => void;
-  _enqueue: TQueuedAction => void;
-  _dequeue: void => void;
-  _doEffect: void => void;
-
-  STATIC API
-  
-  GetStateManager: groupName => StateMgr;
-  GetStateData: groupName => TStateObj;
-  GetInstance: groupName => StateMgr;
+  URSYS-MIN (MUR) / CROSS-PLATFORM STATE MANAGER CLASS
+  copied from: _ur/core/common/class-state-mgr.ts
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

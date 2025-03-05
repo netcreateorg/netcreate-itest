@@ -1,13 +1,14 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  URSYS-MIN (MUR) / Node Server API
+  URSYS-MIN (MUR) / NODE SERVER API
+  derived from: _ur/core/node-server/@node-index.mts
 
   A currated set of server-related exports used to build the minimum
   URSYS (MUR) for use with NetCreate
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// EXPORTS ///////////////////////////////////////////////////////////////////
+/// PACKAGED EXPORTS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: u_path, u_short
  *         FileExists, DirExists, IsDir, IsFile,

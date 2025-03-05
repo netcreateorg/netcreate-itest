@@ -1,5 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
+  URSYS-MIN (MUR) / CROSS-PLATFORM COLOR UTILITIES
+  copied from: _ur/core/common/declare-colors.ts
+  
   Console colors for both browser and terminal environments
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/

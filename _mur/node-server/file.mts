@@ -1,12 +1,12 @@
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  URSYS-MIN (MUR) / FILE UTILITIES
+  URSYS-MIN (MUR) / NODE FILE UTILITIES
+  derived from: _ur/core/node-server/file.mts
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import FSE from 'fs-extra';
 import PATH from 'node:path';
-import { ShortPath } from '@ursys/core';
 import * as url from 'url';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

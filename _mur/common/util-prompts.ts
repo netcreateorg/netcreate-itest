@@ -1,6 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ANSI TERMINAL color codes and utilities
+  URSYS-MIN (MUR) / CROSS-PLATFORM CONSOLE PROMPT UTILS
+  copied from: _ur/core/common/util-prompts.ts
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

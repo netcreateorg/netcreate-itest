@@ -1,6 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   URSYS-MIN (MUR) / CROSS-PLATFORM COMMON EXPORTS
+  derived from: _ur/core/common/@common.ts
 
   A currated set of user-facing exports. The commented-out modules are ones
   that are generally used for internal operations.

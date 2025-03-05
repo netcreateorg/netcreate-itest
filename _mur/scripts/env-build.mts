@@ -6,7 +6,7 @@
 
 import { join, normalize } from 'node:path';
 import { statSync } from 'node:fs';
-import { DetectedRootDir } from '../node-server/nc-file.mts';
+import { DetectedRootDir } from '../node-server/file.mts';
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - -
