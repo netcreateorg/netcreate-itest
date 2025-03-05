@@ -125,8 +125,8 @@ module.exports = {
           ignored: /_dist/,
           ignoreInitial: true
         }).on('all', (event, path) => {
-          console.log(`\n[ rebuilding ursys-nc ]`);
-          execSync('./@build-ursys-nc.sh');
+          console.log(`\n[ rebuilding ursys-min ]`);
+          execSync('./@build-ursys-min.sh');
           console.log(`[ triggering brunch recompile ]\n`);
           // touch the brunch-config.js file to trigger a recompile
           const time = new Date();

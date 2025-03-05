@@ -34,7 +34,7 @@
 /// UNISYS INITIALIZE REQUIRES for REACT ROOT /////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const UNISYS = require('unisys/client');
-const UR = require('ursys-nc');
+const UR = require('ursys-min');
 const SessionShell = require('unisys/component/SessionShell');
 
 /// SWITCHES //////////////////////////////////////////////////////////////////

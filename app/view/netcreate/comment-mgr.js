@@ -2,7 +2,7 @@
 
   COMMENT MANAGER
 
-  uses new ursys-nc (minimal ursys for netcreate), see _mur/ directory
+  uses new ursys-min (minimal ursys for netcreate), see _mur/ directory
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
@@ -10,7 +10,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const UNISYS = require('unisys/client');
 const LOCKMGR = require('./lock-mgr');
-const { COMMENT } = require('ursys-nc');
+const { COMMENT } = require('ursys-min');
 const DATASTORE = require('system/datastore');
 const { ARROW_RIGHT } = require('system/util/constant');
 const { EDITORTYPE } = require('system/util/enum');

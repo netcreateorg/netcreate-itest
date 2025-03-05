@@ -1,7 +1,7 @@
 {
-  "name": "ursys-nc",
+  "name": "ursys-min",
   "version": "0.0.1",
-  "description": "Minimum URSYS build host for NetCreate ITEST",
+  "description": "Minimal URSYS for backporting to legacy CommonJS systems",
   "private": true,
   "scripts": {
     "build": "node ./scripts/@build.cjs",
@@ -13,6 +13,10 @@
   ],
   "browser": "./_dist/mur-web-cjs.js",
   "main": "./_dist/mur-node.cjs",
+  "exports": {
+    "node": "./_dist/mur-node.cjs",
+    "browser": "./_dist/mur-web-cjs.js"
+  },
   "devDependencies": {
     "esbuild": "^v0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
