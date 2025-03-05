@@ -1,0 +1,51 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  this tsconfig is intended to improve intellisense in vscode
+
+  .. the VSCODE typescript language server to provide Intellisense
+  .. the VSCODE eslint plugin to provide live type checking and linting
+  .. the eslint configuration to use typescript rules
+  .. the esbuild tool to transpile typescript files to bundles
+  .. the tsc typescript compiler to generate type declaration files
+  .. npm workspaces with shared typescript imports and dependencies
+  .. support for nodejs and web browser targets in the same npm workspace
+  .. support of shared platform-independent typescript code for projects
+
+  Maintaining compatibility between these systems is a challenge, as not
+  all options apply to each system. Annotations are provided to explain
+  which systems use each option.
+
+  NOTE: URSYS is using tsx as the runtime to enable pure
+  typescript execution in nodejs without transpilation.
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+{
+  "compilerOptions": {
+    // this sets the 'target' javascript version
+    "target": "esnext", // https://typescriptlang.org/tsconfig/#target
+
+    // 'module' sets the module format to export
+    // emit either cjs, esm output based on extension (mts, cjs, ...)
+    "module": "nodenext",
+
+    // 'moduleResolution' sets the module resolution algorithm
+    // uses package.json "exports" and extension (mts, cjs, ...)
+    "moduleResolution": "nodenext",
+
+    /** THE FOLLOWING ARE FOR ESBUILD COMPATBILITY **/
+
+    // files are compiled in isolation to speed things up
+    "isolatedModules": true, // https://esbuild.github.io/content-types/#isolated-modules
+
+    // disable legacy cjs support in typescript, use only esm
+    // allowSyntheticDefaultImports is automatically set by esModuleInterop (explicitly noting below)
+    "esModuleInterop": true, // https://esbuild.github.io/content-types/#es-module-interop
+    "allowSyntheticDefaultImports": true, // https://typescriptlang.org/tsconfig/#allowSyntheticDefaultImports
+
+    // can use extensions (e.g. .ts, .mts) in import statements
+    "allowImportingTsExtensions": true, // https://typescriptlang.org/tsconfig/#allowImportingTsExtensions
+
+    // required for allowImportingTsExtensions
+    "noEmit": true // https://typescriptlang.org/tsconfig/#noEmit
+  }
+}

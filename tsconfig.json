@@ -1,0 +1,26 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  this tsconfig is intended to improve intellisense in vscode
+
+  .. the VSCODE typescript language server to provide Intellisense
+  .. the VSCODE eslint plugin to provide live type checking and linting
+  .. the eslint configuration to use typescript rules
+  .. the esbuild tool to transpile typescript files to bundles
+  .. the tsc typescript compiler to generate type declaration files
+  .. npm workspaces with shared typescript imports and dependencies
+  .. support for nodejs and web browser targets in the same npm workspace
+  .. support of shared platform-independent typescript code for projects
+
+  Maintaining compatibility between these systems is a challenge, as not
+  all options apply to each system. Annotations are provided to explain
+  which systems use each option.
+
+  NOTE: URSYS is using tsx as the runtime to enable pure
+  typescript execution in nodejs without transpilation.
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+{
+  "extends": "./tsconfig-base.json",
+  "files": [],
+  "include": []
+}
