@@ -20,7 +20,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 {
-  "extends": "./tsconfig-base.json",
+  "extends": "./tsconfig-mur.json",
   "files": [],
   "include": []
 }

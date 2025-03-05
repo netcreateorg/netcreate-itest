@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig-base.json",
+  "extends": "../../tsconfig-mur.json",
   "compilerOptions": {
     "lib": ["DOM", "ESNext"],
     "outDir": "../dist/web"
