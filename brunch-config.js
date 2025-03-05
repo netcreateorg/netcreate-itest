@@ -32,14 +32,10 @@ const u_hack_mapfiles = async () => {
   const { SourceMapConsumer, SourceMapGenerator } = SMAP;
   // see https://stackoverflow.com/questions/68973905 on how to use
   FSE.copySync(
-    `${__dirname}/_ur/_dist/client-cjs.js.map`,
+    `${__dirname}/_mur/_dist/client-cjs.js.map`,
     `${__dirname}/public/scripts/ursys-core.js.map`
   );
   console.log(`MAP HACK - replaced 'ursys-core.js.map' with 'client-cjs.js.map'`);
-  FSE.copySync(
-    `${__dirname}/_ur_addons/_dist/addons-client-cjs.js.map`,
-    `${__dirname}/public/scripts/ursys-addons.js.map`
-  );
   console.log(
     `MAP HACK - replaced 'ursys-addons.js.map' with 'addons-client-cjs.js.map'`
   );
@@ -79,9 +75,7 @@ module.exports = {
     javascripts: {
       joinTo: {
         'scripts/netc-app.js': /^app/,
-        'scripts/ursys-core.js': /^node_modules\/@ursys\/core/,
-        'scripts/ursys-addons.js': /^node_modules\/@ursys\/addons/,
-        'scripts/netc-lib.js': /^(?!app)(?!node_modules\/@ursys)/
+        'scripts/netc-lib.js': /^(?!app)/
       }
     },
     stylesheets: {
@@ -125,20 +119,15 @@ module.exports = {
         console.log(`\n--- compilation complete - appserver is online ---\n`);
         // setup CHOKIDAR to watch for changes in the _ur_addons subdirectories except _dist
         // since brunch can't be configured to watch them
-        const DIR_A = PATH.join(__dirname, '_ur');
-        const DIR_B = PATH.join(__dirname, '_ur_addons');
+        const DIR_A = PATH.join(__dirname, '_mur');
         // chokidar will watch DIR_A and DIR_B, ignoring any changes in _dist subdirectories
-        CHOKIDAR.watch([DIR_A, DIR_B], {
+        CHOKIDAR.watch([DIR_A], {
           ignored: /_dist/,
           ignoreInitial: true
         }).on('all', (event, path) => {
-          console.log(`\n--- rebuilding _ur_addons ---`);
-          // build the addons
-          console.log(`    building core...`);
-          execSync('node ./_ur/npm-scripts/@build-core.cjs');
-          console.log(`    building addons...`);
-          execSync('node ./_ur/npm-scripts/@build-addons.cjs');
-          console.log(`    triggering recompile...\n`);
+          console.log(`\n[ rebuilding ursys-min ]`);
+          execSync('./@build-ursys-min.sh');
+          console.log(`[ triggering brunch recompile ]\n`);
           // touch the brunch-config.js file to trigger a recompile
           const time = new Date();
           const touchFile = './brunch-config.js';

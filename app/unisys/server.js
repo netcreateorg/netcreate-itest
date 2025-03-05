@@ -9,6 +9,7 @@ const UDB = require('./server-database');
 const LOGGER = require('./server-logger');
 const PROMPTS = require('../system/util/prompts');
 const { EDITORTYPE } = require('../system/util/enum');
+const MURS = require('../../_mur/_dist/mur-node.cjs');
 
 /// CONSTANTS & DECLARATIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,6 +33,10 @@ UNISYS.InitializeNetwork = override => {
  *  ready to run. These are server-implemented reserved messages.
  */
 UNISYS.RegisterHandlers = () => {
+  // hook into URSYS-MIN (typescript) extensions
+  MURS.NC.RegisterHandlers(UNET);
+
+  // now define local handlers
   UNET.HandleMessage('SRV_REFLECT', function (pkt) {
     pkt.Data().serverSays = 'REFLECTING';
     pkt.Data().stack.push('SRV_01');
