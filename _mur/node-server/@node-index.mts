@@ -8,6 +8,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import * as NC from './nc-interop.mts';
+
 /// PACKAGED EXPORTS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: u_path, u_short
@@ -20,7 +22,11 @@
  * -       ReadFile, AsyncReadFile, UnsafeWriteFile, ReadJSON,
  *         WriteJSON, AsyncReadJSON, AsyncWriteJSON,
  * -       UnlinkFile */
-export * as FILE from './nc-file.mts';
+export * as FILE from './file.mts';
+
+/// INTEROP MODULES ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export * as NC from './nc-interop.mts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
