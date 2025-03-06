@@ -36,7 +36,7 @@ color:
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class MURTemplate extends UNISYS.Component {
+class MURSettingEditor extends UNISYS.Component {
   constructor(props) {
     super(props);
     // UNISYS.Component already has UDATA and exposes these handlers
@@ -71,4 +71,4 @@ class MURTemplate extends UNISYS.Component {
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = MURTemplate;
+module.exports = MURSettingEditor;
