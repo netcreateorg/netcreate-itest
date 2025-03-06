@@ -26,6 +26,7 @@ const ReactDOM = require('react-dom');
 const SETTINGS = require('settings');
 const UNISYS = require('unisys/client');
 const AppShell = require('init-appshell');
+const UR = require('ursys-min');
 
 /// UNISYS LIFECYCLE LOADER ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,6 +105,10 @@ function m_SetLifecycleScope() {
 function m_RenderApp() {
   if (DBG)
     console.log('%cINIT %cReactDOM.render() begin', 'color:blue', 'color:auto');
+
+  // declare web components for UR
+  UR.VIEWLIB.DeclareComponents();
+
   return new Promise((resolve, reject) => {
     try {
       ReactDOM.render(<AppShell />, document.querySelector('#app-container'), () => {

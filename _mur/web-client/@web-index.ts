@@ -7,9 +7,16 @@
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// ben's comment manager
 export * as COMMENT from './comment/ac-comment.ts';
+/// sri's web components
+export * as VIEWLIB from './viewlib/index.ts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export * from '../common/@common.ts';
 export { ConsoleStyler } from '../common/util-prompts.ts';
+
+/// FORWARDED TYPE EXPORTS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type { DataObj, ErrObj, StatusObj, OpResult } from '../_types/ursys.d.ts';

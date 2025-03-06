@@ -13,14 +13,14 @@
   ],
   "browser": "./_dist/mur-web-cjs.js",
   "main": "./_dist/mur-node.cjs",
-  "exports": {
-    "node": "./_dist/mur-node.cjs",
-    "browser": "./_dist/mur-web-cjs.js"
-  },
   "devDependencies": {
     "esbuild": "^v0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^3.0.0",
+    "js-yaml": "^4.1.0",
     "tsx": "^4.19.3"
+  },
+  "dependencies": {
+    "@melloware/coloris": "^0.24.0"
   }
 }
