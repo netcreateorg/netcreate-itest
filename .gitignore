@@ -18,6 +18,7 @@ _ur_addons/_public
 .npmignore
 /.parcel-cache
 /public*
+/dist_*
 
 # the code-workspace file also hides node_modules from file list
 **/node_modules
