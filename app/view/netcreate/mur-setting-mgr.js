@@ -5,6 +5,8 @@
   This is the coutnerpart to the `template-schema.js` file, intended to
   manage the viewdata used for rendering the MURSettingEditor component.
 
+  note: the canonical settings file is _default.template.toml
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const clone = require('rfdc')();
@@ -1413,6 +1415,281 @@ const TEMPLATE = {
     }
   }
 };
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Legacy Tempalte Schema converted to YAML */
+const YAML = `
+version: 2
+name: "Untitled Project"
+description: "No Description"
+requireLogin: false
+hideDeleteNodeButton: false
+allowLoggedInUserToImport: false
+nodeSizeDefault: 5
+nodeSizeMax: 50
+edgeSizeDefault: 1
+edgeSizeMax: 25
+filterFade: "Fade"
+filterFadeHelp: "Show matches, Fade others"
+filterReduce: "Reduce"
+filterReduceHelp: "Show matches, Reduce (remove) others & recalculate sizes"
+filterFocus: "Focus"
+filterFocusHelp: "Show only nodes connected to the selected node within range"
+duplicateWarning: "NOTE: At least one other node has the same name. Use search or the node table to check the others."
+nodeIsLockedMessage: "This node is currently being edited by someone else, please try again later."
+edgeIsLockedMessage: "This edge is currently being edited by someone else, please try again later."
+templateIsLockedMessage: "The template is currently being edited, please try again later."
+importIsLockedMessage: "Data is currently being imported, please try again later."
+nodeDefaultTransparency: 1
+edgeDefaultTransparency: 0.7
+searchColor: "#008800"
+sourceColor: "#FFa500"
+
+citation:
+  text: "No citation set"
+  hidden: false
+
+commentTypes:
+  - slug: "cmt"
+    label: "Comment"
+    prompts:
+      - format: "text"
+        prompt: "Comment"
+        help: "Use this for any general comment."
+        feedback: ""
+
+  - slug: "tellmemore"
+    label: "Evidence Critique or Suggestion"
+    prompts:
+      - format: "text"
+        prompt: "Tell me more"
+        help: "Can you tell me more about ..."
+        feedback: ""
+
+nodeDefs:
+  id:
+    type: "number"
+    displayLabel: "Id"
+    exportLabel: "ID"
+    help: "System-generated unique id number"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+
+  label:
+    type: "string"
+    displayLabel: "Label"
+    exportLabel: "Label"
+    help: "Display name of the node"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+
+  type:
+    type: "select"
+    displayLabel: "Type"
+    exportLabel: "NodeType"
+    help: "Select a category"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+    options:
+      - color: "#eeeeee"
+        label: ""
+
+  notes:
+    type: "string"
+    displayLabel: "Notes"
+    exportLabel: "Notes"
+    help: "General purpose notes text field"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+
+  info:
+    type: "number"
+    displayLabel: "Number"
+    exportLabel: "Info"
+    help: "Some number comparison"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+
+  infoSource:
+    type: "infoOrigin"
+    displayLabel: "Info Source"
+    exportLabel: "InfoSource"
+    help: "Who created this?  (aka Source)"
+    includeInGraphTooltip: true
+    isProvenance: true
+    hidden: false
+
+  degrees:
+    type: "number"
+    displayLabel: "Degrees"
+    exportLabel: "Degrees"
+    help: "Number of edges connected to this node"
+    includeInGraphTooltip: true
+    isProvenance: false
+    hidden: false
+
+  created:
+    type: "timestamp"
+    displayLabel: "Created"
+    exportLabel: "Created"
+    help: "Date and time node was created"
+    includeInGraphTooltip: true
+    hidden: false
+
+  createdBy:
+    type: "string"
+    displayLabel: "Created By"
+    exportLabel: "Created By"
+    help: "Author who created the node"
+    includeInGraphTooltip: true
+    hidden: false
+
+  updated:
+    type: "timestamp"
+    displayLabel: "Updated"
+    exportLabel: "Updated"
+    help: "Date and time node was last modified"
+    includeInGraphTooltip: true
+    hidden: false
+
+  updatedBy:
+    type: "string"
+    displayLabel: "Updated By"
+    exportLabel: "Updated By"
+    help: "Author who updated the node"
+    includeInGraphTooltip: true
+    hidden: false
+
+  revision:
+    displayLabel: "Revision"
+    exportLabel: "Revision"
+    help: "Number of times this node has been revised"
+    includeInGraphTooltip: true
+    hidden: true
+
+edgeDefs:
+  id:
+    type: "number"
+    displayLabel: "Id"
+    exportLabel: "ID"
+    help: "System-generated unique id number"
+    isProvenance: false
+    hidden: false
+
+  source:
+    type: "number"
+    displayLabel: "Source"
+    exportLabel: "Source"
+    help: "Edge source node"
+    isProvenance: false
+    hidden: false
+
+  target:
+    type: "number"
+    displayLabel: "Target"
+    exportLabel: "Target"
+    help: "Edge target node"
+    hidden: false
+
+  type:
+    type: "select"
+    displayLabel: "Type"
+    exportLabel: "EdgeType"
+    help: "Type of edge connection"
+    isProvenance: false
+    hidden: false
+    options:
+      - color: "#eeeeee"
+        label: ""
+
+  notes:
+    type: "string"
+    displayLabel: "Notes"
+    exportLabel: "Notes"
+    help: "Significance of the connection"
+    isProvenance: false
+    hidden: false
+
+  weight:
+    type: "weight"
+    defaultValue: 1
+    displayLabel: "Weight"
+    exportLabel: "Weight"
+    help: "Weight of edge"
+    includeInGraphTooltip: true
+    isRequired: true
+    isProvenance: false
+    hidden: false
+
+  infoOrigin:
+    type: "string"
+    displayLabel: "Info Origin"
+    exportLabel: "InfoOrigin"
+    help: "Who created this?  (aka Source)"
+    includeInGraphTooltip: true
+    isProvenance: true
+    hidden: false
+
+  citation:
+    type: "string"
+    displayLabel: "Citation"
+    exportLabel: "Citation"
+    help: 'Source Book.Chapter (e.g. "Part 2 06.03")'
+    isProvenance: false
+    hidden: false
+
+  category:
+    type: "string"
+    displayLabel: "Category"
+    exportLabel: "Category"
+    help: "Category (deprecated)"
+    isProvenance: false
+    hidden: true
+
+  created:
+    type: "timestamp"
+    displayLabel: "Created"
+    exportLabel: "Created"
+    includeInGraphTooltip: true
+    help: "Date and time edge was created"
+    hidden: false
+
+  createdBy:
+    type: "string"
+    displayLabel: "Created By"
+    exportLabel: "Created By"
+    includeInGraphTooltip: true
+    help: "Author who created the edge"
+    hidden: false
+
+  updated:
+    type: "timestamp"
+    displayLabel: "Updated"
+    exportLabel: "Updated"
+    includeInGraphTooltip: true
+    help: "Date and time edge was last modified"
+    hidden: false
+
+  updatedBy:
+    type: "string"
+    displayLabel: "Updated By"
+    exportLabel: "Updated By"
+    includeInGraphTooltip: true
+    help: "Author who updated the edge"
+    hidden: false
+
+  revision:
+    displayLabel: "Revision"
+    exportLabel: "Revision"
+    includeInGraphTooltip: true
+    help: "Number of times this edge has been revised"
+    hidden: true
+`;
 
 /// LEGACY SCHEMA METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
