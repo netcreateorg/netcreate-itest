@@ -62,8 +62,7 @@ let DB = {};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Backup Database File Utility
     Used by PKT_MergeDatabase to clone the db before importing.
-    Saves the db in the runtime folder with a timestamp suffix.
- */
+    Saves the db in the runtime folder with a timestamp suffix. */
 function m_BackupDatabase() {
   FS.ensureDirSync(PATH.dirname(db_file));
   if (FS.existsSync(db_file)) {
@@ -76,14 +75,12 @@ function m_BackupDatabase() {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Default Template Path
- */
+/** Default Template Path */
 function m_DefaultTemplatePath() {
   return TEMPLATEPATH + '_default' + TEMPLATE_EXT;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Initialize the database
- */
+/** API: Initialize the database */
 DB.InitializeDatabase = function (options = {}) {
   let dataset = NC_CONFIG.dataset;
   db_file = m_GetValidDBFilePath(dataset);
@@ -107,7 +104,12 @@ DB.InitializeDatabase = function (options = {}) {
   m_options = ropt;
   m_options.db_file = db_file; // store for use by DB.WriteJSON
 
-  // callback on load
+  /*/ !!! HACK NOTED !!!
+      CALLBACK ON LOKI LOAD
+      also has side-effect of initializing template, which has
+      nothing to do with the database :|
+  /*/
+
   async function f_DatabaseInitialize() {
     // on the first load of (non-existent database), we will have no
     // collections so we can detect the absence of our collections and
@@ -429,9 +431,8 @@ function m_ValidateTemplate() {
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: load database
-    note: InitializeDatabase() was already called on system initialization
-    to populate the NODES and EDGES structures.
- */
+ *  note: InitializeDatabase() was already called on system initialization
+ *  to populate the NODES and EDGES structures */
 DB.PKT_GetDatabase = function (pkt) {
   let nodes = NODES.chain().data({ removeMeta: false });
   let edges = EDGES.chain().data({ removeMeta: false });
@@ -450,8 +451,7 @@ DB.PKT_GetDatabase = function (pkt) {
   return { d3data: { nodes, edges }, template: TEMPLATE, comments, readby };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: reset database from scratch
- */
+/** API: reset database from scratch */
 DB.PKT_SetDatabase = function (pkt) {
   if (DBG) console.log(PR, `PKT_SetDatabase`);
   let { nodes = [], edges = [], comments = [], readby = [] } = pkt.Data();
@@ -478,8 +478,7 @@ DB.PKT_SetDatabase = function (pkt) {
   return { OK: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Add nodes/edges to an existing db
- */
+/** API: Add nodes/edges to an existing db */
 DB.PKT_InsertDatabase = function (pkt) {
   if (DBG) console.log(PR, `PKT_InsertDatabase`);
   let { nodes = [], edges = [], comments = [], readby = [] } = pkt.Data();
@@ -503,11 +502,11 @@ DB.PKT_InsertDatabase = function (pkt) {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update or add nodes/edges to an existing db
-    If the node/edge exists, update it.
-    Otherwise, insert it.
-    This walks down the node and edge arrays one by one,
-    using PKT_Update to decide whether to insert or update the data.
-    REVIEW: Consider batch operations ala `NODES.insert(nodes)`?
+ *  If the node/edge exists, update it.
+ *  Otherwise, insert it.
+ *  This walks down the node and edge arrays one by one,
+ *  using PKT_Update to decide whether to insert or update the data.
+ *  REVIEW: Consider batch operations ala `NODES.insert(nodes)`?
  */
 DB.PKT_MergeDatabase = function (pkt) {
   if (DBG) console.log(PR, `PKT_MergeDatabase`);
@@ -552,8 +551,7 @@ DB.PKT_MergeDatabase = function (pkt) {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update all data in existing database.
-    Used to update node/edge types after template edit
- */
+ *  Used to update node/edge types after template edit */
 DB.PKT_UpdateDatabase = function (pkt) {
   if (DBG) console.log(PR, `PKT_UpdateDatabase`);
   let { nodes = [], edges = [], comments = [], readby = [] } = pkt.Data();
@@ -575,7 +573,7 @@ DB.PKT_UpdateDatabase = function (pkt) {
   return { OK: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Side Effect: Changes `m_max_nodeID`
+/// WARN: Side Effect: Changes `m_max_nodeID`
 function m_CalculateMaxNodeID() {
   if (NODES.count() > 0) {
     m_max_nodeID = NODES.mapReduce(
@@ -596,6 +594,7 @@ function m_GetNewNodeID() {
   m_max_nodeID += 1;
   return m_max_nodeID;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_GetNewNodeID = function (pkt) {
   if (DBG) console.log(PR, `PKT_GetNewNodeID ${pkt.Info()} nodeID ${m_max_nodeID}`);
   return { nodeID: m_GetNewNodeID() };
@@ -631,6 +630,7 @@ function m_GetNewEdgeID() {
   m_max_edgeID += 1;
   return m_max_edgeID;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_GetNewEdgeID = function (pkt) {
   if (DBG) console.log(PR, `PKT_GetNewEdgeID ${pkt.Info()} edgeID ${m_max_edgeID}`);
   return { edgeID: m_GetNewEdgeID() };
@@ -656,7 +656,7 @@ DB.PKT_GetNewCommentID = function (pkt) {
   return { comment_id: m_GetNewCommentID() };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Side Effect: Changes `m_max_nodeID`
+/// WARN: Side Effect: Changes `m_max_nodeID`
 function m_CalculateMaxCommentID() {
   if (COMMENTS.count() > 0) {
     m_max_commentID = COMMENTS.mapReduce(
@@ -668,7 +668,6 @@ function m_CalculateMaxCommentID() {
   }
   return m_max_commentID;
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockNode = function (pkt) {
   let { nodeID } = pkt.Data();
@@ -724,6 +723,7 @@ function m_IsInvalidNode(nodeID) {
   // no retval is no error!
   return undefined;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_MakeLockError(info) {
   return { NOP: `ERR`, INFO: info };
 }
@@ -813,20 +813,22 @@ DB.PKT_IsCommentLocked = function (pkt) {
   const isLocked = m_locked_comments.has(commentID);
   return { commentID, locked: isLocked };
 };
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAllNodes = function (pkt) {
   m_locked_nodes = new Map();
   return { unlocked: true };
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAllEdges = function (pkt) {
   m_locked_edges = new Map();
   return { unlocked: true };
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAllComments = function (pkt) {
   m_locked_comments = new Map();
   return { unlocked: true };
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAll = function (pkt) {
   m_locked_nodes = new Map();
   m_locked_edges = new Map();
@@ -836,8 +838,7 @@ DB.PKT_RequestUnlockAll = function (pkt) {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by server-network when a client disconnects we want to unlock any
-    nodes and edges they had locked.
- */
+ *  nodes and edges they had locked. */
 DB.RequestUnlock = function (uaddr) {
   m_locked_nodes.forEach((value, key) => {
     if (value === uaddr) m_locked_nodes.delete(key);
@@ -1236,7 +1237,8 @@ DB.PKT_Update = function (pkt) {
   return { op: 'error-noaction' };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** NOTE: Unlike PKT_Update, the return value is an array with multiple results */
+/** NOTE: Unlike PKT_Update, the return value is an array with multiple
+ *  results */
 DB.PKT_BatchUpdate = function (pkt) {
   let { items } = pkt.Data();
   let retvals = [];
@@ -1343,8 +1345,7 @@ function m_CommentRemove(commentID, pkt) {
 /// NODE ANNOTATION ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the node before writing
-    the first entry is the insert, subsequent operations are updates
- */
+ *  the first entry is the insert, subsequent operations are updates */
 DB.AppendNodeLog = function (node, pkt) {
   if (!node._nlog) node._nlog = [];
   let gid = pkt.SourceGroupID() || pkt.SourceAddress();
@@ -1362,11 +1363,11 @@ DB.FilterNodeLog = function (node) {
   Reflect.deleteProperty(newNode, '_nlog');
   return newNode;
 };
+
 /// EDGE ANNOTATION ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the node before writing
-    the first entry is the insert, subsequent operations are updates
- */
+ *  the first entry is the insert, subsequent operations are updates */
 DB.AppendEdgeLog = function (edge, pkt) {
   if (!edge._elog) edge._elog = [];
   let gid = pkt.SourceGroupID() || pkt.SourceAddress();
@@ -1387,8 +1388,7 @@ DB.FilterEdgeLog = function (edge) {
 /// COMMENT ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the comment before writing
-    the first entry is the insert, subsequent operations are updates
- */
+ *  the first entry is the insert, subsequent operations are updates */
 DB.AppendCommentLog = function (comment, pkt) {
   if (!comment._nlog) comment._nlog = [];
   let gid = pkt.SourceGroupID() || pkt.SourceAddress();
@@ -1409,8 +1409,7 @@ DB.FilterCommentLog = function (comment) {
 /// READBY ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the readby before writing
-    the first entry is the insert, subsequent operations are updates
- */
+ *  the first entry is the insert, subsequent operations are updates */
 DB.AppendReadbyLog = function (readby, pkt) {
   if (!readby._nlog) readby._nlog = [];
   let gid = pkt.SourceGroupID() || pkt.SourceAddress();
@@ -1432,8 +1431,7 @@ DB.FilterReadbyLog = function (readby) {
 /// JSON EXPORT ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by brunch to generate an up-to-date JSON file to path.
-    creates the path if it doesn't exist
- */
+ *  creates the path if it doesn't exist */
 DB.WriteDbJSON = function (filePath) {
   let dataset = NC_CONFIG.dataset;
 
@@ -1471,19 +1469,21 @@ DB.WriteDbJSON = function (filePath) {
 function m_GetTemplateTOMLFileName() {
   return NC_CONFIG.dataset + TEMPLATE_EXT;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_GetTemplateTOMLFilePath() {
   return RUNTIMEPATH + m_GetTemplateTOMLFileName();
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.GetTemplateTOMLFileName = () => {
   return { filename: m_GetTemplateTOMLFileName() };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by Template Editor to save TOML template changes to disk.
-    parm {object} pkt.data.template
-                  pkt.data.path      Will override the current template path in NC_CONFIG.dataset
-                                     Use this to write to the _default template or
-                                     other specific template.
-    Loads the template after saving!
+ *  @param {object} pkt.data.template
+ *  @param pkt.data.path  Will override the current template path in NC_CONFIG.dataset
+ *                        Use this to write to the _default template or
+ *                        other specific template.
+ *  WARN: Loads the template after saving!
  */
 DB.WriteTemplateTOML = pkt => {
   if (pkt.data === undefined)
@@ -1651,26 +1651,25 @@ DB.ReleaseEditLock = pkt => {
   return DB.GetEditStatus(pkt);
 };
 
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// utility functions for loading data
-/*/ Migrates old network data to new formats based on the template defintion.
-    This will automatically migrate any field/property that is marked `isRequired`
-    and has a `defaultValue` defined.
+/// UTILITIES FOR LOADING DATA ///
 
-    The basic check is this:
-    1. If the TEMPLATE property `isRequired`
-    2. ...and the TEMPLATE propert has `defaultValue` defined
-    2. ...and the node/edge property is currently undefined or ``
-    3. ...then we set the property to the defaultValue
-
-    The key parameters:
-      property.isRequired
-      property.defaultValue
-
-    If `isRequired` or `defaultValue` is not defined on the property, we skip migration.
-
-    REVIEW: We might consider also adding type coercion.
-/*/
+/** Migrates old network data to new formats based on the template defintion.
+ *  This will automatically migrate any field/property that is marked `isRequired`
+ *  and has a `defaultValue` defined.
+ *
+ *  The basic check is this:
+ *  1. If the TEMPLATE property `isRequired`
+ *  2. ...and the TEMPLATE propert has `defaultValue` defined
+ *  2. ...and the node/edge property is currently undefined or ``
+ *  3. ...then we set the property to the defaultValue
+ *
+ *  The key parameters:
+ *    property.isRequired
+ *    property.defaultValue
+ *
+ *  If `isRequired` or `defaultValue` is not defined on the property, we skip migration.
+ *
+ *  REVIEW: We might consider also adding type coercion. */
 function m_MigrateNodes(nodes) {
   // modifies `nodes` by reference
   // Migrate v1.4 to v2.0
@@ -1683,6 +1682,7 @@ function m_MigrateNodes(nodes) {
     }
   }
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_MigrateEdges(edges) {
   // modifies `edges` by reference
   // Migrate v1.4 to v2.0
@@ -1695,7 +1695,6 @@ function m_MigrateEdges(edges) {
     }
   }
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// utility function for cleaning nodes with numeric id property
 function m_CleanObjID(prompt, obj) {
@@ -1710,6 +1709,7 @@ function m_CleanObjID(prompt, obj) {
   }
   return obj;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CleanEdgeEndpoints(prompt, edge) {
   if (typeof edge.source === 'string') {
     let int = parseInt(edge.source, 10);
@@ -1731,6 +1731,7 @@ function m_CleanEdgeEndpoints(prompt, edge) {
   }
   return edge;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CleanID(prompt, id) {
   if (typeof id === 'string') {
     let int = parseInt(id, 10);
