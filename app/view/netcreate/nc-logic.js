@@ -585,7 +585,7 @@ MOD.Hook('INITIALIZE', () => {
     // FIXME: Need to also trigger resize!
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - inside hook
-  /** NODE_TYPES_UPDATE is called by templateEditor-mgr after user has changed the
+  /** NODE_TYPES_UPDATE is called by template-editor-mgr after user has changed the
    *  node type options.  This maps changed options to a new name,
    *  and deleted type options to existing options.
    *  This updates:
@@ -682,7 +682,7 @@ MOD.Hook('INITIALIZE', () => {
     });
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - inside hook
-  /** EDGE_TYPES_UPDATE is called by templateEditor-mgr after user has changed the
+  /** EDGE_TYPES_UPDATE is called by template-editor-mgr after user has changed the
    *  edge type options.  This maps changed options to a new name,
    *  and deleted type options to existing options.
    *  This updates:

@@ -12,7 +12,7 @@
 const React = require('react');
 const UNISYS = require('unisys/client');
 const { EDITORTYPE } = require('system/util/enum');
-const TEMPLATE_MGR = require('../templateEditor-mgr');
+const TEMPLATE_MGR = require('../template-editor-mgr');
 const LOCKMGR = require('../lock-mgr');
 const SCHEMA = require('../template-schema');
 const DATASTORE = require('system/datastore');

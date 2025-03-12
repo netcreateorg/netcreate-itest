@@ -315,7 +315,7 @@ DSTOR.SaveTemplateFile = template => {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get Template File Path.
-    Called by templateEditor-mgr when downloading template file.
+    Called by template-editor-mgr when downloading template file.
  */
 DSTOR.GetTemplateTOMLFileName = () => {
   return UDATA.Call('SRV_GET_TEMPLATETOML_FILENAME');

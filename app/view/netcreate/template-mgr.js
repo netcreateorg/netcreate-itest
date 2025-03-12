@@ -5,7 +5,7 @@
   Client-side
 
   This is a work in progress module that will handle all template management.
-  Eventually `templateEditor-mgr` will probably be folded into this module.
+  Eventually `template-editor-mgr` will probably be folded into this module.
 
 
   ## NOTES
