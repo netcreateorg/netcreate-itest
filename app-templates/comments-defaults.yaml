@@ -1,0 +1,19 @@
+# required metadata
+_schemaVersion: 2
+
+# Default comment types made available in the comment manager
+commentTypes:
+  - slug: 'cmt'
+    label: 'Comment'
+    prompts:
+      - format: 'text'
+        prompt: 'Comment'
+        help: 'Use this for any general comment.'
+        feedback: ''
+  - slug: 'tellmemore'
+    label: 'Evidence Critique or Suggestion'
+    prompts:
+      - format: 'text'
+        prompt: 'Tell me more'
+        help: 'Can you tell me more about ... '
+        feedback: ''

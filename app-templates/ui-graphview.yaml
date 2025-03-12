@@ -1,0 +1,13 @@
+# required metadata
+_schemaVersion: 2
+
+# Defaults for the D3-based GraphView renderer
+graphview:
+  nodeSizeDefault: 5
+  nodeSizeMax: 50
+  edgeSizeDefault: 1
+  edgeSizeMax: 25
+  nodeDefaultTransparency: 1
+  edgeDefaultTransparency: 0.7
+  searchColor: '#008800' # color used to hilight a search result
+  sourceColor: '#FFa500' # color used to hilight a source

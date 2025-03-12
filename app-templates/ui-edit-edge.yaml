@@ -1,0 +1,108 @@
+# required metadata
+_schemaVersion: 2
+
+# Defaults for displayed edge information for selected edge
+# as used by NCEdge in both edit and read-only modes
+id:
+  type: 'number'
+  displayLabel: 'Id'
+  exportLabel: 'ID'
+  help: 'System-generated unique id number'
+  isProvenance: false
+  hidden: false
+source:
+  type: 'number'
+  displayLabel: 'Source'
+  exportLabel: 'Source'
+  help: 'Edge source node'
+  isProvenance: false
+  hidden: false
+target:
+  type: 'number'
+  displayLabel: 'Target'
+  exportLabel: 'Target'
+  help: 'Edge target node'
+  hidden: false
+type:
+  type: 'select'
+  displayLabel: 'Type'
+  exportLabel: 'EdgeType'
+  help: 'Type of edge connection'
+  isProvenance: false
+  hidden: false
+  options:
+    - color: '#eeeeee'
+      label: ''
+notes:
+  type: 'string'
+  displayLabel: 'Notes'
+  exportLabel: 'Notes'
+  help: 'Significance of the connection'
+  isProvenance: false
+  hidden: false
+weight:
+  type: 'weight'
+  defaultValue: 1
+  displayLabel: 'Weight'
+  exportLabel: 'Weight'
+  help: 'Weight of edge'
+  includeInGraphTooltip: true
+  isRequired: true
+  isProvenance: false
+  hidden: false
+infoOrigin:
+  type: 'string'
+  displayLabel: 'Info Origin'
+  exportLabel: 'InfoOrigin'
+  help: 'Who created this?  (aka Source)'
+  includeInGraphTooltip: true
+  isProvenance: true
+  hidden: false
+citation:
+  type: 'string'
+  displayLabel: 'Citation'
+  exportLabel: 'Citation'
+  help: 'Source Book.Chapter (e.g. "Part 2 06.03")'
+  isProvenance: false
+  hidden: false
+category:
+  type: 'string'
+  displayLabel: 'Category'
+  exportLabel: 'Category'
+  help: 'Category (deprecated)'
+  isProvenance: false
+  hidden: true
+created:
+  type: 'timestamp'
+  displayLabel: 'Created'
+  exportLabel: 'Created'
+  includeInGraphTooltip: true
+  help: 'Date and time edge was created'
+  hidden: false
+createdBy:
+  type: 'string'
+  displayLabel: 'Created By'
+  exportLabel: 'Created By'
+  includeInGraphTooltip: true
+  help: 'Author who created the edge'
+  hidden: false
+updated:
+  type: 'timestamp'
+  displayLabel: 'Updated'
+  exportLabel: 'Updated'
+  includeInGraphTooltip: true
+  help: 'Date and time edge was last modified'
+  hidden: false
+updatedBy:
+  type: 'string'
+  displayLabel: 'Updated By'
+  exportLabel: 'Updated By'
+  includeInGraphTooltip: true
+  help: 'Author who updated the edge'
+  hidden: false
+revision:
+  displayLabel: 'Revision'
+  exportLabel: 'Revision'
+  includeInGraphTooltip: true
+  help: 'Number of times this edge has been revised'
+  hidden: true
