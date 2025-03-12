@@ -24,7 +24,6 @@ const TOML = require('@iarna/toml');
 const SESSION = require('./common-session');
 const LOGGER = require('./server-logger');
 const PROMPTS = require('../system/util/prompts');
-const TEMPLATE_SCHEMA = require('../view/netcreate/template-schema');
 const FILTER = require('../view/netcreate/components/filter/FilterEnums');
 const { EDITORTYPE } = require('../system/util/enum');
 
@@ -33,7 +32,6 @@ const RUNTIMEPATH = './runtime/';
 const TEMPLATEPATH = './app-templates/';
 const TEMPLATE_EXT = '.template.toml';
 const BACKUPPATH = 'backups/'; // combined with RUNTIMEPATH, so no leading './'
-const DB_CLONEMASTER = 'blank.loki';
 const NC_CONFIG = require('../../app-config/netcreate-config');
 
 /// MODULE-WIDE VARS //////////////////////////////////////////////////////////
@@ -221,182 +219,7 @@ DB.InitializeDatabase = function (options = {}) {
   }
 }; // InitializeDatabase()
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// utility function for loading template
-/** Converts a version 1.3 JSON template to a version 1.4 TOML template
- */
-// eslint-disable-next-line complexity
-function m_MigrateJSONtoTOML(JSONtemplate) {
-  console.log(PR, 'Converting JSON to TOML...');
-  const jt = JSONtemplate;
-  const SCHEMA = TEMPLATE_SCHEMA.TEMPLATE.properties;
-  const TOMLtemplate = {
-    name: jt.name,
-    description: jt.description,
-    requireLogin: jt.requireLogin || SCHEMA.requireLogin.default,
-    hideDeleteNodeButton:
-      (jt.nodePrompts && jt.nodePrompts.delete && jt.nodePrompts.delete.hidden) ||
-      SCHEMA.hideDeleteNodeButton.default,
-    allowLoggedInUserToImport: SCHEMA.allowLoggedInUserToImport.default, // new parameter not in old json template
-    duplicateWarning:
-      (jt.nodePrompts &&
-        jt.nodePrompts.label &&
-        jt.nodePrompts.label.duplicateWarning) ||
-      SCHEMA.duplicateWarning.default,
-    nodeIsLockedMessage:
-      (jt.nodePrompts &&
-        jt.nodePrompts.label &&
-        jt.nodePrompts.label.sourceNodeIsLockedMessage) ||
-      SCHEMA.nodeIsLockedMessage.default,
-    edgeIsLockedMessage:
-      (jt.edgePrompts && jt.edgePrompts.edgeIsLockedMessage) ||
-      SCHEMA.edgeIsLockedMessage.default,
-    templateIsLockedMessage: SCHEMA.templateIsLockedMessage.default,
-    nodeDefaultTransparency:
-      (jt.nodePrompts && jt.nodePrompts.defaultTransparency) ||
-      SCHEMA.nodeDefaultTransparency.default,
-    edgeDefaultTransparency:
-      (jt.edgePrompts && jt.edgePrompts.defaultTransparency) ||
-      SCHEMA.edgeDefaultTransparency.default,
-    searchColor: jt.searchColor || SCHEMA.searchColor.default,
-    sourceColor: jt.sourceColor || SCHEMA.sourceColor.default,
-    citation: {
-      text: (jt.citationPrompts && jt.citationPrompts.citation) || jt.name,
-      hidden:
-        (jt.citationPrompts && jt.citationPrompts.hidden) ||
-        SCHEMA.citation.properties.hidden.default
-    }
-  };
-  // convert nodePrompts
-  const nodeDefs = {};
-  // 1. Add fields
-  Object.keys(JSONtemplate.nodePrompts).forEach(k => {
-    const field = JSONtemplate.nodePrompts[k];
-    nodeDefs[k] = {
-      type: field.type || 'string', // default to 'string'
-      displayLabel: field.label,
-      exportLabel: field.label,
-      help: field.help,
-      includeInGraphTooltip: field.includeInGraphTooltip || true, // default to show tool tip
-      hidden: field.hidden || false // default to not hidden
-    };
-    if (k === 'type') {
-      // special handling for type options
-      const options = field.options.map(o => {
-        return {
-          label: o.label,
-          color: o.color
-        };
-      });
-      // make sure field type is set to "select" -- older templates do not set type
-      nodeDefs[k].type = 'select';
-      console.log(
-        PR,
-        '...migrating nodeDefs field',
-        k,
-        'with options, forcing type to "select"'
-      );
-      nodeDefs[k].options = options;
-    }
-  });
-  // 2. Add id -- clobbers any existing id
-  nodeDefs.id = {
-    type: 'number',
-    displayLabel: 'id',
-    exportLabel: 'ID',
-    help: 'System-generated unique id number'
-  };
-  // 3. remove deprecated fields
-  Reflect.deleteProperty(nodeDefs, 'delete'); // `delete` -- mapped to hideDeleteNodeButton
-  Reflect.deleteProperty(nodeDefs, 'defaultTransparency'); // `nodeDefaultTransparency` -- moved to root
-
-  // 4. Add other built-ins
-  nodeDefs.updated = {
-    displayLabel: 'Last Updated',
-    exportLabel: 'Last Updated',
-    help: 'Date and time of last update',
-    includeInGraphTooltip: true // default to show tool tip
-  };
-  nodeDefs.created = {
-    displayLabel: 'Created',
-    exportLabel: 'Created',
-    help: 'Date and time node was created',
-    includeInGraphTooltip: true // default to show tool tip
-  };
-
-  // convert edgePrompts
-  const edgeDefs = {};
-  // 1. Add fields
-  Object.keys(JSONtemplate.edgePrompts).forEach(k => {
-    const field = JSONtemplate.edgePrompts[k];
-    edgeDefs[k] = {
-      type: field.type || 'string', // default to 'string'
-      displayLabel: field.label,
-      exportLabel: field.label,
-      help: field.help,
-      hidden: field.hidden || false // default to not hidden
-      // If necessary, user can edit template to hide it again.
-      // We want it visible by default, because of migrations
-      // the original field may not be defined.
-      // e.g. orig template uses "Relationship" not "type"
-    };
-    if (k === 'type') {
-      // special handling for type options
-      const options = field.options.map(o => {
-        return {
-          label: o.label,
-          color: o.color
-        };
-      });
-      // make sure field type is set to "select" -- older templates do not set type
-      edgeDefs[k].type = 'select';
-      console.log(
-        PR,
-        '...migrating edgeDefs field',
-        k,
-        'with options, forcing type to "select"'
-      );
-      edgeDefs[k].options = options;
-    }
-  });
-  // 2. Add id
-  edgeDefs.id = {
-    // will clobber any existing id
-    type: 'number',
-    displayLabel: 'id',
-    exportLabel: 'ID',
-    help: 'System-generated unique id number'
-  };
-  // 3. remove deprecated fields
-  Reflect.deleteProperty(edgeDefs, 'edgeIsLockedMessage'); // `edgeIsLockedMessage` -- moved to root
-  Reflect.deleteProperty(edgeDefs, 'defaultTransparency'); // `edgeDefaultTransparency` -- moved to root
-
-  TOMLtemplate.nodeDefs = nodeDefs;
-  TOMLtemplate.edgeDefs = edgeDefs;
-  if (DBG) console.log(PR, 'Imported TOML TEMPLATE', TOMLtemplate);
-
-  return TOMLtemplate;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Loads an original circa version 1.3 JSON template
-    and converts it to a TOML template
- */
-function m_LoadJSONTemplate(templatePath) {
-  return new Promise((resolve, reject) => {
-    // 1. Load JSON
-    console.log(PR, `LOADING JSON TEMPLATE ${templatePath}`);
-    const JSONTEMPLATE = FS.readJsonSync(templatePath);
-    // 2. Convert to TOML
-    TEMPLATE = m_MigrateJSONtoTOML(JSONTEMPLATE);
-    // 3. Save it (and load)
-    DB.WriteTemplateTOML({ data: { template: TEMPLATE } }).then(() => {
-      console.log(PR, '...converted JSON template saved!');
-      resolve({ Loaded: true });
-    });
-  });
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Loads a *.template.toml file from the server.
- */
+/** Loads a *.template.toml file from the server. */
 function m_LoadTOMLTemplate(templateFilePath) {
   return new Promise((resolve, reject) => {
     const templateFile = FS.readFile(templateFilePath, 'utf8', (err, data) => {
@@ -418,130 +241,104 @@ function m_LoadTOMLTemplate(templateFilePath) {
     * DB.WriteTemplateTOML
  */
 async function m_LoadTemplate() {
-  const TOMLtemplateFilePath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLtemplateFilePath));
+  const TOMLPath = m_GetTemplateTOMLFilePath();
+  FS.ensureDirSync(PATH.dirname(TOMLPath));
+  /*/ SRI NOTE
+      ripping out the json template conversion to simplify loading and
+      avoid wasting time validating this poorly structured code
+  /*/
   // Does the TOML template exist?
-  if (FS.existsSync(TOMLtemplateFilePath)) {
+  if (FS.existsSync(TOMLPath)) {
     // 1. If TOML exists, load it
-    await m_LoadTOMLTemplate(TOMLtemplateFilePath);
+    await m_LoadTOMLTemplate(TOMLPath);
   } else {
-    // 2. Try falling back to JSON template
-    const JSONTemplatePath = RUNTIMEPATH + NC_CONFIG.dataset + '.template';
-    // Does the JSON template exist?
-    if (FS.existsSync(JSONTemplatePath)) {
-      await m_LoadJSONTemplate(JSONTemplatePath);
-    } else {
-      // 3. Else, no existing template, clone _default.template.toml
-      console.log(
-        PR,
-        `NO EXISTING TEMPLATE ${TOMLtemplateFilePath}, so cloning default template...`
-      );
-      FS.copySync(m_DefaultTemplatePath(), TOMLtemplateFilePath);
-      // then load it
-      await m_LoadTOMLTemplate(TOMLtemplateFilePath);
-    }
+    // clone _default.template.toml
+    console.log(PR, `NO EXISTING TEMPLATE ${TOMLPath}`);
+    FS.copySync(m_DefaultTemplatePath(), TOMLPath);
+    // then load it
+    await m_LoadTOMLTemplate(TOMLPath);
   }
 }
 
-/// REVIEW: Should this be moved to a separate server-template module?
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Migrate Template File
-    Updates older templates to the current template-schema specification by
-    inserting missing properties needed by the UI.
-    Any changes to template-schema should be reflected here.
- */
+/** Updated Migrate Template - WARNING
+ *  The original m_MigrateTemplate() uses a lot of indirection and references
+ *  an "unused" module called "template-schema.js" that wass very much used */
 function m_MigrateTemplate() {
-  // Ensure key fields are present, else default to schema
-  // NOTE: We are not modifying the template permanently, only temporarily inserting definitions so the system can validate
-  const SCHEMA = TEMPLATE_SCHEMA.TEMPLATE.properties;
-  const DEFAULT_TEMPLATE = TEMPLATE_SCHEMA.ParseTemplateSchema();
-  const NODEDEFS = DEFAULT_TEMPLATE.nodeDefs;
-  const EDGEDEFS = DEFAULT_TEMPLATE.edgeDefs;
+  //
+  const T = TEMPLATE; // mirroring original hacky approach
+  const EDF = T.edgeDefs;
+  const NDF = T.nodeDefs;
+  const nset = prop => prop === undefined;
+
+  /*/ SRI NOTE:
+      using short messages because these get overwritten anyway
+  /*/
 
   // Migrate 1.0 to 1.1
-  // -- Make sure required core preferences have been created
-  TEMPLATE.duplicateWarning =
-    TEMPLATE.duplicateWarning || SCHEMA.duplicateWarning.default;
-  TEMPLATE.nodeIsLockedMessage =
-    TEMPLATE.nodeIsLockedMessage || SCHEMA.nodeIsLockedMessage.default;
-  TEMPLATE.edgeIsLockedMessage =
-    TEMPLATE.edgeIsLockedMessage || SCHEMA.edgeIsLockedMessage.default;
-  TEMPLATE.templateIsLockedMessage =
-    TEMPLATE.templateIsLockedMessage || SCHEMA.templateIsLockedMessage.default;
-  TEMPLATE.importIsLockedMessage =
-    TEMPLATE.importIsLockedMessage || SCHEMA.importIsLockedMessage.default;
+  if (nset(T.duplicationWarning)) T.duplicationWarning = 'Duplicate node detected';
+  if (nset(T.nodeIsLockedMessage)) T.nodeIsLockedMessage = 'Node is locked';
+  if (nset.edgeIsLockedMessage) T.edgeIsLockedMessage = 'Edge is locked';
+  if (nset(T.templateIsLockedMessage))
+    T.templateIsLockedMessage = 'Template is locked';
+  if (nset(T.importIsLockedMessage)) T.importIsLockedMessage = 'Import is locked';
 
-  // Migrate v1.4 to 1.5 Core Preferences
+  // Migrate 1.4 to 1.5 Core Preferences
   // -- v1.5 core defaults -- added 2023-0628 #31
-  if (TEMPLATE.searchColor === undefined)
-    TEMPLATE.searchColor = TEMPLATE_SCHEMA.TEMPLATE.properties.searchColor.default;
-  if (TEMPLATE.sourceColor === undefined)
-    TEMPLATE.sourceColor = TEMPLATE_SCHEMA.TEMPLATE.properties.sourceColor.default;
+  if (nset(T.searchColor)) T.searchColor = '#008800';
+  if (nset(T.sourceColor)) T.sourceColor = '#FFa500';
+
   // -- v1.5 Filter Labels -- added 2023-0602 #117
-  // See branch `dev-bl/template-filter-labels`, and fb28fa68ee42deffc778c1be013acea7dae85258
-  if (TEMPLATE.filterFade === undefined)
-    TEMPLATE.filterFade = TEMPLATE_SCHEMA.TEMPLATE.properties.filterFade.default;
-  if (TEMPLATE.filterReduce === undefined)
-    TEMPLATE.filterReduce = TEMPLATE_SCHEMA.TEMPLATE.properties.filterReduce.default;
-  if (TEMPLATE.filterFocus === undefined)
-    TEMPLATE.filterFocus = TEMPLATE_SCHEMA.TEMPLATE.properties.filterFocus.default;
-  if (TEMPLATE.filterFadeHelp === undefined)
-    TEMPLATE.filterFadeHelp =
-      TEMPLATE_SCHEMA.TEMPLATE.properties.filterFadeHelp.default;
-  if (TEMPLATE.filterReduceHelp === undefined)
-    TEMPLATE.filterReduceHelp =
-      TEMPLATE_SCHEMA.TEMPLATE.properties.filterReduceHelp.default;
-  if (TEMPLATE.filterFocusHelp === undefined)
-    TEMPLATE.filterFocusHelp =
-      TEMPLATE_SCHEMA.TEMPLATE.properties.filterFocusHelp.default;
+  // See branch `dev-bl/template-filter-labels`, and fb28fa6
+  if (nset(T.filterFade)) T.filterFade = 'Fade';
+  if (nset(T.filterReduce)) T.filterReduce = 'Reduce';
+  if (nset(T.filterFocus)) T.filterFocus = 'Focus';
+  if (nset(T.filterFadeHelp)) T.filterFadeHelp = 'Fade Filters';
+  if (nset(T.filterReduceHelp)) T.filterReduceHelp = 'Reduce Filters';
+  if (nset(T.filterFocusHelp)) T.filterFocusHelp = 'Focus Filters';
+
   // -- v1.5 max sizes -- added 2023-0605 #117
   // See branch `dev-bl/max-size
-  if (TEMPLATE.nodeSizeDefault === undefined)
-    TEMPLATE.nodeSizeDefault =
-      TEMPLATE_SCHEMA.TEMPLATE.properties.nodeSizeDefault.default;
-  if (TEMPLATE.nodeSizeMax === undefined)
-    TEMPLATE.nodeSizeMax = TEMPLATE_SCHEMA.TEMPLATE.properties.nodeSizeMax.default;
-  if (TEMPLATE.edgeSizeDefault === undefined)
-    TEMPLATE.edgeSizeDefault =
-      TEMPLATE_SCHEMA.TEMPLATE.properties.edgeSizeDefault.default;
-  if (TEMPLATE.edgeSizeMax === undefined)
-    TEMPLATE.edgeSizeMax = TEMPLATE_SCHEMA.TEMPLATE.properties.edgeSizeMax.default;
+  if (nset(T.nodeSizeDefault)) T.nodeSizeDefault = 5;
+  if (nset(T.nodeSizeMax)) T.nodeSizeMax = 50;
+  if (nset(T.edgeSizeDefault)) T.edgeSizeDefault = 1;
+  if (nset(T.edgeSizeMax)) T.edgeSizeMax = 25;
+
+  /*/ SRI NOTE:
+      EDF is T.edgeDefs
+      NDF is T.nodeDefs
+  /*/
 
   // Migrate v1.4 to v1.5 Nodes and Edges
-  // -- hides them by default if they were not previously added
-  //
-  // -- Built-in Fields
-  // -- v1.5 added 'weight
-  if (TEMPLATE.edgeDefs.weight === undefined) {
-    TEMPLATE.edgeDefs.weight = EDGEDEFS.weight;
-    TEMPLATE.edgeDefs.weight.hidden = true;
-  }
-  //
-  // -- v1.5 added `provenance` and `comments` -- so we add the template definitions if the toml template does not already have them
-  if (TEMPLATE.nodeDefs.provenance === undefined && NODEDEFS.provenance) {
-    TEMPLATE.nodeDefs.provenance = NODEDEFS.provenance;
-    TEMPLATE.nodeDefs.provenance.hidden = true;
-  }
-  if (TEMPLATE.nodeDefs.comments === undefined && NODEDEFS.coments) {
-    TEMPLATE.nodeDefs.comments = NODEDEFS.comments;
-    TEMPLATE.nodeDefs.comments.hidden = true;
-  }
-  if (TEMPLATE.edgeDefs.provenance === undefined && EDGEDEFS.provenance) {
-    TEMPLATE.edgeDefs.provenance = EDGEDEFS.provenance;
-    TEMPLATE.edgeDefs.provenance.hidden = true;
-  }
-  if (TEMPLATE.edgeDefs.comments === undefined && EDGEDEFS.comments) {
-    TEMPLATE.edgeDefs.comments = EDGEDEFS.comments;
-    TEMPLATE.edgeDefs.comments.hidden = true;
-  }
+  // hides them by default if they were not previously added
+  // SRI NOTE: these related to JSONEditor so needs rework since
+  // a lot of this is just used by dead code that hasn't been pruned.
+  // I've pruned some of it, but this is an outlier that needs to be handled
+  // by a different mechanism in an updated prop editor
+  if (nset(EDF.weight))
+    EDF.weight = {
+      type: 'number',
+      default: 1,
+      label: 'Weight',
+      exportLabel: 'Weight',
+      help: 'Weight of edge',
+      description: 'Weight of this edge',
+      includeInGraphTooltip: true,
+      isRequired: true,
+      isProvenance: false,
+      hidden: false
+    };
+
+  // v1.5 added `provenance` and `comments` so we add the template definitions
+  // Sri notes: this doesn't exist in the template-schema.js output at all, so
+  // there is nothing to migrate
+  // if (ndef(NDEF?.provenance)) {}
+  // if (ndef(NDEF?.comments)) {}
+  // if (ndef(EDF?.provenance)) {}
+  // if (ndef(EDF?.comments)) {}
 
   // Migrate 1.5 to 2.0 Template Version
-  TEMPLATE.version = TEMPLATE.version || SCHEMA.version;
-
-  // TO DO
-  // Make sure built-in fields are not being defined in the template.
-  // e.g. it's easy to define another "Source" field for "Provenance" but that conflicts with
-  // the edge's "Source" field.
+  T._schemaVersion = '2.0';
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1669,23 +1466,6 @@ DB.WriteDbJSON = function (filePath) {
   });
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** DEPRECATED.  Replaced by WriteTemplateTOML
-    called by brunch to generate an up-to-date Template file to path.
-    creates the path if it doesn't exist
- */
-DB.WriteTemplateJSON = function (filePath) {
-  let templatePath = RUNTIMEPATH + NC_CONFIG.dataset + '.template';
-  FS.ensureDirSync(PATH.dirname(templatePath));
-  // Does the template exist?
-  if (!FS.existsSync(templatePath)) {
-    console.error(PR, `ERR could not find template ${templatePath}`);
-  } else {
-    FS.copySync(templatePath, filePath);
-    console.log(PR, `*** COPIED TEMPLATE ${templatePath} to ${filePath}`);
-  }
-};
-
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by Template Editor and DB.WriteTemplateTOML
  */
 function m_GetTemplateTOMLFileName() {
@@ -1738,14 +1518,14 @@ DB.WriteTemplateTOML = pkt => {
     creates the path if it doesn't exist
  */
 DB.CloneTemplateTOML = function (filePath) {
-  const TOMLtemplateFilePath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLtemplateFilePath));
+  const TOMLPath = m_GetTemplateTOMLFilePath();
+  FS.ensureDirSync(PATH.dirname(TOMLPath));
   // Does the template exist?
-  if (!FS.existsSync(TOMLtemplateFilePath)) {
-    console.error(PR, `ERR could not find template ${TOMLtemplateFilePath}`);
+  if (!FS.existsSync(TOMLPath)) {
+    console.error(PR, `ERR could not find template ${TOMLPath}`);
   } else {
-    FS.copySync(TOMLtemplateFilePath, filePath);
-    console.log(PR, `*** COPIED TEMPLATE ${TOMLtemplateFilePath} to ${filePath}`);
+    FS.copySync(TOMLPath, filePath);
+    console.log(PR, `*** COPIED TEMPLATE ${TOMLPath} to ${filePath}`);
   }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
