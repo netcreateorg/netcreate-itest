@@ -1,5 +1,5 @@
 # required metadata
-_schemaVersion: 2
+_schemaVersion: '2.0'
 
 # Global default permissions for the running application
 permissions:
