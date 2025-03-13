@@ -4,6 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
+const PATH = require('path');
 const UNET = require('./server-network');
 const UDB = require('./server-database');
 const LOGGER = require('./server-logger');
@@ -15,6 +16,9 @@ const MURS = require('../../_mur/_dist/mur-node.cjs');
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = PROMPTS.Pad('SRV');
+///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const ROOT = PATH.resolve(__dirname, '../../');
+const TEST_TEMPL_DIR = PATH.resolve(ROOT, 'app-templates');
 
 /// API CREATE MODULE /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,6 +29,9 @@ var UNISYS = {};
  *  override = { port }
  */
 UNISYS.InitializeNetwork = override => {
+  const settings = MURS.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
+  MURS.SettingMgr.PersistSettings();
+  console.log(PR, 'Settings', settings);
   UDB.InitializeDatabase(override);
   return UNET.InitializeNetwork(override);
 };

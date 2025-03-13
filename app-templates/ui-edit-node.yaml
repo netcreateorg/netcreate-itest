@@ -1,5 +1,6 @@
-# required metadata
+# metadata
 _schemaVersion: '2.0'
+_key: 'edgeDefs'
 
 # Defaults for displayed node information for selected node
 # as used by NCNode in both edit and read-only modes

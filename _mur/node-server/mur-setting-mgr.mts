@@ -1,0 +1,104 @@
+/*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  MUR Template Editor Manager
+
+  This is the coutnerpart to the `template-schema.js` file, intended to
+  manage the viewdata used for rendering the MURSettingEditor component.
+
+  note: the canonical settings file is _default.template.toml
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
+
+import * as FILE from './file.mts';
+import * as PATH from 'node:path';
+import * as YAML from 'js-yaml';
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = false;
+const PR = 'mur-setting';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SETTINGS = {};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let TROOT = '';
+
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** either set or retrieve the reference root directory */
+const u_root = (absPath?) => {
+  if (typeof absPath === 'string') {
+    if (!FILE.IsDir(absPath)) throw Error(`u_root: not a directory: ${absPath}`);
+    TROOT = absPath;
+    return;
+  }
+  if (TROOT === undefined) throw Error('u_root: TROOT not initialized');
+  return TROOT;
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** remove TROOT prefix to return shortname */
+const u_short = p => {
+  if (TROOT === undefined) throw Error('u_short: TROOT not initialized');
+  if (p.startsWith(TROOT)) return p.slice(TROOT.length + 1); // +1 for the slash
+  return p; // return path as is if not in TROOT
+};
+
+/// API METHODS ///////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** loads all the matching .yaml files in order to create a composite settings
+ *  object that is stored in its SETTINGS object */
+function LoadSettings(dir) {
+  const fn = 'LoadSettings:';
+  if (dir === undefined) throw Error(`${fn} arg should be path string`);
+  if (typeof dir !== 'string') throw Error(`${fn} arg should be string`);
+  const files = [
+    'project-defaults',
+    'pacl-defaults',
+    'comments-defaults',
+    'ui-citation',
+    'ui-edit-edge',
+    'ui-edit-node',
+    'ui-filters',
+    'ui-graphview'
+  ];
+  // set the template root
+  u_root(dir);
+  // process files
+  let schema = '';
+  files.forEach(f => {
+    const p = PATH.join(dir, `${f}.yaml`);
+    if (!FILE.FileExists(p)) {
+      console.warn(`schema file not found: ${u_short(p)}`);
+      return;
+    }
+    const data = FILE.ReadFile(p);
+    const { _key, _schemaVersion: _sch, ...obj } = YAML.load(data);
+    if (!schema) schema = _sch;
+    if (schema !== _sch) {
+      const pfile = `'${files[0]}.yaml'`;
+      const cfile = `'${u_short(p)}'`;
+      console.log(`schema mismatch: ${cfile}: ${_sch} nomatch ${pfile}`);
+      process.exit(1);
+    }
+    if (typeof _key === 'string' && _key.length > 0) {
+      if (SETTINGS[_key] === undefined) SETTINGS[_key] = {};
+      Object.assign(SETTINGS[_key], obj);
+    } else Object.assign(SETTINGS, obj);
+  });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** write a file to the template root */
+function PersistSettings(fileName?) {
+  const fn = 'PersistSettings:';
+  if (TROOT === undefined) throw Error(`${fn} TROOT not initialized`);
+  fileName = fileName || '_default.template.yaml';
+  const p = PATH.join(TROOT, fileName);
+  const data = YAML.dump(SETTINGS);
+  FILE.WriteFile(p, data);
+}
+
+/// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export {
+  LoadSettings, // dir_yaml_settings_files => obj
+  PersistSettings // (optional) filename => void
+};

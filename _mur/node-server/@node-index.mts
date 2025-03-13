@@ -12,8 +12,7 @@ import * as NC from './nc-interop.mts';
 
 /// PACKAGED EXPORTS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** named: u_path, u_short
- *         FileExists, DirExists, IsDir, IsFile,
+/** named: FileExists, DirExists, IsDir, IsFile,
  *         EnsureDir, EnsureDirChecked, RemoveDir,
  * -       GetRootDirts, DetectedRootDir, DetectedAddonDir,
  *         FindParentDir, AbsLocalPath, RelLocalPath, TrimPath,
@@ -23,10 +22,12 @@ import * as NC from './nc-interop.mts';
  *         WriteJSON, AsyncReadJSON, AsyncWriteJSON,
  * -       UnlinkFile */
 export * as FILE from './file.mts';
+/** named: ComposeSettingsObj */
 
 /// INTEROP MODULES ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export * as NC from './nc-interop.mts';
+export * as SettingMgr from './mur-setting-mgr.mts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
