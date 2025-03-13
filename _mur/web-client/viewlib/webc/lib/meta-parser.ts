@@ -2,7 +2,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import YAML from 'js-yaml';
+import YAML from 'yaml';
 import * as TEXT from '../../../../common/util-text.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@ import type { DataObj as StateObj } from '../../../../_types/ursys.d.ts';
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function ParseText(metaText: string): StateObj {
-  const meta = YAML.load(metaText);
+  const meta = YAML.parse(metaText);
   if (typeof meta !== 'object' || meta === null) {
     throw new Error('Invalid metadata format');
   }
