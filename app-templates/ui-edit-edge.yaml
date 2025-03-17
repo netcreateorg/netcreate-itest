@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: 'nodeDefs'
+_key: 'edgeDefs'
 
 # Defaults for displayed edge information for selected edge
 # as used by NCEdge in both edit and read-only modes

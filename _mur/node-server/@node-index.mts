@@ -26,7 +26,7 @@ export * as FILE from './file.mts';
 
 /// INTEROP MODULES ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export * as NC from './nc-interop.mts';
+export * as NCI from './nc-interop.mts';
 export * as SettingMgr from './mur-setting-mgr.mts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////

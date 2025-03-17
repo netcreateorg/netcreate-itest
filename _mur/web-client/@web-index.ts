@@ -11,6 +11,8 @@
 export * as COMMENT from './comment/ac-comment.ts';
 /// sri's web components
 export * as VIEWLIB from './viewlib/index.ts';
+/// interop with NetCreate
+export * as NCI from './nc-client-interop.ts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

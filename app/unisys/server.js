@@ -15,7 +15,7 @@ const MURS = require('../../_mur/_dist/mur-node.cjs');
 /// CONSTANTS & DECLARATIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = PROMPTS.Pad('SRV');
+const PR = PROMPTS.Pad('MUR_SET');
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ROOT = PATH.resolve(__dirname, '../../');
 const TEST_TEMPL_DIR = PATH.resolve(ROOT, 'app-templates');
@@ -26,12 +26,14 @@ var UNISYS = {};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Initialize() is called by brunch-server.js to define the default UNISYS
  *  network values, so it can embed them in the index.ejs file for webapps
- *  override = { port }
- */
+ *  override = { port } */
 UNISYS.InitializeNetwork = override => {
+  // MUR INTEROP: load settings object
   const settings = MURS.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
+  // MUR INTEROP: write generated file
   MURS.SettingMgr.PersistSettings();
-  console.log(PR, 'Settings', settings);
+  console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
+  // end of MUR INTEROP
   UDB.InitializeDatabase(override);
   return UNET.InitializeNetwork(override);
 };
@@ -40,8 +42,9 @@ UNISYS.InitializeNetwork = override => {
  *  ready to run. These are server-implemented reserved messages.
  */
 UNISYS.RegisterHandlers = () => {
-  // hook into URSYS-MIN (typescript) extensions
-  MURS.NC.RegisterHandlers(UNET);
+  // MUR INTEROP: Register handlers
+  MURS.NCI.RegisterHandlers(UNET);
+  // end MUR INTEROP
 
   // now define local handlers
   UNET.HandleMessage('SRV_REFLECT', function (pkt) {

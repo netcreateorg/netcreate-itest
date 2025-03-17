@@ -86,8 +86,9 @@ function LoadSettings(dir) {
       Object.assign(SETTINGS[_key], obj);
     } else Object.assign(SETTINGS, obj);
   });
-  // add the schema version to the settings object
+  // update the schema version to the settings object
   SETTINGS._schemaVersion = schema;
+  return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write a file to the template root */
@@ -105,10 +106,16 @@ function PersistSettings(fileName?) {
   const yaml = stringify(doc);
   FILE.WriteFile(p, yaml);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** retrieve the settings object */
+function GetSettings() {
+  return SETTINGS;
+}
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  LoadSettings, // dir_yaml_settings_files => obj
-  PersistSettings // (optional) filename => void
+  LoadSettings, // (dir_yaml_settings_files) => obj
+  PersistSettings, // (filename?) => void
+  GetSettings // () => obj
 };
