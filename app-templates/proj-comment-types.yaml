@@ -2,6 +2,21 @@
 _schemaVersion: '2.0'
 
 # Default comment types made available in the comment manager
+# The intent of this seems to be a collection of prompts
+#
+# commentTypes:
+#  type: CommentType[] # a list of CommentType in def-objects
+# list:
+#   - slug: 'cmt'
+#     label: 'Comment'
+#     prompts:
+#       - format: 'text'
+#         prompt: 'Comment'
+#         help: 'Use this for any general comment.'
+#         feedback: ''
+
+# original values pending conversion in comment manager
+# this is a list of two objects
 commentTypes:
   - slug: 'cmt'
     label: 'Comment'

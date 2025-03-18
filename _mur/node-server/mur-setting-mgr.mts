@@ -53,14 +53,18 @@ function LoadSettings(dir) {
   if (dir === undefined) throw Error(`${fn} arg should be path string`);
   if (typeof dir !== 'string') throw Error(`${fn} arg should be string`);
   const files = [
-    'project-defaults',
-    'pacl-defaults',
-    'comments-defaults',
-    'ui-graphview',
-    'ui-edit-edge',
-    'ui-edit-node',
-    'ui-citation',
-    'ui-filters'
+    // 'base-value-types', // used for validation of data
+    // 'base-ui-controls', // used for validating ui control definitions
+    //
+    'def-ui-globals',
+    'def-ui-project',
+    'def-ui-node',
+    'def-ui-edge',
+    'def-ui-citation',
+    'def-ui-comments',
+    //
+    'proj-pacl',
+    'proj-comment-types'
   ];
   // set the template root
   u_root(dir);
@@ -73,7 +77,7 @@ function LoadSettings(dir) {
       return;
     }
     const yaml: string = FILE.ReadFile(p).toString();
-    const { _key, _schemaVersion: _sch, ...obj } = parse(yaml);
+    const { _key, _schemaVersion: _sch, ...obj } = parse(yaml, { merge: true });
     if (!schema) schema = _sch;
     if (schema !== _sch) {
       const pfile = `'${files[0]}.yaml'`;

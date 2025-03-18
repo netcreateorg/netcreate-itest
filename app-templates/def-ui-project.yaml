@@ -1,0 +1,9 @@
+# metadata
+_schemaVersion: '2.0'
+
+# Defaults for project metadata
+UI_ProjectMeta:
+  control: 'ui-form'
+  description:
+    control: 'in-text'
+    default: 'Project Description'

@@ -1,8 +1,17 @@
 # metadata
 _schemaVersion: '2.0'
 
+UI_Strings:
+  # filter tab panels
+  filterFade: 'Fade'
+  filterFadeHelp: 'Show matches, Fade others'
+  filterReduce: 'Reduce'
+  filterReduceHelp: 'Show matches, Reduce (remove) others & recalculate sizes'
+  filterFocus: 'Focus'
+  filterFocusHelp: 'Show only nodes connected to the selected node within range'
+
 # Defaults for the D3-based GraphView renderer
-graphview:
+UI_GraphView:
   nodeSizeDefault: 5
   nodeSizeMax: 50
   edgeSizeDefault: 1

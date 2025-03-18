@@ -1,0 +1,42 @@
+# metadata
+_schemaVersion: '2.0'
+
+# these correspond to webcomponent custom tags
+
+_ui_declarations:
+  - ui-form
+  - ui-metadata
+  - ui-group
+
+_ui_inputs:
+  # html built-in
+  - in-text
+  - in-checkbox
+  - in-number
+  - in-integer
+  - in-select
+  - in-range
+  - in-slider
+  # extended controls
+  - in-range
+  - in-color
+  - in-token
+  - in-date
+  - in-time
+  - in-datetime
+
+_ui_outputs:
+  # html built-in
+  - out-text
+  - out-number
+  - out-integer
+  - out-checkbox
+  - out-ol
+  - out-ul
+  # extended controls
+  - out-date
+  - out-time
+  - out-datetime
+
+_ui_widgets:
+  - out-table
