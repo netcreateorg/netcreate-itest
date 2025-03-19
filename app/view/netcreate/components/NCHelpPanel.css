@@ -1,0 +1,48 @@
+#NCHelpText,
+#NCVocabulary {
+  padding: 10px 20px;
+}
+
+/* tabpanel --------------------------------------------------------------- */
+#NCHelpPanel .tabs button {
+  font-weight: var(--font-weight-normal);
+  padding: 8px 26px 2px 26px;
+  opacity: 50%;
+  color: var(--clr-system);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+#NCHelpPanel .tabs button:hover {
+  opacity: 100%;
+}
+#NCHelpPanel .tabs button.selected {
+  font-weight: var(--font-weight-bold);
+  opacity: 100%;
+  border-bottom: 4px solid var(--clr-cat-bg);
+}
+
+#NCHelpPanel .tabpanels {
+  background-color: #fff6;
+  overflow-y: hidden;
+}
+
+#NCHelpPanel h1 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+#NCHelpPanel ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+#NCHelpPanel li {
+  margin: 0;
+  padding: 0;
+}
+#NCHelpPanel dt {
+  font-weight: var(--font-weight-bold);
+}
+#NCHelpPanel dd {
+  margin: 0 0 10px 0;
+  padding: 0;
+}
