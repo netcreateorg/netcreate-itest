@@ -1,0 +1,29 @@
+#popover {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 30px auto;
+  width: 300px;
+  height: 90%;
+  top: 0;
+  right: 0;
+  z-index: var(--z-popover);
+  padding: 10px;
+  background-color: rgba(255, 243, 211, 0.95);
+
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+}
+
+#popover .popover-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#popover .popover-toolbar button img {
+  transform: rotate(45deg);
+}
+
+#popover .popover-content {
+  overflow-y: auto;
+}
