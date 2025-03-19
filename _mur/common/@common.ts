@@ -9,10 +9,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import StateMgr from './class-state-mgr.ts';
+import EventMachine from './class-event-machine.ts';
 
 /// CLASS EXPORTS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export { StateMgr }; // used by NetCreate.jsx
+export { EventMachine }; // used by settings-client.ts
 
 /// UTILITY EXPORTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
