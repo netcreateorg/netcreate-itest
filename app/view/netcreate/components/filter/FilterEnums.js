@@ -30,7 +30,7 @@
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const FILTER = {};
 // Filter Panel Label
-FILTER.PANEL_LABEL = 'VIEWS';
+FILTER.PANEL_LABEL = 'ANALYSIS';
 // Determines whether filter action is to highlight/fade or remove (filter) nodes and edges
 // These labels are used as default values if an older version template has not defined them
 FILTER.ACTION = {};

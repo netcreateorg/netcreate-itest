@@ -438,12 +438,18 @@ function m_UpdateFilterStats(NCDATA, FILTEREDNCDATA, filterAction) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateFilterSummary(statsSummary) {
   const FILTERDEFS = UDATA.AppState('FILTERDEFS');
+  const FILTEREDNCDATA = UDATA.AppState('FILTEREDNCDATA');
 
   // skip if FILTERDEFS has not been defined yet
-  if (Object.keys(FILTERDEFS).length < 1) return;
+  if (Object.keys(FILTERDEFS).length < 1) {
+    UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { graphStats });
+    return;
+  }
 
-  const nodeFilters = FILTERDEFS.nodes.filters;
-  const edgeFilters = FILTERDEFS.edges.filters;
+  const graphStats = `${FILTEREDNCDATA.nodes && FILTEREDNCDATA.nodes.length} nodes, ${
+    FILTEREDNCDATA.edges && FILTEREDNCDATA.edges.length
+  } edges`;
+
 
   const typeSummary = FILTERDEFS.filterAction; // text for filter action is the label, e.g. 'HIGHLIGHT'
   const nodeSummary = m_FiltersToString(FILTERDEFS.nodes.filters);
@@ -455,7 +461,7 @@ function m_UpdateFilterSummary(statsSummary) {
     }${edgeSummary}`;
   if (summary) summary += ' ' + statsSummary;
 
-  UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { filtersSummary: summary });
+  UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { filtersSummary: summary, graphStats });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateFilters() {

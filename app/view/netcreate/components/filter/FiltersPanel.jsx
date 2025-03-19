@@ -152,10 +152,9 @@ class FiltersPanel extends UNISYS.Component {
         style={{
           display: hidden ? 'none' : 'flex',
           overflow: 'hidden',
-          margin: '6px 0',
+          margin: '0',
           padding: '5px',
           flexDirection: 'column',
-          backgroundColor: '#EEE',
           zIndex: '1500'
         }}
       >
