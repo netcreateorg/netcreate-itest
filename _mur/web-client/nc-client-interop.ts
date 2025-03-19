@@ -31,6 +31,10 @@ type NC_Unisys = {
 type NC_Module = {
   uid: string;
 };
+type NC_HandlerObj = {
+  msg: NC_UMsg;
+  hdl: NC_UHdl;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,8 +44,26 @@ const ERR_NONET = 'UNISYS instance not initialized';
 let UNISYS: NC_Unisys;
 let UMOD: NC_Module;
 let UDATA: NC_DataLink;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let REG_QUEUE: Array<NC_HandlerObj> = []; // for APP_READY hook
+const REG_MESGS = [];
 
-/// API METHODS ///////////////////////////////////////////////////////////////
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called by APP_READY hook to process the REG_QUEUE, as defined in
+ *  InteropConnect() */
+function m_ProcessMessageHandlerQueue() {
+  while (REG_QUEUE.length > 0) {
+    const qi = REG_QUEUE.shift();
+    if (qi) {
+      UDATA.HandleMessage(qi.msg, qi.hdl);
+      if (!REG_MESGS.includes(qi.msg)) REG_MESGS.push(qi.msg);
+    }
+  }
+  UNISYS.RegisterMessagesPromise(REG_MESGS);
+}
+
+/// MASTER SETUP //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** register message handlers for NetCreate client in DOMContentLoaded
  *  handler in init.jsx */
@@ -49,15 +71,18 @@ function InteropConnect(unisys: NC_Unisys) {
   UNISYS = unisys;
   UMOD = UNISYS.NewModule('mur-interop');
   UDATA = UNISYS.NewDataLink(UMOD);
-  // register message handlers
-  UDATA.HandleMessage('CLI_PSDATA', (data: NC_Data) => {
-    LOG(...PR('Received CLI_PSDATA:', data));
-  });
   // hook app_ready to register messages
   UNISYS.Hook('APP_READY', () => {
     LOG(...PR('APP_READY'));
-    UNISYS.RegisterMessagesPromise(['CLI_PSDATA']);
+    m_ProcessMessageHandlerQueue();
   });
+}
+
+/// API METHODS ///////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** register messages at APP_READY, so call this before that happens */
+function RegisterMessage(msg: NC_UMsg, hdl: NC_UHdl) {
+  REG_QUEUE.push({ msg, hdl });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NetSend(msg: NC_UMsg, data: NC_Data) {
@@ -74,20 +99,15 @@ async function NetCall(msg: NC_UMsg, data: NC_Data): Promise<NC_Data> {
   if (UDATA === undefined) throw Error(ERR_NONET);
   return UDATA.NetCall(msg, data);
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function TestGetSettings(): Promise<any> {
-  if (UDATA === undefined) throw Error(ERR_NONET);
-  const data = await UDATA.NetCall('SRV_PSOP', {});
-  LOG(...PR('TestGetSettings:', data));
-  return data;
-}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  InteropConnect, // called by init.jsx in DOMContentLoaded listener
+  // master setup called by init.jsx in DOMContentLoaded listener
+  InteropConnect,
+  // API methods
+  RegisterMessage,
   NetSend,
   NetSignal,
-  NetCall,
-  TestGetSettings // return settings
+  NetCall
 };

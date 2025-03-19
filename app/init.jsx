@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     UR.NCI.InteropConnect(UNISYS); // MUR INTEROP
     await UNISYS.JoinNet(); // UNISYS socket connection (that is all)
     await UNISYS.EnterApp(); // TEST_CONF, INITIALIZE, LOADASSETS, CONFIGURE
-    await UR.NCI.TestGetSettings(); // MUR INTEROP
     await m_RenderApp(); // compose React view
     await UNISYS.SetupDOM(); // DOM_READY
     await UNISYS.SetupRun(); // RESET, START, APP_READY, RUN
@@ -109,7 +108,7 @@ function m_RenderApp() {
     console.log('%cINIT %cReactDOM.render() begin', 'color:blue', 'color:auto');
 
   // declare web components for UR
-  UR.VIEWLIB.DeclareComponents();
+  UR.ViewLib.DeclareComponents();
   //
 
   return new Promise((resolve, reject) => {
