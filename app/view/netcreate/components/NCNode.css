@@ -262,6 +262,7 @@
   height: 25px;
   font-size: 10px;
   overflow: hidden;
+  text-wrap: nowrap;
 }
 .nccomponent .tabcontainer .tabselectors button:hover {
   background-color: #fff2;
