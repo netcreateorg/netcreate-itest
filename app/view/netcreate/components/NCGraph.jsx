@@ -208,19 +208,14 @@ class NCGraph extends UNISYS.Component {
         ref={dom => (this.dom = dom)}
         style={{ height: '100%', position: 'relative' }}
       >
-        <div style={{ margin: '10px 0 0 10px' }}>
-          <div className="tooltipAnchor">
-            <span style={{ fontSize: '9px' }}>
-              <div className="badge">?</div>
-              NETGRAPH for {this.AppState('TEMPLATE').name}
-            </span>
-            <span style={{ fontSize: '12px' }} className="tooltiptext">
-              {this.AppState('TEMPLATE').description}
-            </span>
-          </div>
-        </div>
         <div
-          style={{ position: 'absolute', right: '10px', width: '50px', zIndex: 1001 }}
+          style={{
+            position: 'absolute',
+            right: '0px',
+            bottom: '10px',
+            width: '50px',
+            zIndex: 1001
+          }}
         >
           <Button
             outline

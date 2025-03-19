@@ -45,7 +45,7 @@ const DBG = false;
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function NCNodeTable({ tableHeight, isOpen }) {
+function NCNodeTable({ isOpen }) {
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -414,7 +414,7 @@ function NCNodeTable({ tableHeight, isOpen }) {
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ nodeDefs: state.nodeDefs, nodes: state.nodes });
   return (
-    <div className="NCNodeTable" style={{ height: tableHeight }}>
+    <div id="NCNodeTable">
       <URTable isOpen={isOpen} data={TABLEDATA} columns={COLUMNDEFS} />
     </div>
   );

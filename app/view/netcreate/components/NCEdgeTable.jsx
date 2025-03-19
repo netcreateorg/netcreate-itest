@@ -44,7 +44,7 @@ const DBG = false;
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function NCEdgeTable({ tableHeight, isOpen }) {
+function NCEdgeTable({ isOpen }) {
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -470,7 +470,7 @@ function NCEdgeTable({ tableHeight, isOpen }) {
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ edgeDefs: state.edgeDefs, edges: state.edges });
   return (
-    <div className="NCEdgeTable" style={{ height: tableHeight }}>
+    <div id="NCEdgeTable">
       <URTable isOpen={isOpen} data={TABLEDATA} columns={COLUMNDEFS} />
     </div>
   );

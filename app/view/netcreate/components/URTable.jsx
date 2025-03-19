@@ -480,7 +480,6 @@ function URTable({ isOpen, data, columns }) {
     if (columndef.sortDisabled) {
       return <span className="sortDisabled">-</span>;
     } else if (isSelected) {
-      console.log('selected sort order', _sortOrder);
       return <span className="sortEnabled">{SORTORDER.get(_sortOrder)}</span>;
     } else {
       // not selected, so sort order is the previous sort order
