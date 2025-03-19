@@ -28,12 +28,15 @@ var UNISYS = {};
  *  network values, so it can embed them in the index.ejs file for webapps
  *  override = { port } */
 UNISYS.InitializeNetwork = override => {
-  // MUR INTEROP: load settings object
+  // MUR INTEROP: connect to MUR
+  MURS.NCI.InteropConnect(UNET);
+  // MUR INTEROP: load settings and persist unified file
   const settings = MURS.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
-  // MUR INTEROP: write generated file
   MURS.SettingMgr.PersistSettings();
   console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
-  // end of MUR INTEROP
+  // MUR INTEROP: end
+
+  // resume NetCreate server initialization
   UDB.InitializeDatabase(override);
   return UNET.InitializeNetwork(override);
 };
@@ -42,11 +45,7 @@ UNISYS.InitializeNetwork = override => {
  *  ready to run. These are server-implemented reserved messages.
  */
 UNISYS.RegisterHandlers = () => {
-  // MUR INTEROP: Register handlers
-  MURS.NCI.RegisterHandlers(UNET);
-  // end MUR INTEROP
-
-  // now define local handlers
+  //  define local handlers
   UNET.HandleMessage('SRV_REFLECT', function (pkt) {
     pkt.Data().serverSays = 'REFLECTING';
     pkt.Data().stack.push('SRV_01');

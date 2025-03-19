@@ -8,8 +8,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as NC from './nc-interop.mts';
-
 /// PACKAGED EXPORTS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: FileExists, DirExists, IsDir, IsFile,
@@ -26,7 +24,7 @@ export * as FILE from './file.mts';
 
 /// INTEROP MODULES ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export * as NCI from './nc-interop.mts';
+export * as NCI from './nc-server-interop.mts';
 export * as SettingMgr from './mur-setting-mgr.mts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////

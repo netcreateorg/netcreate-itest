@@ -4,18 +4,14 @@
   MUR Template Editor
   (test replacement `NCTemplate.jsx`)
 
-  Requires that init.jsx has called UR.VIEWLIB.DeclareComponents() to make
+  Requires that init.jsx has called UR.ViewLib.DeclareComponents() to make
   custom web components available _before_ React renders anything.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { EDITORTYPE } = require('system/util/enum');
-const TEMPLATE_MGR = require('../template-editor-mgr');
-const LOCKMGR = require('../lock-mgr');
-const SCHEMA = require('../template-schema');
-const DATASTORE = require('system/datastore');
+const { Settings } = require('ursys-min');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -12,6 +12,7 @@
 import * as FILE from './file.mts';
 import * as PATH from 'node:path';
 import { parse, stringify, Document } from 'yaml';
+import * as NCI from './nc-server-interop.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +20,7 @@ const DBG = false;
 const PR = 'mur-setting';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SETTINGS = {
-  _schemaVersion: ''
+  _schemaVersion: '' // will be loaded
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let TROOT = '';
@@ -69,7 +70,7 @@ function LoadSettings(dir) {
   // set the template root
   u_root(dir);
   // process files
-  let schema = '';
+  let detectedSchema = '';
   files.forEach(f => {
     const p = PATH.join(dir, `${f}.yaml`);
     if (!FILE.FileExists(p)) {
@@ -78,20 +79,22 @@ function LoadSettings(dir) {
     }
     const yaml: string = FILE.ReadFile(p).toString();
     const { _key, _schemaVersion: _sch, ...obj } = parse(yaml, { merge: true });
-    if (!schema) schema = _sch;
-    if (schema !== _sch) {
+    // detect schema version mismatch for this file
+    if (!detectedSchema) detectedSchema = _sch;
+    if (detectedSchema !== _sch) {
       const pfile = `'${files[0]}.yaml'`;
       const cfile = `'${u_short(p)}'`;
       console.log(`schema mismatch: ${cfile}: ${_sch} nomatch ${pfile}`);
       process.exit(1);
     }
+    // check for _key and handle differently
     if (typeof _key === 'string' && _key.length > 0) {
       if (SETTINGS[_key] === undefined) SETTINGS[_key] = {};
       Object.assign(SETTINGS[_key], obj);
     } else Object.assign(SETTINGS, obj);
   });
-  // update the schema version to the settings object
-  SETTINGS._schemaVersion = schema;
+  // after processing all files, update the schema version
+  SETTINGS._schemaVersion = detectedSchema;
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -115,6 +118,21 @@ function PersistSettings(fileName?) {
 function GetSettings() {
   return SETTINGS;
 }
+
+/// RUNTIME INITIALIZATION //////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
+  const { data } = pkt;
+  switch (data.op) {
+    case 'get':
+      return { settings: SETTINGS };
+    case 'persist':
+      PersistSettings(data.filename);
+      return { status: 'ok' }; // required by UNISYS network protocol
+    default:
+      return { error: `unknown operation: ${data.op}` }; // required by UNISYS network protocol
+  }
+});
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

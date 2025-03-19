@@ -16,6 +16,7 @@ const UNISYS = require('./app/unisys/server');
 const PATH = require('path');
 const IP = require('ip');
 const EXEC = require('child_process').exec;
+const MURS = require('./_mur/_dist/mur-node.cjs');
 
 /// LOCAL CONSTANTS, VARS AND FLAGS ///////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,8 +47,7 @@ module.exports = (config, callback) => {
   /// STARTUP UNISYS ////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** This happens early because we need to inject UNISYS connection parameters
-  into index.ejs
-  */
+  into index.ejs */
   let nc_options = {
     port: NC_CONFIG.netport
   };
@@ -58,7 +58,6 @@ module.exports = (config, callback) => {
   /// declare paths used by Express configuration
   const PATH_PUBLIC = PATH.join(__dirname, '/public');
   const PATH_TEMPLATE = PATH.join(__dirname, '/app/assets');
-
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// compress all responses
   APP.use(COMPRESS());
@@ -202,6 +201,7 @@ module.exports = (config, callback) => {
     /// START URSYS NETWORK SOCKETS ///
 
     UNISYS.RegisterHandlers();
+    MURS.NCI.RegisterHandlers();
     UNISYS.StartNetwork();
     // invoke brunch callback
     callback();

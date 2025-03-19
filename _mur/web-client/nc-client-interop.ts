@@ -52,7 +52,7 @@ const REG_MESGS = [];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by APP_READY hook to process the REG_QUEUE, as defined in
  *  InteropConnect() */
-function m_ProcessMessageHandlerQueue() {
+function m_ProcessRegistrationQueue() {
   while (REG_QUEUE.length > 0) {
     const qi = REG_QUEUE.shift();
     if (qi) {
@@ -74,14 +74,14 @@ function InteropConnect(unisys: NC_Unisys) {
   // hook app_ready to register messages
   UNISYS.Hook('APP_READY', () => {
     LOG(...PR('APP_READY'));
-    m_ProcessMessageHandlerQueue();
+    m_ProcessRegistrationQueue();
   });
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** register messages at APP_READY, so call this before that happens */
-function RegisterMessage(msg: NC_UMsg, hdl: NC_UHdl) {
+function QueueMessageRegistration(msg: NC_UMsg, hdl: NC_UHdl) {
   REG_QUEUE.push({ msg, hdl });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -106,7 +106,7 @@ export {
   // master setup called by init.jsx in DOMContentLoaded listener
   InteropConnect,
   // API methods
-  RegisterMessage,
+  QueueMessageRegistration,
   NetSend,
   NetSignal,
   NetCall

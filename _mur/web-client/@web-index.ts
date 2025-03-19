@@ -13,6 +13,8 @@ export * as COMMENT from './comment/ac-comment.ts';
 export * as ViewLib from './viewlib/index.ts';
 /// interop with NetCreate
 export * as NCI from './nc-client-interop.ts';
+/// settings client
+export * as Settings from './settings-client.ts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
