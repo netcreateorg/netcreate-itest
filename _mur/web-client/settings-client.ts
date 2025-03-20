@@ -19,9 +19,10 @@ type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('settings', 'TagCyan');
+const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SETTINGS: DataObj = undefined;
-const EM = new EventMachine('settings-client');
+const EM = new EventMachine('settings_client');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -83,7 +84,7 @@ async function GetSettings(subkey?: string): Promise<OpResult> {
     if (SETTINGS[subkey] !== undefined) return SETTINGS[subkey];
     return { error: `subkey '${subkey}' not found in settings` };
   }
-  LOG(...PR(`${fn} returning settings`), SETTINGS);
+  if (DBG) LOG(...PR(`${fn} returning settings`), SETTINGS);
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -12,7 +12,7 @@ const React = require('react');
 /// COMPONENT DECLARATION /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HTMLFrame(props) {
-  SETTINGS.ForceReloadOnNavigation();
+  SETTINGS.IsReloadRequired();
   let loc;
   if (props && props.location && props.location.pathname) {
     loc = props.location.pathname.substring(1);

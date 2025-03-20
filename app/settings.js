@@ -111,16 +111,16 @@ MOD.Get = key => {
 /** Force Reload if another module was navigated to and we want to ensure the
     entire browser was refreshed so only one set of app modules is loaded
  */
-MOD.ForceReloadOnNavigation = () => {
+MOD.IsReloadRequired = () => {
   RELOAD_CHECK++;
   if (RELOAD_CHECK > 1) {
-    console.warn(`SETTINGS: ForceReloadOnNavigation active. Reloading!`);
+    console.warn(`IsReloadRequired ${RELOAD_CHECK} - refreshing settings`);
     if (RELOAD_TIMER) clearTimeout(RELOAD_TIMER);
     RELOAD_TIMER = setTimeout(() => {
       location.reload();
     }, 500);
   } else {
-    console.warn(`SETTINGS: ForceReloadOnNavigation check OK`);
+    console.log(`IsReloadRequired ${RELOAD_CHECK} - no refresh needed`);
   }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

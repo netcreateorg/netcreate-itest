@@ -1264,7 +1264,7 @@ JSCLI.AddFunction(function ncPushDatabase(jsonFile) {
           'color:blue'
         );
         console.log(`${PR} Reload apps to see new data`);
-        setTimeout(UNISYS.ForceReloadOnNavigation, 1000);
+        setTimeout(UNISYS.IsReloadRequired, 1000);
       } else {
         console.error(PR, 'Server Error', d);
         window.alert(`Error ${JSON.stringify(d)}`);

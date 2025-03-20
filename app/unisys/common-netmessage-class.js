@@ -379,7 +379,7 @@ NetMessage.GlobalSetup = function (config) {
   // NOTE: m_netsocket is set only on clients since on server, there are multiple sockets
   if (netsocket) {
     if (typeof netsocket.send !== 'function') throw ERR_BAD_SOCKET;
-    console.log(PR, 'GlobalSetup: netsocket set, mode online');
+    console.log(`NETWORK-PACKET: mode %cONLINE`, 'color:red');
     m_netsocket = netsocket;
     m_mode = M_ONLINE;
   }

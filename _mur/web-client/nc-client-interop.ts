@@ -73,7 +73,7 @@ function InteropConnect(unisys: NC_Unisys) {
   UDATA = UNISYS.NewDataLink(UMOD);
   // hook app_ready to register messages
   UNISYS.Hook('APP_READY', () => {
-    LOG(...PR('APP_READY'));
+    // process queued interop message handler reqs
     m_ProcessRegistrationQueue();
   });
 }
