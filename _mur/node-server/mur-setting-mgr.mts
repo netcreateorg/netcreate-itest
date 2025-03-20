@@ -57,15 +57,10 @@ function LoadSettings(dir) {
     // 'base-value-types', // used for validation of data
     // 'base-ui-controls', // used for validating ui control definitions
     //
-    'def-ui-globals',
-    'def-ui-project',
-    'def-ui-node',
-    'def-ui-edge',
-    'def-ui-citation',
-    'def-ui-comments',
-    //
-    'proj-pacl',
-    'proj-comment-types'
+    'def-project-meta',
+    'def-project-pacl',
+    'def-proj-settings',
+    'def-citation'
   ];
   // set the template root
   u_root(dir);
@@ -115,7 +110,7 @@ function PersistSettings(fileName?) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** retrieve the settings object */
-function GetSettings() {
+function Get() {
   return SETTINGS;
 }
 
@@ -139,5 +134,5 @@ NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
 export {
   LoadSettings, // (dir_yaml_settings_files) => obj
   PersistSettings, // (filename?) => void
-  GetSettings // () => obj
+  Get // () => obj
 };

@@ -72,8 +72,8 @@ function m_HandlePSData(data: DataObj) {
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return either the entire settings object, or a subkey */
-async function GetSettings(subkey?: string): Promise<OpResult> {
-  const fn = 'GetSettings:';
+async function Get(subkey?: string): Promise<OpResult> {
+  const fn = 'Get:';
   if (SETTINGS === undefined) {
     const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
     if (data.error) throw Error(`${fn} ${data.error}`);
@@ -108,7 +108,7 @@ NCI.QueueMessageRegistration('CLI_PSDATA', m_HandlePSData);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   //
-  GetSettings, // (subkey?: string) => Promise<OpResult>
+  Get, // (subkey?: string) => Promise<OpResult>
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void
 };

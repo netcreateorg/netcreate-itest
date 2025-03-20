@@ -2,22 +2,12 @@
 _schemaVersion: '2.0'
 
 # Default comment types made available in the comment manager
-# The intent of this seems to be a collection of prompts
-#
-# commentTypes:
-#  type: CommentType[] # a list of CommentType in def-objects
-# list:
-#   - slug: 'cmt'
-#     label: 'Comment'
-#     prompts:
-#       - format: 'text'
-#         prompt: 'Comment'
-#         help: 'Use this for any general comment.'
-#         feedback: ''
+# The intent of this seems to be a collection of prompts used
+# to provide a commenting template for students in the dialog box
 
-# original values pending conversion in comment manager
-# this is a list of two objects
-commentTypes:
+# this is a list of two objects of type CommentType, which is
+# declared in 'declare-ui-comment-types.yaml'
+commentPrompts:
   - slug: 'cmt'
     label: 'Comment'
     prompts:

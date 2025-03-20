@@ -2,6 +2,9 @@
 _schemaVersion: '2.0'
 _key: _object_types
 
+# this declares the data structure of a "comment type"
+# the actual stored values are in 'set-ui-comment-types.yaml'
+
 # declare complex types (PascalCase)
 CommentType:
   type: object

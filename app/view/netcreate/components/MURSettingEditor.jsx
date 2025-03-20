@@ -11,12 +11,14 @@
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { Settings } = require('ursys-min');
+const { Settings, ConsoleStyler } = require('ursys-min');
 // const PopupPicker = require('./PopupPicker.jsx');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
+const PR = ConsoleStyler('SetEdit', 'TagBlue');
+const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const UI_META = `
 foo:
@@ -29,6 +31,7 @@ color:
   label: "Color"
   tooltip: "Color of the node"
   placeholder: "#ff0000"
+
 `;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -46,12 +49,31 @@ class MURSettingEditor extends UNISYS.Component {
     // this.AppCall, AppSend, AppSignal
     // this.NetCend, NetSend, NetSignal
     // this.SetAppState, OnAppStateChange, AppStatechangeOff
-    this.colorRef = React.createRef();
+    this.propTemplate = {};
+    this.handleSettingsUpdate = this.handleSettingsUpdate.bind(this);
   }
 
-  componentDidMount() {}
+  handleSettingsUpdate(data) {
+    const { settings, group, prop } = data;
+    console.log(Object.keys(settings).join(', '));
+  }
 
-  componentWillUnmount() {}
+  async componentDidMount() {
+    Settings.Subscribe('*', this.handleSettingsUpdate);
+    const set = await Settings.Get();
+    LOG('Settings', set);
+    const { projectMeta, prompts, accessControls, permissions, graphView } = set;
+    const propMap = { projectMeta, prompts, accessControls, permissions, graphView };
+    LOG(...PR('componentDidMount', propMap));
+  }
+
+  componentWillUnmount() {
+    Settings.Unsubscribe('*', this.handleSettingsUpdate);
+  }
+
+  setColor(evt) {
+    console.log('setcolor called', evt);
+  }
 
   render() {
     return (

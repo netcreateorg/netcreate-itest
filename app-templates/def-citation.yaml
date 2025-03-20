@@ -2,6 +2,6 @@
 _schemaVersion: '2.0'
 
 # Default citation settings for the project (?)
-citation:
-  control: 'in-text'
+Citation:
+  type: string
   default: 'No citation set'
