@@ -57,7 +57,6 @@ class MURSettingEditor extends UNISYS.Component {
       <div>
         <ui-group group="nctest">
           <in-text name="foo"></in-text>
-          <in-coloris ref={this.colorRef} name="color"></in-coloris>
         </ui-group>
         <ui-metadata for="nctest">{UI_META}</ui-metadata>
       </div>
