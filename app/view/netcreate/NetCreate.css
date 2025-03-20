@@ -176,7 +176,16 @@ svg#netgraph .nodes text {
 button {
   border-width: 1px;
   border-radius: 8px;
+  line-height: 1.5rem;
   cursor: pointer;
+}
+button:disabled,
+button:disabled:hover {
+  /* from Chrome user stylesheet */
+  color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3)) !important;
+  background-color: rgba(239, 239, 239, 0.3) !important;
+  border-color: rgba(118, 188, 118, 0.3) !important;
+  cursor: not-allowed;
 }
 button:hover {
   color: var(--clr-fg) !important;

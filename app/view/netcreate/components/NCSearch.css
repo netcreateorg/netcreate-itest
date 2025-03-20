@@ -13,12 +13,6 @@
   align-self: flex-end;
   text-wrap-mode: nowrap;
 }
-.ncsearch button:disabled {
-  background-color: #fff3;
-  border-color: #0003;
-  color: #3333;
-  cursor: not-allowed;
-}
 .ncsearch input {
   width: 100%;
   padding: 0 5px;

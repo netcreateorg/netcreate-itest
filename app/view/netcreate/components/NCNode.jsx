@@ -774,7 +774,11 @@ class NCNode extends UNISYS.Component {
               <p hidden={!isAdmin}>
                 <b>ADMINISTRATOR ONLY</b>: If you are absolutely sure this is an
                 error, you can force the unlock.
-                <button onClick={this.UIDisableEditMode} style={{ marginLeft: 0 }}>
+                <button
+                  onClick={this.UIDisableEditMode}
+                  style={{ marginLeft: 0 }}
+                  type="button"
+                >
                   Force Unlock
                 </button>
               </p>
@@ -786,6 +790,7 @@ class NCNode extends UNISYS.Component {
                 id="citationbtn"
                 className="citationbutton"
                 onClick={this.UICitationShow}
+                type="button"
               >
                 Cite Node
               </button>
@@ -796,6 +801,7 @@ class NCNode extends UNISYS.Component {
                 id="editbtn"
                 onClick={this.UIRequestEditNode}
                 disabled={uEditBtnDisable}
+                type="button"
               >
                 Edit
               </button>
@@ -820,7 +826,9 @@ class NCNode extends UNISYS.Component {
                   <div className="message warning">Invalid Node ID!</div>
                 )}
               </div>
-              <button onClick={this.DeleteNode}>Delete</button>
+              <button onClick={this.DeleteNode} type="button">
+                Delete
+              </button>
             </div>
           )}
         </div>
@@ -931,10 +939,16 @@ class NCNode extends UNISYS.Component {
             </div>
             {/* CONTROL BAR - - - - - - - - - - - - - - - - */}
             <div className="controlbar">
-              <button className="cancelbtn" onClick={this.UICancelEditMode}>
+              <button
+                className="cancelbtn"
+                onClick={this.UICancelEditMode}
+                type="button"
+              >
                 Cancel
               </button>
-              <button onClick={this.SaveNode}>Save</button>
+              <button onClick={this.SaveNode} type="button">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -980,6 +994,7 @@ class NCNode extends UNISYS.Component {
                   className="edgebutton"
                   onClick={() => this.UIViewEdge(e.id)}
                   style={{ backgroundColor: bgcolor }}
+                  type="button"
                 >
                   {id === e.source ? me : sourceNode.label}
                   &nbsp;<span title={e.type}>{ARROW_RIGHT}</span>&nbsp;
@@ -994,6 +1009,7 @@ class NCNode extends UNISYS.Component {
             className="addedgebutton"
             onClick={this.UIAddEdge}
             disabled={uEditBtnDisable}
+            type="button"
           >
             New Edge
           </button>

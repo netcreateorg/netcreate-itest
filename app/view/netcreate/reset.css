@@ -1,3 +1,7 @@
 body {
   margin: 0;
 }
+button {
+  /* user stylesheet */
+  padding-block: 0;
+}

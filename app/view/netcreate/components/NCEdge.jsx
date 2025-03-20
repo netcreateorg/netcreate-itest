@@ -977,6 +977,7 @@ class NCEdge extends UNISYS.Component {
                 id="citationbtn"
                 className="citationbutton"
                 onClick={this.UICitationShow}
+                type="button"
               >
                 Cite Edge
               </button>
@@ -987,6 +988,7 @@ class NCEdge extends UNISYS.Component {
                 id="editbtn"
                 onClick={this.UIRequestEditEdge}
                 disabled={uEditBtnDisable}
+                type="button"
               >
                 Edit
               </button>
@@ -998,7 +1000,11 @@ class NCEdge extends UNISYS.Component {
               <p hidden={!isAdmin}>
                 <b>ADMINISTRATOR ONLY</b>: If you are absolutely sure this is an
                 error, you can force the unlock.
-                <button onClick={this.UIDisableEditMode} style={{ marginLeft: 0 }}>
+                <button
+                  onClick={this.UIDisableEditMode}
+                  style={{ marginLeft: 0 }}
+                  type="button"
+                >
                   Force Unlock
                 </button>
               </p>
@@ -1067,6 +1073,7 @@ class NCEdge extends UNISYS.Component {
                     className="swapbtn"
                     onClick={this.SwapSourceAndTarget}
                     title="Swap 'Source' and 'Target' nodes"
+                    type="button"
                   >
                     {ARROW_UPDOWN}
                   </button>
@@ -1119,14 +1126,22 @@ class NCEdge extends UNISYS.Component {
             {/* CONTROL BAR - - - - - - - - - - - - - - - - */}
             <div className="controlbar" style={{ justifyContent: 'space-between' }}>
               {revision > 0 && (
-                <button className="cancelbtn" onClick={this.UIDeleteEdge}>
+                <button
+                  className="cancelbtn"
+                  onClick={this.UIDeleteEdge}
+                  type="button"
+                >
                   Delete
                 </button>
               )}
-              <button className="cancelbtn" onClick={this.UICancelEditMode}>
+              <button
+                className="cancelbtn"
+                onClick={this.UICancelEditMode}
+                type="button"
+              >
                 Cancel
               </button>
-              <button onClick={this.SaveEdge} disabled={saveIsDisabled}>
+              <button onClick={this.SaveEdge} disabled={saveIsDisabled} type="button">
                 Save
               </button>
             </div>
@@ -1190,6 +1205,7 @@ class NCEdge extends UNISYS.Component {
           onClick={this.UIEnableSourceTargetSelect}
           style={{ backgroundColor: color + '55', borderColor: color }}
           disabled={disabled}
+          type="button"
         >
           {value || EDGE_NOT_SET_LABEL}
         </button>

@@ -149,7 +149,7 @@ class NCSearch extends UNISYS.Component {
           onClick={this.UINewNode}
           type="button"
         >
-          + New Node
+          New Node
         </button>
       </div>
     );
