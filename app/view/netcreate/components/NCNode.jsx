@@ -655,19 +655,24 @@ class NCNode extends UNISYS.Component {
     });
   }
   UIInputUpdate(key, value) {
+    let state = {};
     if (BUILTIN_FIELDS_NODE.includes(key)) {
       const data = {};
       data[key] = value;
-      this.setState(data);
+      state = data;
     } else {
       const { attributes } = this.state;
       attributes[key] = value;
-
-      // special handling to update the background color immediately if `type` is changed
-      const type = key === `type` ? value : this.state.type;
-      const uBackgroundColor = this.LookupBackgroundColor(type);
-      this.setState({ attributes, uBackgroundColor });
+      state = attributes;
     }
+
+    // HACK Allow any field to be used to specify color
+    //      Eventually this needs to be built into the template.
+    const COLORFIELDS = ['type'];
+    // special handling to update the background color immediately if `type` is changed
+    const type = COLORFIELDS.includes(key) ? value : this.state.type;
+    const uBackgroundColor = this.LookupBackgroundColor(type);
+    this.setState({ ...state, uBackgroundColor });
   }
   UIProvenanceInputUpdate(key, value) {
     if (BUILTIN_FIELDS_NODE.includes(key)) {
