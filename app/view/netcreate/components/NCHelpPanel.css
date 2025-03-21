@@ -28,7 +28,7 @@
 }
 
 #NCHelpPanel h1 {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-normal);
   font-weight: var(--font-weight-bold);
 }
 #NCHelpPanel ul {

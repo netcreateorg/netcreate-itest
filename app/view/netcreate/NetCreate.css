@@ -28,9 +28,13 @@
   --clr-cat-light: #f7f3f2;
   --clr-secondary: #6a8899; /* navy */
   --clr-system: #355869; /* dark navy for UI/system labels */
-  --font-size-sm: 0.8rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.2rem;
+  --clr-base-font: #161616;
+  --font-size-xs: 0.625rem; /* 10px */
+  --font-size-sm: 0.75rem; /* 12px */
+  --font-size-reduced: 0.875rem; /* 14px */
+  --font-size-normal: 1rem; /* 16px */
+  --font-size-md: 1.125rem; /* 18px */
+  --font-size-lg: 1.25rem; /* 20px */
   --font-weight-normal: 300;
   --font-weight-medium: 400;
   --font-weight-bold: 600;
@@ -41,7 +45,10 @@ html {
   overflow: hidden;
 }
 body {
-  font-family: sans-serif;
+  color: var(--clr-base-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    sans-serif;
+  font-weight: var(--font-weight-normal);
 }
 
 /* override bootstrap */
@@ -64,9 +71,9 @@ nav.fixed-top {
   overflow: hidden;
 }
 .nc-base .nc-col-left {
+  flex-basis: 33%;
   display: flex;
   flex-direction: column;
-  flex: 1 1 25%;
   min-width: 300px;
   max-width: 400px;
   padding: 10px;
@@ -182,14 +189,17 @@ button {
 button:disabled,
 button:disabled:hover {
   /* from Chrome user stylesheet */
-  color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3)) !important;
-  background-color: rgba(239, 239, 239, 0.3) !important;
-  border-color: rgba(118, 188, 118, 0.3) !important;
+  color: light-dark(
+    rgba(16, 16, 16, 0.3),
+    rgba(255, 255, 255, 0.3)
+  ); /* !important; */
+  background-color: rgba(239, 239, 239, 0.3); /* !important; */
+  border-color: rgba(118, 188, 118, 0.3); /* !important; */
   cursor: not-allowed;
 }
 button:hover {
-  color: var(--clr-fg) !important;
-  background-color: var(--clr-system) !important;
+  color: var(--clr-fg); /* !important; */
+  background-color: var(--clr-system); /* !important; */
 }
 /* Button Icons ------------------------------------------------------------ */
 button.cat {
@@ -203,7 +213,7 @@ button.icon {
   line-height: 0.5rem;
 }
 button.icon:hover {
-  background-color: #35586922 !important;
+  background-color: #35586922; /* !important; */
 }
 button.outline {
   border: none;
@@ -216,6 +226,10 @@ button.small {
 button svg {
   width: 16px;
   height: 16px;
+}
+button img,
+button svg {
+  pointer-events: none; /* prevent click events from grabbing event */
 }
 
 /* NC Tables --------------------------------------------------------------- */
@@ -270,5 +284,5 @@ button svg {
   content: ' >';
 }
 #filterpanel-btn:hover {
-  background-color: var(--clr-cat-bg) !important;
+  background-color: var(--clr-cat-bg); /* !important; */
 }

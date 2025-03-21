@@ -24,7 +24,6 @@
   border-width: 1px;
   border-style: solid;
   color: #333;
-  margin-left: 15px;
   text-transform: uppercase;
   font-size: 0.9em;
 }
@@ -43,6 +42,7 @@
 }
 .nccomponent input {
   width: 100%;
+  box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
   border-color: #0006;
   border-width: 1px;
@@ -58,6 +58,7 @@
 }
 .nccomponent textarea {
   width: 100%;
+  box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
   border-color: #0006;
   border-width: 1px;
@@ -66,6 +67,7 @@
   margin-bottom: 5px;
   padding: 0 5px;
   resize: none;
+  line-height: var(--font-size-lg);
 }
 .nccomponent textarea.long {
   padding: 0 5px;
@@ -208,15 +210,15 @@
   row-gap: 10px;
 }
 .nccomponent .formview label {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: var(--font-size-xs);
+  line-height: var(--font-size-normal);
   opacity: 0.7;
   text-align: right;
   margin-bottom: 0; /* override bootstrap */
 }
 .nccomponent .formview.typeview {
   /* match .formview with column gap*/
-  grid-template-columns: 40px auto;
+  grid-template-columns: 50px auto;
 }
 .nccomponent .formview.typeview label {
   color: #0004;
@@ -232,7 +234,8 @@
   margin-bottom: 0;
 }
 .nccomponent .formview .viewvalue {
-  padding-left: 10px;
+  font-size: var(--font-size-sm);
+  line-height: var(--font-size-normal);
   text-align: left;
   opacity: 1;
   overflow: hidden;
@@ -277,6 +280,15 @@
 }
 .nccomponent .tabcontainer .tabselectors button.selected:focus {
   outline: none;
+}
+/* hide tab icon on small screen */
+.nccomponent .tabcontainer .tabselectors button img {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .nccomponent .tabcontainer .tabselectors button img {
+    display: inline;
+  }
 }
 .nccomponent .tabcontainer .tabview {
   padding: 10px 5px 5px 5px;
@@ -323,6 +335,7 @@
 }
 .nccomponent .controlbar {
   display: flex;
+  gap: 0.5rem;
   justify-content: flex-end;
   align-items: baseline;
   padding: 10px 0 0 0;

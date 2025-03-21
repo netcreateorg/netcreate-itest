@@ -5,3 +5,6 @@ button {
   /* user stylesheet */
   padding-block: 0;
 }
+textarea {
+  font-family: unset;
+}
