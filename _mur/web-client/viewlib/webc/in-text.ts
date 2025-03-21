@@ -11,7 +11,7 @@ import { ConsoleStyler } from '../../../common/util-prompts.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
+const DBG = false;
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('in-text', 'TagGray');
 
@@ -77,7 +77,7 @@ class UIInputText extends StatelyElement {
 
   /** UPDATE: data received is already filtered by element's group/name */
   receiveMetadata(meta: DataObj) {
-    LOG(...PR(`receiveMetadata[${this.name}]`), meta);
+    if (DBG) LOG(...PR(`receiveMetadata[${this.name}]`), meta);
     const { label, tooltip, placeholder } = meta;
     this.label.innerText = label;
     this.tooltip.innerText = tooltip;
@@ -89,9 +89,9 @@ class UIInputText extends StatelyElement {
     const { value } = state;
     if (value !== this.input.value) {
       this.input.value = value;
-      LOG(...PR(`receiveState[${this.name}]`), state);
+      if (DBG) LOG(...PR(`receiveState[${this.name}]`), state);
     } else {
-      LOG(...PR(`receiveState[${this.name}] no change`), state);
+      if (DBG) LOG(...PR(`receiveState[${this.name}] no change`), state);
     }
   }
 
@@ -107,7 +107,7 @@ class UIInputText extends StatelyElement {
   /** EVENT: live decode the value on input but don't send */
   private handleTyping = (event: Event): void => {
     const { value } = this.input;
-    LOG(...PR(`live decode [${this.name}]`), value);
+    if (DBG) LOG(...PR(`live decode [${this.name}]`), value);
   };
 
   /** EVENT: show tooltip on hover */

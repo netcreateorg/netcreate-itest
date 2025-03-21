@@ -1,8 +1,9 @@
 # metadata
 _schemaVersion: '2.0'
+_key: TypeDefs
 
 # declare core types
-_value_types:
+ValueTypes:
   - any
   - string
   - boolean
@@ -23,7 +24,7 @@ _value_types:
   - itemDict # map of { itemName:Item }
 
 # declare enumerations (PascalCase)
-_enum_types:
+EnumTypes:
   Foo: [a, b, c]
   Bar:
     - a

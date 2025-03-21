@@ -57,10 +57,16 @@ function LoadSettings(dir) {
     // 'base-value-types', // used for validation of data
     // 'base-ui-controls', // used for validating ui control definitions
     //
-    'def-project-meta',
-    'def-project-pacl',
-    'def-proj-settings',
-    'def-citation'
+    'props-proj-meta',
+    'props-proj-pacl',
+    'props-proj-settings',
+    'props-citation',
+    'base-types-comment',
+    'base-values',
+    'base-controls',
+    'layout-edge',
+    'layout-node',
+    'set-comment-prompts'
   ];
   // set the template root
   u_root(dir);

@@ -1,14 +1,15 @@
 # metadata
 _schemaVersion: '2.0'
+_key: LayoutDefs
 
 # these correspond to webcomponent custom tags
 
-_ui_declarations:
+UI_Declarations:
   - ui-form
   - ui-metadata
   - ui-group
 
-_ui_inputs:
+UI_Inputs:
   # html built-in
   - in-text
   - in-checkbox
@@ -25,7 +26,7 @@ _ui_inputs:
   - in-time
   - in-datetime
 
-_ui_outputs:
+UI_Outputs:
   # html built-in
   - out-text
   - out-number
@@ -38,5 +39,5 @@ _ui_outputs:
   - out-time
   - out-datetime
 
-_ui_widgets:
+UI_Widgets:
   - out-table

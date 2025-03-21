@@ -1,7 +1,0 @@
-# metadata
-_schemaVersion: '2.0'
-
-# Default citation settings for the project (?)
-Citation:
-  type: string
-  default: 'No citation set'

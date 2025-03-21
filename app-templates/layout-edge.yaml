@@ -1,5 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
+_key: LayoutDefs
 
 # shared elements type setting
 
@@ -18,25 +19,25 @@ UI_EdgeCommonControls: &SharedControls
 # note that this definition comingles visual properties with
 # metadata which might need detangling
 
-UI_EdgeDef:
+EdgeDef:
   control: 'ui-form'
 
   id: # id ui field
     control: 'out-text'
     <<: *SharedControls
-    displayLabel: 'Id'
+    label: 'Id'
     help: 'System-generated unique id'
 
   source:
     control: 'out-text'
     <<: *SharedControls
-    displayLabel: 'Source'
+    label: 'Source'
     help: 'Edge source node'
 
   target:
     control: 'out-text'
     <<: *SharedControls
-    displayLabel: 'Target'
+    label: 'Target'
     help: 'Edge target node'
 
   type: # edge types
@@ -45,73 +46,73 @@ UI_EdgeDef:
       - color: '#eeeeee'
         label: ''
     <<: *SharedControls
-    displayLabel: 'Type'
+    label: 'Type'
     help: 'Type of edge connection'
 
   notes:
     <<: *SharedControls
     control: 'in-text'
-    displayLabel: 'Notes'
+    label: 'Notes'
     help: 'Significance of the connection'
 
   weight:
     control: 'in-number'
     <<: *SharedControls
-    displayLabel: 'Weight'
+    label: 'Weight'
     help: 'Weight of edge'
     conditions: [isGraphTooltip]
 
   infoOrigin:
     control: 'in-text'
     <<: *SharedControls
-    displayLabel: 'Info Origin'
+    label: 'Info Origin'
     help: 'Who created this? (aka Source)'
     conditions: [isGraphTooltip, isProvenance]
 
   citation:
     control: 'in-text'
     <<: *SharedControls
-    displayLabel: 'Citation'
+    label: 'Citation'
     help: 'Source Book.Chapter (e.g. "Part 2 06.03")'
 
   category:
     control: 'in-text'
     <<: *SharedControls
-    displayLabel: 'Category'
+    label: 'Category'
     help: 'Category (deprecated)'
     conditions: [isHidden]
 
   created:
     control: 'out-datetime'
     <<: *SharedControls
-    displayLabel: 'Created'
+    label: 'Created'
     help: 'Date and time edge was created'
     conditions: [isGraphTooltip]
 
   createdBy:
     control: 'out-text'
     <<: *SharedControls
-    displayLabel: 'Created By'
+    label: 'Created By'
     help: 'Author who created the edge'
     conditions: [isGraphTooltip]
 
   updated:
     control: 'out-datetime'
     <<: *SharedControls
-    displayLabel: 'Updated'
+    label: 'Updated'
     help: 'Date and time edge was last modified'
     conditions: [isGraphTooltip]
 
   updatedBy:
     control: 'out-text'
     <<: *SharedControls
-    displayLabel: 'Updated By'
+    label: 'Updated By'
     help: 'Author who updated the edge'
     conditions: [isGraphTooltip]
 
   revision:
     <<: *SharedControls
     control: 'out-integer'
-    displayLabel: 'Revision'
+    label: 'Revision'
     help: 'Number of times this edge has been revised'
     conditions: [isGraphTooltip]

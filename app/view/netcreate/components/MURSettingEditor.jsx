@@ -49,31 +49,39 @@ class MURSettingEditor extends UNISYS.Component {
     // this.AppCall, AppSend, AppSignal
     // this.NetCend, NetSend, NetSignal
     // this.SetAppState, OnAppStateChange, AppStatechangeOff
-    this.propTemplate = {};
+    this.propDefs = {};
     this.handleSettingsUpdate = this.handleSettingsUpdate.bind(this);
   }
 
-  handleSettingsUpdate(data) {
-    const { settings, group, prop } = data;
-    console.log(Object.keys(settings).join(', '));
-  }
+  /// REACT LIFECYCLE ///
 
   async componentDidMount() {
     Settings.Subscribe('*', this.handleSettingsUpdate);
-    const set = await Settings.Get();
-    LOG('Settings', set);
-    const { projectMeta, prompts, accessControls, permissions, graphView } = set;
-    const propMap = { projectMeta, prompts, accessControls, permissions, graphView };
-    LOG(...PR('componentDidMount', propMap));
+    // props are sorted in order they are merged in mur-settings-mgr.mts
+    const props = await Settings.Get('PropertyDefs');
+    this.propDefs = props;
+    if (DBG) LOG(...PR('propDefs', Object.keys(props).join(', ')));
   }
 
   componentWillUnmount() {
     Settings.Unsubscribe('*', this.handleSettingsUpdate);
   }
 
+  /// DATA EVENT HANDLERS ///
+
+  /** called after subscribing via Settings.Subscribe() */
+  handleSettingsUpdate(data) {
+    const { settings, group, prop } = data;
+    console.log(Object.keys(settings).join(', '));
+  }
+
+  /// UI EVENT STATE AND EVENT HANDLERS ///
+
   setColor(evt) {
     console.log('setcolor called', evt);
   }
+
+  /// RENDERED OUTPUT ///
 
   render() {
     return (

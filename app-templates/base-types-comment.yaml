@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: _object_types
+_key: TypeDefs
 
 # this declares the data structure of a "comment type"
 # the actual stored values are in 'set-ui-comment-types.yaml'

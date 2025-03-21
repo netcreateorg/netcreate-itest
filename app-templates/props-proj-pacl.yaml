@@ -1,5 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
+_key: PropertyDefs
 
 # Global default permissions for the running application
 permissions:
