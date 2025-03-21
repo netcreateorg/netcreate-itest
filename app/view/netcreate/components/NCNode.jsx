@@ -384,7 +384,7 @@ class NCNode extends UNISYS.Component {
     const attributes = this.LoadAttributes(node);
     const provenance = this.LoadProvenance(node);
     const uBackgroundColor = this.LookupBackgroundColor(node.type);
-    const matchingNodes = this.FindMatchingList(node.label);
+    const matchingNodes = this.FindMatchingList(node.label, node.id);
     const permissionsState = this.DerivePermissions(node.id);
     this.setState({
       // node parameters
@@ -537,8 +537,13 @@ class NCNode extends UNISYS.Component {
     return uBackgroundColor;
   }
 
-  FindMatchingList(label) {
-    const { id } = this.state;
+  /**
+   * Create list of nodes that match the label
+   * @param {*} label
+   * @param {*} id optional id -- needed by LoadNode because id may not be defined yet
+   * @returns
+   */
+  FindMatchingList(label, id = this.state.id) {
     const foundNodes = NCLOGIC.FindMatchingNodesByLabel(label);
     const matchingNodes = foundNodes.filter(n => n.id !== id); // don't include self
     return matchingNodes;
