@@ -8,7 +8,6 @@
       2001  NCDialog .screen ==========
       2000  comment-bar
       1500  FiltersPanel
-      1030  bootstrap .fixed-top
        101  URTable tabletip
        100  Node/EdgeTable thead
         15  NCAutoSuggest .matchlist
@@ -28,6 +27,8 @@
   --clr-cat-light: #f7f3f2;
   --clr-secondary: #6a8899; /* navy */
   --clr-system: #355869; /* dark navy for UI/system labels */
+  --clr-system-faded: #35586999; /* transparent UI/system labels */
+  --clr-system-fadedmore: #35586966; /* transparent UI/system labels */
   --clr-base-font: #161616;
   --font-size-xs: 0.625rem; /* 10px */
   --font-size-sm: 0.75rem; /* 12px */
@@ -51,10 +52,12 @@ body {
   font-weight: var(--font-weight-normal);
 }
 
-/* override bootstrap */
-nav.fixed-top {
-  z-index: inherit;
+.help {
+  color: var(--clr-system-faded);
+  font-size: var(--font-size-xs);
+  font-style: italic;
 }
+/* NC Base ----------------------------------------------------------------- */
 
 /* Base App: NetCrate.jsx */
 .nc-base {
@@ -262,7 +265,7 @@ button svg {
   height: 100%;
 }
 #filterpanel-btn {
-  padding: 5px 0px 5px 8px;
+  padding: 2px 0 0 8px;
   border: none;
   border-radius: 0px;
   box-shadow: none;

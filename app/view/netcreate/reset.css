@@ -2,9 +2,15 @@ body {
   margin: 0;
 }
 button {
-  /* user stylesheet */
+  /* chrome user stylesheet */
   padding-block: 0;
 }
 textarea {
   font-family: unset;
+}
+fieldset {
+  /* chrome user stylesheet */
+  margin-inline: 0;
+  padding-block: 0;
+  padding-inline: 0;
 }

@@ -49,7 +49,6 @@ const React = require('react');
 const NCSearch = require('./components/NCSearch');
 const NCNode = require('./components/NCNode');
 const NCGraph = require('./components/NCGraph');
-const FiltersPanel = require('./components/filter/FiltersPanel');
 const NCLOGIC = require('./nc-logic'); // require to bootstrap data loading
 const FILTERMGR = require('./filter-mgr'); // handles filtering functions
 const EDGEMGR = require('./edge-mgr'); // handles edge synthesis
@@ -60,6 +59,7 @@ const FILTER = require('./components/filter/FilterEnums');
 import PANELMGR from './panel-mgr';
 import NCInfoPanel from './components/NCInfoPanel';
 import NCHelpPanel from './components/NCHelpPanel';
+import NCFiltersPanel from './components/filter/NCFiltersPanel';
 import URButtonToggle from './components/URButtonToggle';
 import URCommentStatus from './components/URCommentStatus';
 
@@ -258,7 +258,7 @@ class NetCreate extends UNISYS.Component {
               >
                 {FILTER.PANEL_LABEL}
               </button>
-              <FiltersPanel hidden={!layoutFiltersOpen} />
+              <NCFiltersPanel hidden={!layoutFiltersOpen} />
             </div>
           </div>
         </div>
