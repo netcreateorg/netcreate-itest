@@ -55,25 +55,27 @@ PropertyDefs:
     filterFocusHelp:
       type: string
       default: Show only nodes connected to the selected node within range
-  graphView:
+  nodeSettings:
     nodeSizeDefault:
       type: number
       default: 5
     nodeSizeMax:
       type: number
       default: 50
+    nodeDefaultTransparency:
+      type: number
+      default: 1
+  edgeSettings:
     edgeSizeDefault:
       type: number
       default: 1
     edgeSizeMax:
       type: number
       default: 25
-    nodeDefaultTransparency:
-      type: number
-      default: 1
     edgeDefaultTransparency:
       type: number
       default: 0.7
+  colorSettings:
     searchColor:
       type: number
       default: "#008800"
@@ -121,12 +123,12 @@ TypeDefs:
       - a
       - b
       - c
-LayoutDefs:
-  UI_Declarations:
+ComponentDefs:
+  GroupTags:
     - ui-form
     - ui-metadata
     - ui-group
-  UI_Inputs:
+  InputTags:
     - in-text
     - in-checkbox
     - in-number
@@ -140,7 +142,7 @@ LayoutDefs:
     - in-date
     - in-time
     - in-datetime
-  UI_Outputs:
+  OutputTags:
     - out-text
     - out-number
     - out-integer
@@ -150,9 +152,10 @@ LayoutDefs:
     - out-date
     - out-time
     - out-datetime
-  UI_Widgets:
+  Panels:
     - out-table
-  UI_EdgeCommonControls:
+LayoutDefs:
+  EdgeDefCommon:
     isProvenance:
       control: in-checkbox
       default: false
@@ -366,7 +369,7 @@ LayoutDefs:
       help: Number of times this edge has been revised
       conditions:
         - isGraphTooltip
-  UI_NodeCommonControls:
+  NodeDefCommon:
     isProvenance:
       control: in-checkbox
       default: false
@@ -524,6 +527,69 @@ LayoutDefs:
       help: Number of times this edge has been revised
       conditions:
         - isGraphTooltip
+  projectMeta:
+    description:
+      label: description
+      tooltip: Enter a description for the project
+      help: Enter a description for the project
+  citationPrompts:
+    citation:
+      label: Citation
+      tooltip: Enter the citation for the project
+      help: Enter the citation for the project
+  permissions:
+    requireLogin:
+      label: Login
+      tooltip: user must login to use the application
+    hideDeleteNodeButton:
+      label: Hide Delete Node
+      tooltip: users cannot delete nodes
+    allowLoggedInUserToImport:
+      label: Allow Import
+      tooltip: logged in users can import data
+  accessControls:
+    duplicateWarning:
+      label: duplicateWarning
+    nodeIsLockedMessage:
+      label: nodeIsLockedMessage
+    edgeIsLockedMessage:
+      label: edgeIsLockedMessage
+    templateIsLockedMessage:
+      label: templateIsLockedMessage
+    importIsLockedMessage:
+      label: importIsLockedMessage
+  prompts:
+    filterFade:
+      label: Fade
+    filterFadeHelp:
+      label: Fade Help
+    filterReduce:
+      label: Reduce
+    filterReduceHelp:
+      label: Reduce Help
+    filterFocus:
+      label: Focus
+    filterFocusHelp:
+      label: Focus Help
+  nodeSettings:
+    nodeSizeDefault:
+      label: Default Size
+    nodeSizeMax:
+      label: Max Size
+    nodeDefaultTransparency:
+      label: Transparency
+  edgeSettings:
+    edgeSizeDefault:
+      label: Default Size
+    edgeSizeMax:
+      label: Max Size
+    edgeDefaultTransparency:
+      label: Transparency
+  colorSettings:
+    searchColor:
+      label: Search Color
+    sourceColor:
+      label: Source Color
 commentPrompts:
   - slug: cmt
     label: Comment

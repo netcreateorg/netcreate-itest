@@ -23,26 +23,32 @@ prompts:
     type: string
     default: 'Show only nodes connected to the selected node within range'
 
-# Defaults for the D3-based GraphView renderer
-graphView:
+# Node Defaults for GraphView
+nodeSettings:
   nodeSizeDefault:
     type: number
     default: 5
   nodeSizeMax:
     type: number
     default: 50
+  nodeDefaultTransparency:
+    type: number
+    default: 1
+
+# EdgeDefaults for GraphView
+edgeSettings:
   edgeSizeDefault:
     type: number
     default: 1
   edgeSizeMax:
     type: number
     default: 25
-  nodeDefaultTransparency:
-    type: number
-    default: 1
   edgeDefaultTransparency:
     type: number
     default: 0.7
+
+# Color Defaults for GraphView
+colorSettings:
   searchColor:
     type: number
     default: '#008800' # color used to hilight a search result

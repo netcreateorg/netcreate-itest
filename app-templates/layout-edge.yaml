@@ -4,7 +4,7 @@ _key: LayoutDefs
 
 # shared elements type setting
 
-UI_EdgeCommonControls: &SharedControls
+EdgeDefCommon: &SharedControls
   isProvenance:
     control: 'in-checkbox'
     default: false

@@ -24,10 +24,13 @@ citationPrompts:
 permissions:
   requireLogin:
     label: 'Login'
+    tooltip: 'user must login to use the application'
   hideDeleteNodeButton:
     label: 'Hide Delete Node'
+    tooltip: 'users cannot delete nodes'
   allowLoggedInUserToImport:
     label: 'Allow Import'
+    tooltip: 'logged in users can import data'
 
 # Strings related to access control
 accessControls:
@@ -57,21 +60,27 @@ prompts:
   filterFocusHelp:
     label: 'Focus Help'
 
-# Defaults for the D3-based GraphView renderer
-graphView:
+# Node Defaults for GraphView
+nodeSettings:
   nodeSizeDefault:
-    label: 'nodeSizeDefault'
+    label: 'Default Size'
   nodeSizeMax:
-    label: 'nodeSizeMax'
-  edgeSizeDefault:
-    label: 'edgeSizeDefault'
-  edgeSizeMax:
-    label: 'edgeSizeMax'
+    label: 'Max Size'
   nodeDefaultTransparency:
-    label: 'nodeDefaultTransparency'
+    label: 'Transparency'
+
+# EdgeDefaults for GraphView
+edgeSettings:
+  edgeSizeDefault:
+    label: 'Default Size'
+  edgeSizeMax:
+    label: 'Max Size'
   edgeDefaultTransparency:
-    label: 'edgeDefaultTransparency'
+    label: 'Transparency'
+
+# Color Defaults for GraphView
+colorSettings:
   searchColor:
-    label: 'searchColor'
+    label: 'Search Color'
   sourceColor:
-    label: 'sourceColor'
+    label: 'Source Color'

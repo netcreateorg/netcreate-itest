@@ -54,9 +54,6 @@ function LoadSettings(dir) {
   if (dir === undefined) throw Error(`${fn} arg should be path string`);
   if (typeof dir !== 'string') throw Error(`${fn} arg should be string`);
   const files = [
-    // 'base-value-types', // used for validation of data
-    // 'base-ui-controls', // used for validating ui control definitions
-    //
     'props-proj-meta',
     'props-proj-pacl',
     'props-proj-settings',
@@ -66,6 +63,7 @@ function LoadSettings(dir) {
     'base-controls',
     'layout-edge',
     'layout-node',
+    'layout-proj',
     'values-comment-prompts'
   ];
   // set the template root
@@ -75,8 +73,7 @@ function LoadSettings(dir) {
   files.forEach(f => {
     const p = PATH.join(dir, `${f}.yaml`);
     if (!FILE.FileExists(p)) {
-      console.warn(`schema file not found: ${u_short(p)}`);
-      return;
+      throw Error(`specified schema file not found: ${u_short(p)}`);
     }
     const yaml: string = FILE.ReadFile(p).toString();
     const { _key, _schemaVersion: _sch, ...obj } = parse(yaml, { merge: true });
@@ -119,6 +116,20 @@ function PersistSettings(fileName?) {
 function Get() {
   return SETTINGS;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return layout metadata for a given groupName or all */
+function GetLayoutDefs(groupName) {
+  const layoutDefs = SETTINGS['LayoutDefs'];
+  if (layoutDefs === undefined) return { error: `no LayoutDefs` };
+  if (groupName === undefined) return { ...layoutDefs };
+  if (typeof groupName !== 'string') return { error: `groupName must be string` };
+  const found = layoutDefs[groupName];
+  if (layoutDefs[groupName] === undefined && found)
+    return {
+      error: `make sure LayoutDefs follow PropertyDefs for ${groupName}`
+    };
+  return found || { error: `no LayoutDef for ${groupName}` };
+}
 
 /// RUNTIME INITIALIZATION //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,5 +151,6 @@ NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
 export {
   LoadSettings, // (dir_yaml_settings_files) => obj
   PersistSettings, // (filename?) => void
-  Get // () => obj
+  Get, // () => obj
+  GetLayoutDefs // (groupName?) => obj
 };
