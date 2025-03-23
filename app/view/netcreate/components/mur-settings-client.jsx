@@ -28,7 +28,9 @@ UNISYS.Hook('LOADASSETS', async () => {
   m_types = TypeDefs;
   m_layouts = LayoutDefs;
   m_values = values;
-  if (DBG) LOG(...PR('LOADASSETS propDefs:', Object.keys(m_props).join(', ')));
+  if (DBG) LOG(...PR('propDefs:', Object.keys(m_props).join(', ')));
+  if (DBG) LOG(...PR('typeDefs:', Object.keys(m_types).join(', ')));
+  if (DBG) LOG(...PR('layoutDefs:', Object.keys(m_layouts).join(', ')));
 });
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -77,6 +79,7 @@ function KK(prefix) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TextInput(name, layoutDef) {
   if (typeof name !== 'string') return <p>getTextInput bad layoutDef</p>;
+  if (typeof layoutDef !== 'object') return <p>getTextInput bad layoutDef</p>;
   return (
     <div key={KK('TI')} style={itemStyle}>
       <label htmlFor="{name}" style={labelStyle}>
@@ -104,7 +107,9 @@ function PropertyGroup(groupName) {
   if (!groupProps) return <p>getPropertyGroup no groupProps</p>;
   const propsUI = [];
   Object.entries(groupProps).forEach(([prop, def]) => {
-    if (def.type) propsUI.push(TextInput(prop, def));
+    const layoutDef = GetLayoutMedata(groupName);
+    console.log(layoutDef);
+    if (def.type) propsUI.push(TextInput(prop, { ...def, ...layoutDef }));
   });
   return (
     <div key={KK('PG')} style={{ margin: '1rem' }}>
@@ -118,8 +123,9 @@ function PropertyGroup(groupName) {
   );
 }
 
-/// RENDERING API METHODS /////////////////////////////////////////////////////
+/// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a settings ui for rendering inside a React component */
 function RenderSettingsUI() {
   const groupUI = [];
   Object.keys(m_props).forEach(gn => {
@@ -127,6 +133,13 @@ function RenderSettingsUI() {
     groupUI.push(propsUI);
   });
   return groupUI;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return layout metadata for a given groupName or all */
+function GetLayoutMedata(groupName) {
+  if (groupName === undefined) return { ...m_layouts };
+  if (typeof groupName !== 'string') return { error: `groupName must be string` };
+  return m_layouts[groupName] || { error: `no such groupName ${groupName}` };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
@@ -136,6 +149,7 @@ module.exports = {
   PropertyGroup,
   GroupHeader,
   TextInput,
-  // rendering
-  RenderSettingsUI
+  // API
+  RenderSettingsUI,
+  GetLayoutMedata
 };

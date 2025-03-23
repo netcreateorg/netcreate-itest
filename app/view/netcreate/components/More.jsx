@@ -21,7 +21,7 @@ const Help = require('./Help');
 const Vocabulary = require('./Vocabulary');
 const ImportExport = require('./ImportExport');
 const NCTemplate = require('./NCTemplate');
-const MURSettingEditor = require('./MURPropertyEditor');
+const MURSettingEditor = require('./MURSettingsEditor');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

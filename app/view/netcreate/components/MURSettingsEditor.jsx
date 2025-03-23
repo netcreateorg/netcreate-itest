@@ -12,7 +12,7 @@
 const React = require('react');
 const UNISYS = require('unisys/client');
 const { Settings, ConsoleStyler } = require('ursys-min');
-const { RenderSettingsUI } = require('./mur-property-mgr');
+const { RenderSettingsUI } = require('./mur-settings-client');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
