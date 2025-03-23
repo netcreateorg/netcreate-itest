@@ -343,8 +343,8 @@ class NCNode extends UNISYS.Component {
       const { edges } = this.state;
       const edge = edges.find(e => e.id === Number(edgeId));
       this.setState({ selectedEdgeId: edgeId });
-      UDATA.LocalCall('EDGE_OPEN', { edge }).then(() => {
-        UDATA.LocalCall('EDGE_EDIT', { edgeId });
+      UDATA.AppCall('EDGE_OPEN', { edge }).then(() => {
+        UDATA.AppCall('EDGE_EDIT', { edgeId });
       });
     });
   }
@@ -354,7 +354,7 @@ class NCNode extends UNISYS.Component {
       const { edges } = this.state;
       const edge = edges.find(e => e.id === Number(edgeId));
       this.setState({ selectedEdgeId: edgeId });
-      UDATA.LocalCall('EDGE_OPEN', { edge });
+      UDATA.AppCall('EDGE_OPEN', { edge });
     });
   }
   DeselectEdge() {
@@ -377,7 +377,7 @@ class NCNode extends UNISYS.Component {
     }
 
     // if we're loading a new node, close any open edges
-    if (node.id !== id) UDATA.LocalCall('EDGE_DESELECT');
+    if (node.id !== id) UDATA.AppCall('EDGE_DESELECT');
 
     // Load the node
     const edges = this.FindLinkedEdges(node.id);
@@ -551,7 +551,7 @@ class NCNode extends UNISYS.Component {
     const { id, label } = this.state;
     const uSelectedTab = event.target.value;
     this.setState({ uSelectedTab });
-    if (event.target.value !== TABS.EDGES) UDATA.LocalCall('EDGE_DESELECT');
+    if (event.target.value !== TABS.EDGES) UDATA.AppCall('EDGE_DESELECT');
     UNISYS.Log('select node tab', id, label, uSelectedTab);
   }
 
@@ -589,7 +589,7 @@ class NCNode extends UNISYS.Component {
 
   UIAddEdge(event) {
     event.preventDefault();
-    UDATA.LocalCall('EDGE_CREATE', { nodeId: this.state.id }).then(edge => {
+    UDATA.AppCall('EDGE_CREATE', { nodeId: this.state.id }).then(edge => {
       // enable editing right away
       this.UIEditEdge(edge.id);
     });
@@ -691,15 +691,15 @@ class NCNode extends UNISYS.Component {
     const { edges } = this.state;
     const edge = edges.find(e => e.id === Number(edgeId));
     this.setState({ selectedEdgeId: edgeId });
-    UDATA.LocalCall('EDGE_OPEN', { edge });
+    UDATA.AppCall('EDGE_OPEN', { edge });
   }
 
   UIEditEdge(edgeId) {
     const { edges } = this.state;
     const edge = edges.find(e => e.id === Number(edgeId));
     this.setState({ selectedEdgeId: edgeId });
-    UDATA.LocalCall('EDGE_OPEN', { edge }).then(() =>
-      UDATA.LocalCall('EDGE_EDIT', { edge })
+    UDATA.AppCall('EDGE_OPEN', { edge }).then(() =>
+      UDATA.AppCall('EDGE_EDIT', { edge })
     );
   }
 
