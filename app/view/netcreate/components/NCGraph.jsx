@@ -28,9 +28,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactStrap = require('reactstrap');
-const { Button } = ReactStrap;
 const NCGraphRenderer = require('./NCGraphRenderer');
 const UNISYS = require('unisys/client');
 const RENDERMGR = require('../render-mgr');
@@ -203,76 +200,26 @@ class NCGraph extends UNISYS.Component {
   render() {
     const { nodeTypes, edgeTypes } = this.state;
     return (
-      <div
-        className="--NCGraph"
-        ref={dom => (this.dom = dom)}
-        style={{ height: '100%', position: 'relative' }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            right: '0px',
-            bottom: '10px',
-            width: '50px',
-            zIndex: 1001
-          }}
-        >
-          <Button
-            outline
-            onClick={this.onZoomIn}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            +
-          </Button>
+      <div className="NCGraph" ref={dom => (this.dom = dom)}>
+        <div className="zoom-buttons">
+          <button onClick={this.onZoomIn} role="button" aria-label="Zoom In">
+            <img src="/images/icn_plus.svg" />
+          </button>
           &nbsp;
-          <Button
-            outline
-            onClick={this.onZoomReset}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            &bull;
-          </Button>
+          <button onClick={this.onZoomReset} role="button" aria-label="Zoom Reset">
+            <img src="/images/icn_circle.svg" />
+          </button>
           &nbsp;
-          <Button
-            outline
-            onClick={this.onZoomOut}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            -
-          </Button>
+          <button onClick={this.onZoomOut} role="button" aria-label="Zoom Out">
+            <img src="/images/icn_minus.svg" />
+          </button>
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '5px',
-            marginLeft: '10px',
-            marginBottom: '0px',
-            fontSize: '10px'
-          }}
-        >
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>KEY</div>
-          <br></br>
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>
-            {' '}
-            - Node Types:
-          </div>
+        <div className="legend">
+          <h1>Node Types:</h1>
           {nodeTypes.map((type, i) => (
             <div key={i} className="tooltipAnchor">
-              <div
-                style={{
-                  display: 'inline-block',
-                  paddingRight: '2em',
-                  lineHeight: '10px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    width: '10px',
-                    height: '8px',
-                    backgroundColor: type.color
-                  }}
-                ></div>
+              <div className="legend-item">
+                <div className="swatch" style={{ backgroundColor: type.color }}></div>
                 &nbsp;{type.label === '' ? 'No Type Selected' : type.label}
               </div>
               <span className="tooltiptextabove">
@@ -281,27 +228,11 @@ class NCGraph extends UNISYS.Component {
             </div>
           ))}
           <br></br>
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>
-            {' '}
-            - Edge Types:
-          </div>
+          <h1>Edge Types:</h1>
           {edgeTypes.map((type, i) => (
             <div key={i} className="tooltipAnchor">
-              <div
-                style={{
-                  display: 'inline-block',
-                  paddingRight: '2em',
-                  lineHeight: '10px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    width: '10px',
-                    height: '8px',
-                    backgroundColor: type.color
-                  }}
-                ></div>
+              <div className="legend-item">
+                <div className="swatch" style={{ backgroundColor: type.color }}></div>
                 &nbsp;{type.label === '' ? 'No Type Selected' : type.label}
               </div>
               <span className="tooltiptextabove">
