@@ -192,12 +192,13 @@ function NCInfoPanel() {
         {Object.keys(TABS).map(k => (
           <button
             key={k}
-            role="tab"
             className={state.activeTab === TABS[k].label ? 'selected' : ''}
-            aria-selected={state.activeTab === TABS[k].label}
-            aria-controls={TABS[k].label}
             tabIndex={state.activeTab === TABS[k].label ? '0' : '-1'}
             onClick={() => evt_SelectTab(k)}
+            role="tab"
+            type="button"
+            aria-selected={state.activeTab === TABS[k].label}
+            aria-controls={TABS[k].label}
           >
             {TABS[k].label}
             {TABS[k].icon && <img src={TABS[k].icon} />}

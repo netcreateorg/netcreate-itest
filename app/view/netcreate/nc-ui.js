@@ -193,17 +193,21 @@ function RenderTabSelectors(TABS, state, onclick) {
     <div
       className="tabselectors"
       style={{ color: 'red', gridTemplateColumns: columnsDef }}
+      role="tablist"
     >
       {Object.keys(TABS).map(k => {
         return (
           <button
             id={k}
             key={k}
-            type="button"
             className={uSelectedTab === TABS[k] ? 'selected' : ''}
             onClick={onclick}
             value={TABS[k]}
             disabled={uViewMode === VIEWMODE.EDIT}
+            role="tab"
+            type="button"
+            aria-selected={uSelectedTab === TABS[k]}
+            aria-controls={TABS[k]}
           >
             {TABS[k] === 'EDGES' ? `${TABS[k]} (${degrees})` : TABS[k]}
             <img src={`images/${icn[k]}`} />
