@@ -20,7 +20,7 @@ function ParseText(metaText: string): StateObj {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AssertGroupName(name: string): string {
-  if (!TEXT.IsAtomicKeyword(name)) throw Error(`Invalid group name: ${name}`);
+  if (!TEXT.IsCamelCase(name)) throw Error(`Invalid group name: ${name}`);
   return name;
 }
 

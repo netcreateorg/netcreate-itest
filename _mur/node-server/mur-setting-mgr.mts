@@ -66,7 +66,7 @@ function LoadSettings(dir) {
     'base-controls',
     'layout-edge',
     'layout-node',
-    'set-comment-prompts'
+    'values-comment-prompts'
   ];
   // set the template root
   u_root(dir);

@@ -113,8 +113,8 @@ function IsSnakeCase(str: string) {
 function IsCamelCase(str: string) {
   ThrowBadString(str);
   const noSpaces = !/\s/.test(str);
-  const camelCase = /^[a-z]+[A-Z][a-z]*$/.test(str);
-  return noSpaces && camelCase;
+  const initialLower = str.charAt(0) === str.charAt(0).toLowerCase();
+  return noSpaces && initialLower;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsPascalCase(str: string) {

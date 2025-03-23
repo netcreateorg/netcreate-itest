@@ -1,7 +1,7 @@
 /* eslint-disable no-alert */
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  MUR Template Editor
+  MUR Property Editor Panel
   (test replacement `NCTemplate.jsx`)
 
   Requires that init.jsx has called UR.ViewLib.DeclareComponents() to make
@@ -12,27 +12,13 @@
 const React = require('react');
 const UNISYS = require('unisys/client');
 const { Settings, ConsoleStyler } = require('ursys-min');
-// const PopupPicker = require('./PopupPicker.jsx');
+const { RenderSettingsUI } = require('./mur-property-mgr');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const PR = ConsoleStyler('SetEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const UI_META = `
-foo:
-  label: "Notes OK"
-  tooltip: >
-    Notes for this node are very very long,
-    so you shouldn't have to worry about anything
-  placeholder: "type some notes"
-color:
-  label: "Color"
-  tooltip: "Color of the node"
-  placeholder: "#ff0000"
-
-`;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,7 +35,6 @@ class MURSettingEditor extends UNISYS.Component {
     // this.AppCall, AppSend, AppSignal
     // this.NetCend, NetSend, NetSignal
     // this.SetAppState, OnAppStateChange, AppStatechangeOff
-    this.propDefs = {};
     this.handleSettingsUpdate = this.handleSettingsUpdate.bind(this);
   }
 
@@ -58,9 +43,6 @@ class MURSettingEditor extends UNISYS.Component {
   async componentDidMount() {
     Settings.Subscribe('*', this.handleSettingsUpdate);
     // props are sorted in order they are merged in mur-settings-mgr.mts
-    const props = await Settings.Get('PropertyDefs');
-    this.propDefs = props;
-    if (DBG) LOG(...PR('propDefs', Object.keys(props).join(', ')));
   }
 
   componentWillUnmount() {
@@ -72,26 +54,12 @@ class MURSettingEditor extends UNISYS.Component {
   /** called after subscribing via Settings.Subscribe() */
   handleSettingsUpdate(data) {
     const { settings, group, prop } = data;
-    console.log(Object.keys(settings).join(', '));
-  }
-
-  /// UI EVENT STATE AND EVENT HANDLERS ///
-
-  setColor(evt) {
-    console.log('setcolor called', evt);
   }
 
   /// RENDERED OUTPUT ///
 
   render() {
-    return (
-      <div>
-        <ui-group group="nctest">
-          <in-text name="foo"></in-text>
-        </ui-group>
-        <ui-metadata for="nctest">{UI_META}</ui-metadata>
-      </div>
-    );
+    return <div>{RenderSettingsUI()}</div>;
   }
 }
 
