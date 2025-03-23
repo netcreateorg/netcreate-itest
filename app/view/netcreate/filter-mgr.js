@@ -649,7 +649,9 @@ function m_MatchHDate(operator, filterVal, objVal) {
  * @returns
  */
 function m_MatchTimestamp(operator, filterVal, objVal) {
-  const hdateValue = HDATE.Parse(filterVal); // deconstruct the HDate filter into a timestamp
+  const { value, format, formattedString } = filterVal;
+  const hdateValue = HDATE.Parse(value); // deconstruct the HDate filter into a timestamp
+
   if (hdateValue.length < 1) return false;
 
   const knownValues = hdateValue[0].start.knownValues;
