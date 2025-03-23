@@ -450,7 +450,6 @@ function m_UpdateFilterSummary(statsSummary) {
     FILTEREDNCDATA.edges && FILTEREDNCDATA.edges.length
   } edges`;
 
-
   const typeSummary = FILTERDEFS.filterAction; // text for filter action is the label, e.g. 'HIGHLIGHT'
   const nodeSummary = m_FiltersToString(FILTERDEFS.nodes.filters);
   const edgeSummary = m_FiltersToString(FILTERDEFS.edges.filters);
@@ -475,12 +474,18 @@ function m_FiltersToString(filters) {
     if (
       filter.operator === undefined ||
       filter.value === undefined ||
-      filter.value === ''
+      filter.value === '' ||
+      (typeof filter.value === 'object' && filter.value.value === '') // hdate values are objects
     )
       return;
     summary += filter.keylabel + ' ';
     summary += m_OperatorToString(filter.operator) + ' ';
-    summary += '"' + filter.value + '"; ';
+    if (typeof filter.value === 'object') {
+      // hdate value
+      summary += '"' + filter.value.value + '"; ';
+    } else {
+      summary += '"' + filter.value + '"; ';
+    }
   });
   return summary;
 }
