@@ -36,8 +36,6 @@ const RENDERMGR = require('../render-mgr');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCGraph';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA = null;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,15 +59,12 @@ class NCGraph extends UNISYS.Component {
     this.onZoomOut = this.onZoomOut.bind(this);
     this.constructGraph = this.constructGraph.bind(this);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
-
-    UDATA.OnAppStateChange('VDATA', this.updateVData);
-    UDATA.OnAppStateChange('TEMPLATE', this.updateTemplate);
-    UDATA.OnAppStateChange('COLORMAP', this.updateColorMap);
-    UDATA.OnAppStateChange('SELECTION', this.updateSelection);
-    UDATA.OnAppStateChange('HILITE', this.updateSelection);
-    UDATA.HandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
+    this.OnAppStateChange('VDATA', this.updateVData);
+    this.OnAppStateChange('TEMPLATE', this.updateTemplate);
+    this.OnAppStateChange('COLORMAP', this.updateColorMap);
+    this.OnAppStateChange('SELECTION', this.updateSelection);
+    this.OnAppStateChange('HILITE', this.updateSelection);
+    this.HandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
   } // constructor
 
   /// CLASS PRIVATE METHODS /////////////////////////////////////////////////////
@@ -177,12 +172,12 @@ class NCGraph extends UNISYS.Component {
   /**
    */
   componentWillUnMount() {
-    UDATA.AppStateChangeOff('VDATA', this.updateVData);
-    UDATA.AppStateChangeOff('TEMPLATE', this.updateTemplate);
-    UDATA.AppStateChangeOff('COLORMAP', this.updateColorMap);
-    UDATA.AppStateChangeOff('SELECTION', this.updateSelection);
-    UDATA.AppStateChangeOff('HILITE', this.updateSelection);
-    UDATA.UnhandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
+    this.AppStateChangeOff('VDATA', this.updateVData);
+    this.AppStateChangeOff('TEMPLATE', this.updateTemplate);
+    this.AppStateChangeOff('COLORMAP', this.updateColorMap);
+    this.AppStateChangeOff('SELECTION', this.updateSelection);
+    this.AppStateChangeOff('HILITE', this.updateSelection);
+    this.DropMessage('CONSTRUCT_GRAPH', this.constructGraph);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /**

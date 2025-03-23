@@ -34,8 +34,6 @@ const PR = 'ImportExport';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const NODEFILESTATUS_DEFAULT = 'Select a node .csv file to import';
 const EDGEFILESTATUS_DEFAULT = 'Select an edge .csv file to import';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-var UDATA = null;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,8 +72,7 @@ class ImportExport extends UNISYS.Component {
     this.onDoImport = this.onDoImport.bind(this);
     this.unlockAll = this.unlockAll.bind(this);
 
-    UDATA = UNISYS.NewDataLink(this);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
 
   componentDidMount() {
@@ -85,8 +82,8 @@ class ImportExport extends UNISYS.Component {
   }
 
   componentWillUnmount() {
-    UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     window.removeEventListener('beforeunload', this.checkUnload);
     window.removeEventListener('unload', this.doUnload);
   }
@@ -123,7 +120,7 @@ class ImportExport extends UNISYS.Component {
 
   updateEditState() {
     // disable edit if someone else is editing a template, node, or edge
-    this.urstate_LOCKSTATE(UDATA.AppState('LOCKSTATE'));
+    this.urstate_LOCKSTATE(this.AppState('LOCKSTATE'));
     // REVIEW: Reduce setState calls?
     DATASTORE.PromiseCalculateMaxNodeId().then(data => {
       this.setState({ nextNodeId: data + 1 });
@@ -197,7 +194,7 @@ class ImportExport extends UNISYS.Component {
     });
     // Clear validated data so it doesn't get imported
     if (!importIsActive)
-      UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+      this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     IMPORTEXPORT.ResetNodeImportData();
   }
 
@@ -213,13 +210,13 @@ class ImportExport extends UNISYS.Component {
     });
     // Clear validated data so it doesn't get imported
     if (!importIsActive)
-      UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+      this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     IMPORTEXPORT.ResetEdgeImportData();
   }
 
   clearFileSelect() {
     // User Cancelled, reset to default
-    UDATA.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
+    this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     document.getElementById('nodefileInput').value = '';
     document.getElementById('edgefileInput').value = '';
     this.clearNodefileSelect();
@@ -248,7 +245,7 @@ class ImportExport extends UNISYS.Component {
   }
 
   unlockAll() {
-    UDATA.NetCall('SRV_DBUNLOCKALL');
+    this.NetCall('SRV_DBUNLOCKALL');
   }
 
   /// REACT LIFECYCLE METHODS ///////////////////////////////////////////////////

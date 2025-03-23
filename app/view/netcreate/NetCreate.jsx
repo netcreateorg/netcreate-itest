@@ -118,8 +118,7 @@ class NetCreate extends UNISYS.Component {
     this.OnAppStateChange('SESSION', this.onStateChange_SESSION);
     this.OnAppStateChange('PANELSTATE', this.onStateChange_PANELSTATE);
 
-    const UDATA = UNISYS.NewDataLink(this);
-    UDATA.HandleMessage('DISCONNECT', this.onDisconnect);
+    this.HandleMessage('DISCONNECT', this.onDisconnect);
   }
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

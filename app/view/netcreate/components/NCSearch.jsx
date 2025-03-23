@@ -26,8 +26,6 @@ const NCAutoSuggest = require('./NCAutoSuggest');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCSearch';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,17 +47,15 @@ class NCSearch extends UNISYS.Component {
     this.UIOnSelect = this.UIOnSelect.bind(this);
     this.UINewNode = this.UINewNode.bind(this);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
-    UDATA.OnAppStateChange('SESSION', this.UpdateSession);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('SESSION', this.UpdateSession);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
-    UDATA.AppStateChangeOff('SESSION', this.UpdateSession);
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('SESSION', this.UpdateSession);
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /**
@@ -107,7 +103,7 @@ class NCSearch extends UNISYS.Component {
     this.setState({ value }, () => {
       if (id) {
         // open existing node
-        UDATA.LocalCall('D3_SELECT_NODE', { nodeIDs: [id] });
+        this.AppCall('D3_SELECT_NODE', { nodeIDs: [id] });
       } else if (isLoggedIn) {
         // create a new node
         this.UINewNode();
@@ -119,9 +115,9 @@ class NCSearch extends UNISYS.Component {
     const { value } = this.state;
     const data = {};
     data.label = value;
-    UDATA.LocalCall('NODE_CREATE', data).then(node => {
-      UDATA.LocalCall('D3_SELECT_NODE', { nodeIDs: [node.id] }).then(() => {
-        UDATA.LocalCall('NODE_EDIT', { nodeID: node.id });
+    this.AppCall('NODE_CREATE', data).then(node => {
+      this.AppCall('D3_SELECT_NODE', { nodeIDs: [node.id] }).then(() => {
+        this.AppCall('NODE_EDIT', { nodeID: node.id });
       });
     });
   }

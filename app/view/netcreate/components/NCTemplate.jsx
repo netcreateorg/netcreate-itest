@@ -39,8 +39,6 @@ const DATASTORE = require('system/datastore');
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA = null;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,12 +70,11 @@ class NCTemplate extends UNISYS.Component {
     this.onSaveChanges = this.onSaveChanges.bind(this);
     this.onCancelEdit = this.onCancelEdit.bind(this);
 
-    UDATA = UNISYS.NewDataLink(this);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
 
   componentDidMount() {
-    const LOCKSTATE = UDATA.AppState('LOCKSTATE');
+    const LOCKSTATE = this.AppState('LOCKSTATE');
     this.urstate_LOCKSTATE(LOCKSTATE);
     DATASTORE.GetTemplateTOMLFileName().then(result => {
       this.setState({ tomlfilename: result.filename });
@@ -86,7 +83,7 @@ class NCTemplate extends UNISYS.Component {
 
   componentWillUnmount() {
     this.releaseOpenEditor();
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /// UI EVENT HANDLERS /////////////////////////////////////////////////////////
@@ -137,7 +134,7 @@ class NCTemplate extends UNISYS.Component {
   }
 
   onCurrentTemplateLoad(e) {
-    UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
+    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         this.setState({ editScope: 'root', isBeingEdited: true });
         this.loadEditor({ startval: result.template });
@@ -146,7 +143,7 @@ class NCTemplate extends UNISYS.Component {
 
   onEditNodeTypes() {
     // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
-    UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
+    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaNodeTypeOptions = SCHEMA.NODETYPEOPTIONS;
         // Wrap options in custom Schema to show Delete management UI
@@ -173,7 +170,7 @@ class NCTemplate extends UNISYS.Component {
 
   onEditEdgeTypes() {
     // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
-    UDATA.LocalCall('EDIT_CURRENT_TEMPLATE') // nc-logic
+    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
       .then(result => {
         const schemaEdgeTypeOptions = SCHEMA.EDGETYPEOPTIONS;
         // Wrap options in custom Schema to show Delete management UI

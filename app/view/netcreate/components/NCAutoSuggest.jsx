@@ -47,8 +47,6 @@ const { SEARCH_PLACEHOLDER } = require('system/util/constant');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCAutoSuggest';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,13 +77,11 @@ class NCAutoSuggest extends UNISYS.Component {
 
     document.addEventListener('click', this.m_UIClickOutside);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     document.removeEventListener('click', this.m_UIClickOutside);
   }
 
@@ -129,7 +125,7 @@ class NCAutoSuggest extends UNISYS.Component {
     const inputEl = event.target;
 
     let isValidNode = false;
-    UDATA.LocalCall('FIND_MATCHING_NODES', { searchString: value }).then(data => {
+    this.AppCall('FIND_MATCHING_NODES', { searchString: value }).then(data => {
       const matches =
         data.nodes && data.nodes.length > 0
           ? data.nodes.map(d => {
@@ -255,7 +251,7 @@ class NCAutoSuggest extends UNISYS.Component {
     line = Math.min(lastLine - 1, Math.max(0, line));
     this.setState({ higlightedLine: line, uShowMatchlist: true });
     const highlightedNode = matches[line];
-    UDATA.LocalCall('AUTOSUGGEST_HILITE_NODE', { nodeId: highlightedNode.id });
+    this.AppCall('AUTOSUGGEST_HILITE_NODE', { nodeId: highlightedNode.id });
   }
 
   // Clicking outside of the matchlist should close the autosuggest
