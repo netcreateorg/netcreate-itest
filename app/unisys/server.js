@@ -10,7 +10,7 @@ const UDB = require('./server-database');
 const LOGGER = require('./server-logger');
 const PROMPTS = require('../system/util/prompts');
 const { EDITORTYPE } = require('../system/util/enum');
-const MURS = require('../../_mur/_dist/mur-node.cjs');
+const MUR = require('../../_mur/_dist/mur-node.cjs');
 
 /// CONSTANTS & DECLARATIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,10 +29,10 @@ var UNISYS = {};
  *  override = { port } */
 UNISYS.InitializeNetwork = override => {
   // MUR INTEROP: connect to MUR
-  MURS.NCI.InteropConnect(UNET);
+  MUR.NCI.InteropConnect(UNET);
   // MUR INTEROP: load settings and persist unified file
-  const settings = MURS.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
-  MURS.SettingMgr.PersistSettings();
+  const settings = MUR.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
+  MUR.SettingMgr.PersistSettings();
   console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
   // MUR INTEROP: end
 
