@@ -12,7 +12,7 @@ import { EventMachine } from '../common/class-event-machine.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, OpResult } from '../_types/ursys.d.ts';
+import type { DataObj, OpResult } from '../_types/ursys.ts';
 type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

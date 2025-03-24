@@ -7,7 +7,7 @@
 
 const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
-const { ReactListKey: RLK } = require('./mur-settings-client');
+const { ReactListKey: RLK } = require('./react-settings-client');
 import TextInput from './MURTextInput';
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
