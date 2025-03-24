@@ -44,10 +44,10 @@ function PropertyGroup(props) {
             description={description}
             title={title}
           />
-          {description && (
-            <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
-          )}
         </summary>
+        {description && (
+          <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
+        )}
         <ui-group group={groupName}>{propsUI}</ui-group>
       </details>
     </div>
