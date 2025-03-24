@@ -165,7 +165,8 @@ UNET.RegisterRemoteHandlers = function (pkt) {
   let { messages = [] } = pkt.Data();
   let regd = [];
   // save message list, for later when having to delete
-  m_socket_msgs_list.set(uaddr, messages);
+  const existing = m_socket_msgs_list.get(uaddr) || [];
+  m_socket_msgs_list.set(uaddr, [...existing, ...messages]);
   // add uaddr for each message in the list
   // m_message_map[mesg] contains a Set
   messages.forEach(msg => {
@@ -504,9 +505,12 @@ function m_SocketDelete(socket) {
   let rmesgs = m_socket_msgs_list.get(uaddr);
   if (Array.isArray(rmesgs)) {
     rmesgs.forEach(msg => {
-      let handlers = m_message_map.get(msg);
-      console.log(PR, `...deleting '${msg}' reference to ${uaddr}`);
-      if (handlers) handlers.delete(uaddr);
+      let addressSet = m_message_map.get(msg);
+      console.log('---', uaddr, addressSet);
+      if (addressSet) {
+        addressSet.delete(uaddr);
+        console.log(PR, `...${uaddr} unregister '${msg}'`);
+      }
     });
   }
   // Unlock everything if the socket is being removed
