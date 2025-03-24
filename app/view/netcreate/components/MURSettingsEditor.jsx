@@ -12,6 +12,11 @@
 const React = require('react');
 const UNISYS = require('unisys/client');
 const { Settings, ConsoleStyler } = require('ursys-min');
+const {
+  ReactListKey: KH,
+  GetPropertyDefs,
+  GetLayoutDefs
+} = require('./mur-settings-client');
 const PropertyGroup = require('./MURPropertyGroup');
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
@@ -19,43 +24,15 @@ const PropertyGroup = require('./MURPropertyGroup');
 const DBG = true;
 const PR = ConsoleStyler('SetEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let m_settings = {}; // settings object split into subkeys
-let m_propdefs = {}; // settings object split into subkeys
-let m_layout = {}; // settings object split into subkeys
-let m_key_hack = 0; // generates increasing key values for React
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this initiates the settings from the server. the settings module
- *  manages server updates and emits notifications */
-UNISYS.Hook('LOADASSETS', async () => {
-  if (Object.keys(m_settings).length > 0) return;
-  m_settings = await Settings.Get();
-  m_propdefs = m_settings.PropertyDefs;
-  m_layout = m_settings.LayoutDef;
-});
-/** when app ready to start, subscribe to settings updates */
-UNISYS.Hook('APP_READY', () => {
-  Settings.Subscribe('*', data => {
-    LOG(...PR('handleSettingsUpdate:', data));
-  });
-});
-
-/// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** React KeyHack to generate unique keys for lists of React components */
-function KH(prefix) {
-  if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
-  return `${prefix}${m_key_hack++}`;
-}
 
 /// FUNCTIONAL COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return a settings ui for rendering inside a React component */
 function GeneratePropList() {
-  const props = m_propdefs;
-  const layouts = m_settings.LayoutDefs;
+  const props = GetPropertyDefs();
+  const layouts = GetLayoutDefs();
   const groupUI = [];
-  Object.keys(m_propdefs).forEach(gn => {
+  Object.keys(props).forEach(gn => {
     groupUI.push(
       <PropertyGroup
         groupName={gn}

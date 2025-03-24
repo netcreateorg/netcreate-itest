@@ -7,6 +7,7 @@
 
 const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
+const { ReactListKey: RLK } = require('./mur-settings-client');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

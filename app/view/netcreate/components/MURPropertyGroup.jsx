@@ -7,20 +7,15 @@
 
 const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
+const { ReactListKey: RLK } = require('./mur-settings-client');
 import TextInput from './MURTextInput';
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let reactKeyHack = 0;
-function KK(prefix) {
-  if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
-  return `${prefix}${reactKeyHack++}`;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GroupHeader(props) {
   const { groupName } = props;
   return (
-    <span key={KK('GN')}>
+    <span key={RLK('GN')}>
       <b>{groupName}</b>
     </span>
   );
@@ -37,10 +32,10 @@ function PropertyGroup(props) {
   Object.entries(properties).forEach(([name, def]) => {
     const metadata = { ...def, ...layout[name] };
     if (def.type)
-      propsUI.push(<TextInput name={name} metadata={metadata} key={KK('TI')} />);
+      propsUI.push(<TextInput name={name} metadata={metadata} key={RLK('TI')} />);
   });
   return (
-    <div key={KK('PG')} style={{ margin: '1rem' }}>
+    <div key={RLK('PG')} style={{ margin: '1rem' }}>
       <details open>
         <summary>
           <GroupHeader groupName={groupName} />
