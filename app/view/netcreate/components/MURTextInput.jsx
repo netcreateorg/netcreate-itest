@@ -13,7 +13,7 @@ const { ReactListKey: RLK } = require('./react-settings-client');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const itemStyle = {
   display: 'grid',
-  gridTemplateColumns: '1fr auto',
+  gridTemplateColumns: 'minmax(200px,max-content) auto',
   margin: '0.25rem'
 };
 const labelStyle = { paddingRight: '0.5rem' };
