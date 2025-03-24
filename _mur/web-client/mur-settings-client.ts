@@ -1,7 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   URSYS-MIN (MUR) / SETTINGS CLIENTS
-  this module connects with server-side mur-setting-mgr.mts module
+  this module connects with server-side mur-settings-mgr.mts module
   and stays in synch with it
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
