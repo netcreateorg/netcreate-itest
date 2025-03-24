@@ -8,6 +8,9 @@ _key: LayoutDefs
 
 # Defaults for project metadata
 projectMeta:
+  _groupMeta:
+    title: 'Project Metadata'
+    description: 'project-wide settings'
   description:
     label: 'description'
     tooltip: 'Enter a description for the project'

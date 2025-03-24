@@ -528,6 +528,9 @@ LayoutDefs:
       conditions:
         - isGraphTooltip
   projectMeta:
+    _groupMeta:
+      title: Project Metadata
+      description: project-wide settings
     description:
       label: description
       tooltip: Enter a description for the project

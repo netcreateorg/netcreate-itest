@@ -13,10 +13,10 @@ import TextInput from './MURTextInput';
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GroupHeader(props) {
-  const { groupName } = props;
+  const { groupName, title, description } = props;
   return (
     <span key={RLK('GN')}>
-      <b>{groupName}</b>
+      <b>{title || groupName}</b>
     </span>
   );
 }
@@ -34,11 +34,19 @@ function PropertyGroup(props) {
     if (def.type)
       propsUI.push(<TextInput name={name} metadata={metadata} key={RLK('TI')} />);
   });
+  const { title, description } = layout._groupMeta || {};
   return (
     <div key={RLK('PG')} style={{ margin: '1rem' }}>
       <details open>
         <summary>
-          <GroupHeader groupName={groupName} />
+          <GroupHeader
+            groupName={groupName}
+            description={description}
+            title={title}
+          />
+          {description && (
+            <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
+          )}
         </summary>
         <ui-group group={groupName}>{propsUI}</ui-group>
       </details>
