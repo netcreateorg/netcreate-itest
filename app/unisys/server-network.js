@@ -506,17 +506,17 @@ function m_SocketDelete(socket) {
   if (Array.isArray(rmesgs)) {
     rmesgs.forEach(msg => {
       let addressSet = m_message_map.get(msg);
-      console.log('---', uaddr, addressSet);
+      if (DBG) console.log('---', uaddr, addressSet);
       if (addressSet) {
         addressSet.delete(uaddr);
-        console.log(PR, `...${uaddr} unregister '${msg}'`);
+        if (DBG) console.log(PR, `...${uaddr} unregister '${msg}'`);
       }
     });
   }
   // Unlock everything if the socket is being removed
   DB.RequestUnlock(uaddr);
   // console list
-  m_ListSockets(`del ${socket.UADDR}`);
+  if (DBG) m_ListSockets(`del ${socket.UADDR}`);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
