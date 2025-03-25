@@ -11,6 +11,7 @@
 
 import * as FILE from './file.mts';
 import * as PATH from 'node:path';
+import * as TEXT from '../common/util-text.ts';
 import { parse, stringify, Document } from 'yaml';
 import * as NCI from './nc-server-interop.mts';
 import { TerminalLog } from '../common/util-prompts.ts';
@@ -33,14 +34,31 @@ let RUNTIME_DIR = ''; // runtime root directory
  *   operations */
 NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
   const { data } = pkt;
-  const { op, accessToken } = data;
-  // would validate access token here //
+  const accessToken = pkt.accessToken;
+  // todo: validate accessToken
+  const { op, groupName, propObj, dotProp, value } = data;
+
   switch (op) {
+    // manage op
     case 'get':
       return { settings: SETTINGS };
+
+    case 'update':
+      if (groupName && propObj) {
+        LOG(`would update: ${groupName} ${JSON.stringify(propObj)}`);
+      } else if (dotProp && value !== undefined) {
+        if (!TEXT.IsDottedProperty(dotProp))
+          return { error: `invalid dotProp '${dotProp}'` };
+        LOG(`would update: ${dotProp} = ${value}`);
+      } else {
+        return { error: 'missing groupName/propObj or dotProp/value' };
+      }
+      return { status: 'ok' }; // required by UNISYS network protocol
+
     case 'persist':
       WriteDefaultSettings(data.filename);
       return { status: 'ok' }; // required by UNISYS network protocol
+
     default:
       return { error: `unknown operation: ${data.op}` }; // required by UNISYS network protocol
   }

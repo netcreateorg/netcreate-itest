@@ -6,8 +6,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const { ReactListKey: RLK } = require('./react-settings-bridge');
+const { Update, UpdateGroup, ReactListKey: RLK } = require('./react-settings-bridge');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,17 +31,20 @@ const ttStyle = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { name, metadata } = props;
-  if (typeof name !== 'string') return <p>getTextInput bad name</p>;
-  if (typeof metadata !== 'object') return <p>getTextInput bad metadata</p>;
+  const { group, name, metadata } = props;
+  if (typeof group !== 'string') return <p>TextInput bad group</p>;
+  if (typeof name !== 'string') return <p>TextInput bad name</p>;
+  if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
   const { label, tooltip, help, placeholder, value, default: defValue } = metadata;
 
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...ttStyle });
 
-  const handleKeydown = event => {
+  const handleSubmit = async event => {
     if (event.key === 'Enter') {
-      console.log('keydown enter: would submit value');
+      console.log('submit:', event.target.value);
+      const opResult = await Update(`${group}.${name}`, event.target.value);
+      console.log('Update Result:', opResult);
     }
   };
 
@@ -81,7 +83,7 @@ function TextInput(props) {
         name="${name}"
         style={{ ...inputStyle, labelColor }}
         defaultValue={defValue}
-        onKeyDown={handleKeydown}
+        onKeyDown={handleSubmit}
         onInput={handleTyping}
       />
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}

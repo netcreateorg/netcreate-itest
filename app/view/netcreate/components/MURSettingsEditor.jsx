@@ -35,7 +35,7 @@ function GeneratePropList() {
   Object.keys(props).forEach(gn => {
     groupUI.push(
       <PropertyGroup
-        groupName={gn}
+        group={gn}
         properties={props[gn]}
         layout={layouts[gn]}
         key={KH('GRP')}

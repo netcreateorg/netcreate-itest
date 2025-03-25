@@ -160,6 +160,25 @@ function IsAtomicKeyword(str: string) {
   const isLower = str === str.toLowerCase();
   return noSpaces && isAN && noLeadNum && noSpecial && isLower;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** dotted alphanumeric property names, no leading numbers */
+function IsAnyProperty(str: string) {
+  const dotted = /^[a-zA-Z0-9.]+$/.test(str);
+  const parts = str.split('.');
+  // each part should not begin with a number
+  const noLeadNum = parts.reduce((acc, part) => {
+    if (/^[0-9]/.test(part)) return false;
+    return acc;
+  }, true);
+  return dotted && noLeadNum;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** check group.prop format */
+function IsDottedProperty(str: string) {
+  const dotted = /^[a-zA-Z0-9.]+$/.test(str);
+  const parts = str.split('.');
+  return dotted && parts.length === 2;
+}
 
 /// CONFORMING UTILITIES //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -215,6 +234,8 @@ export {
   IsUpperSnakeCase,
   IsValidCustomTag, // check is lower case with one dash
   IsAtomicKeyword, // true if alphanumeric with no spaces, lowercase
+  IsAnyProperty, // dotted alphanumeric property names
+  IsDottedProperty, // group.prop format
   // PROCESSING UTILITIES
   AssertNumber, // return number|parsed number or throw Error
   AssertString, // return string or throw Error

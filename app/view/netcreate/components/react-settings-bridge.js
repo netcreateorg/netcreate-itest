@@ -57,13 +57,15 @@ function GetLayoutDefs() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Update a property in the settings object, where dotProp is a string
  *  'groupName.propertyName' */
-function Update(dotProp, value) {
+async function Update(dotProp, value) {
   LOG(...PR('would update Settings', dotProp, value));
+  return UDATA.NetCall('SRV_PSOP', { op: 'update', dotProp, value });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Update a group of properties in the settings object */
-function UpdateGroup(groupName, propObj) {
+async function UpdateGroup(groupName, propObj) {
   LOG(...PR('would update group', groupName, Object.keys(propObj)));
+  return UDATA.NetCall('SRV_PSOP', { op: 'update', groupName, propObj });
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
