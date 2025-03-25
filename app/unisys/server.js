@@ -33,7 +33,7 @@ UNISYS.InitializeNetwork = override => {
   MUR.NCI.InteropConnect(UNET, NC_CONFIG);
   // MUR INTEROP: load settings and persist unified file
   const settings = MUR.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
-  MUR.SettingMgr.PersistSettings();
+  MUR.SettingMgr.WriteDefaultSettings();
   console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
   // MUR INTEROP: end
 

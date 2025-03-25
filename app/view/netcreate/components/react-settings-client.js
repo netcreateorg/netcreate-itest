@@ -34,6 +34,8 @@ UNISYS.Hook('LOADASSETS', async () => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_key_hack = 0;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Hacky way to generate a React key prop, which is required for rendering
+ *  lists of components in an array */
 function ReactListKey(prefix) {
   if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
   return `${prefix}${m_key_hack++}`;
@@ -41,10 +43,13 @@ function ReactListKey(prefix) {
 
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PropertyDefs define the type and default value of a property, but not
+ *  the value itself. */
 function GetPropertyDefs() {
   return m_settings.PropertyDefs || {};
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** LayoutDefs define metadata for a property's UI representation */
 function GetLayoutDefs() {
   return m_settings.LayoutDefs || {};
 }
