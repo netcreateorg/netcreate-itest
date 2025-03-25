@@ -16,7 +16,7 @@ const {
   ReactListKey: KH,
   GetPropertyDefs,
   GetLayoutDefs
-} = require('./react-settings-client');
+} = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////

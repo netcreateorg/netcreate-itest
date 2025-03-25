@@ -1,9 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  MUR Setting Client
-  used by outside of the settings editor MURSettingsEditor.jsx
-
-  currently, there isn't a n
+  React Settings Bridge
+  bridges the difference legacy netcreate modules and new settings manager
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -18,6 +16,9 @@ const PR = ConsoleStyler('SettingClient', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_settings = {}; // settings object split into subkeys
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const MOD = UNISYS.NewModule(module.id);
+const UDATA = UNISYS.NewDataLink(MOD);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** this initiates the settings from the server. the settings module
  *  manages server updates and emits notifications */
@@ -53,11 +54,25 @@ function GetPropertyDefs() {
 function GetLayoutDefs() {
   return m_settings.LayoutDefs || {};
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Update a property in the settings object, where dotProp is a string
+ *  'groupName.propertyName' */
+function Update(dotProp, value) {
+  LOG(...PR('would update Settings', dotProp, value));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Update a group of properties in the settings object */
+function UpdateGroup(groupName, propObj) {
+  LOG(...PR('would update group', groupName, Object.keys(propObj)));
+}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
   ReactListKey,
   GetPropertyDefs,
-  GetLayoutDefs
+  GetLayoutDefs,
+  //
+  Update,
+  UpdateGroup
 };
