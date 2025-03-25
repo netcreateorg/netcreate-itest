@@ -8,6 +8,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { TerminalLog } from '../common/util-prompts.ts';
+import * as FILE from './file.mts';
+import * as PATH from 'node:path';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,26 +29,39 @@ type NC_HandlerObj = {
   msg: NC_UMsg;
   hdl: NC_UHdl;
 };
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let REG_QUEUE: Array<NC_HandlerObj> = []; // for APP_READY hook
-const REG_MESGS = [];
+type NC_ConfigObj = {
+  dataset: string;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = TerminalLog('UR-NC', 'TagPink');
-const ERR_NONET = 'UNET not initialized';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let UNET: NC_UEndP; // assigned by server.js InitializeNetwork()
+let NC_CONFIG: NC_ConfigObj; // assigned by server.js InitializeNetwork()
+let ROOT_DIR: string;
+let TEMPLATE_DIR: string;
+let RUNTIME_DIR: string;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let REG_QUEUE: Array<NC_HandlerObj> = []; // for APP_READY hook
+const REG_MESGS = [];
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const ERR_NONET = 'UNET not initialized';
 
 /// MASTER SETUP //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** register message handlers for NetCreate client in DOMContentLoaded
  *  handler in init.jsx */
-function InteropConnect(endPoint: NC_UEndP) {
+function InteropConnect(endPoint: NC_UEndP, ncConfig: NC_ConfigObj) {
   const fn = 'InteropConnect';
+  if (typeof ncConfig?.dataset !== 'string') throw Error(`${fn}: missing dataset`);
   if (UNET !== undefined) throw Error(`${fn}: already initialized`);
   UNET = endPoint;
+  NC_CONFIG = ncConfig;
+  const { dataset } = ncConfig;
+  ROOT_DIR = FILE.DetectedRootDir();
+  TEMPLATE_DIR = PATH.join(ROOT_DIR, 'app-templates', dataset);
+  RUNTIME_DIR = PATH.join(ROOT_DIR, 'runtime');
 }
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -61,6 +76,18 @@ function RegisterHandlers() {
       if (!REG_MESGS.includes(qi.msg)) REG_MESGS.push(qi.msg);
     }
   }
+}
+
+/// ENVIRONMENT METHODS ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetPaths() {
+  if (ROOT_DIR === '') throw Error('ROOT_DIR not initialized');
+  return {
+    rootDir: ROOT_DIR,
+    templateDir: TEMPLATE_DIR,
+    runtimeDir: RUNTIME_DIR,
+    dataset: NC_CONFIG.dataset
+  };
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -91,6 +118,8 @@ export {
   // master setup
   InteropConnect, // called from server InitializeNetwork()
   RegisterHandlers, // called from brunch-server before StartNetwork()
+  // Environment methods
+  GetPaths, // () => { rootDir, templateDir, runtimeDir, dataset }
   // API methods
   QueueMessageRegistration,
   NetSend,
