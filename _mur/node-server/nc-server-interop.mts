@@ -42,6 +42,7 @@ let NC_CONFIG: NC_ConfigObj; // assigned by server.js InitializeNetwork()
 let ROOT_DIR: string;
 let TEMPLATE_DIR: string;
 let RUNTIME_DIR: string;
+let DATASET: string;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let REG_QUEUE: Array<NC_HandlerObj> = []; // for APP_READY hook
 const REG_MESGS = [];
@@ -60,8 +61,9 @@ function InteropConnect(endPoint: NC_UEndP, ncConfig: NC_ConfigObj) {
   NC_CONFIG = ncConfig;
   const { dataset } = ncConfig;
   ROOT_DIR = FILE.DetectedRootDir();
-  TEMPLATE_DIR = PATH.join(ROOT_DIR, 'app-templates', dataset);
+  TEMPLATE_DIR = PATH.join(ROOT_DIR, 'app-templates');
   RUNTIME_DIR = PATH.join(ROOT_DIR, 'runtime');
+  DATASET = dataset;
 }
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -80,14 +82,27 @@ function RegisterHandlers() {
 
 /// ENVIRONMENT METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return the paths to the root, template, and runtime directories, which
+ *  are valid after InteropConnect() is called */
 function GetPaths() {
   if (ROOT_DIR === '') throw Error('ROOT_DIR not initialized');
   return {
     rootDir: ROOT_DIR,
     templateDir: TEMPLATE_DIR,
     runtimeDir: RUNTIME_DIR,
-    dataset: NC_CONFIG.dataset
+    dataset: DATASET
   };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return the short path for a given file or directory by truncating the
+ *  most common path prefix */
+function ShortPath(path: string) {
+  const fn = 'ShortPath:';
+  if (TEMPLATE_DIR === undefined) throw Error(`${fn} TEMPLATE_DIR not initialized`);
+  if (path.startsWith(TEMPLATE_DIR)) return path.slice(TEMPLATE_DIR.length + 1);
+  if (path.startsWith(RUNTIME_DIR)) return path.slice(RUNTIME_DIR.length + 1);
+  if (path.startsWith(ROOT_DIR)) return path.slice(ROOT_DIR.length + 1);
+  return path;
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -120,6 +135,7 @@ export {
   RegisterHandlers, // called from brunch-server before StartNetwork()
   // Environment methods
   GetPaths, // () => { rootDir, templateDir, runtimeDir, dataset }
+  ShortPath, // (path: string) => string
   // API methods
   QueueMessageRegistration,
   NetSend,
