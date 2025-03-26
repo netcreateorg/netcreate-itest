@@ -4,17 +4,21 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
+const PATH = require('path');
 const UNET = require('./server-network');
 const UDB = require('./server-database');
 const LOGGER = require('./server-logger');
 const PROMPTS = require('../system/util/prompts');
 const { EDITORTYPE } = require('../system/util/enum');
-const MURS = require('../../_mur/_dist/mur-node.cjs');
+const MUR = require('../../_mur/_dist/mur-node.cjs');
 
 /// CONSTANTS & DECLARATIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = PROMPTS.Pad('SRV');
+const PR = PROMPTS.Pad('MUR_SET');
+///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const ROOT = PATH.resolve(__dirname, '../../');
+const TEST_TEMPL_DIR = PATH.resolve(ROOT, 'app-templates');
 
 /// API CREATE MODULE /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,9 +26,17 @@ var UNISYS = {};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Initialize() is called by brunch-server.js to define the default UNISYS
  *  network values, so it can embed them in the index.ejs file for webapps
- *  override = { port }
- */
+ *  override = { port } */
 UNISYS.InitializeNetwork = override => {
+  // MUR INTEROP: connect to MUR
+  MUR.NCI.InteropConnect(UNET);
+  // MUR INTEROP: load settings and persist unified file
+  const settings = MUR.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
+  MUR.SettingMgr.PersistSettings();
+  console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
+  // MUR INTEROP: end
+
+  // resume NetCreate server initialization
   UDB.InitializeDatabase(override);
   return UNET.InitializeNetwork(override);
 };
@@ -33,10 +45,7 @@ UNISYS.InitializeNetwork = override => {
  *  ready to run. These are server-implemented reserved messages.
  */
 UNISYS.RegisterHandlers = () => {
-  // hook into URSYS-MIN (typescript) extensions
-  MURS.NC.RegisterHandlers(UNET);
-
-  // now define local handlers
+  //  define local handlers
   UNET.HandleMessage('SRV_REFLECT', function (pkt) {
     pkt.Data().serverSays = 'REFLECTING';
     pkt.Data().stack.push('SRV_01');

@@ -26,6 +26,7 @@ const ReactDOM = require('react-dom');
 const SETTINGS = require('settings');
 const UNISYS = require('unisys/client');
 const AppShell = require('init-appshell');
+const MUR = require('ursys-min');
 
 /// UNISYS LIFECYCLE LOADER ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,8 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
   );
   m_SetLifecycleScope();
   (async () => {
+    MUR.NCI.InteropConnect(UNISYS); // MUR INTEROP
     await UNISYS.JoinNet(); // UNISYS socket connection (that is all)
     await UNISYS.EnterApp(); // TEST_CONF, INITIALIZE, LOADASSETS, CONFIGURE
+    await MUR.Settings.Get(); // MUR INTEROP
     await m_RenderApp(); // compose React view
     await UNISYS.SetupDOM(); // DOM_READY
     await UNISYS.SetupRun(); // RESET, START, APP_READY, RUN
@@ -104,6 +107,11 @@ function m_SetLifecycleScope() {
 function m_RenderApp() {
   if (DBG)
     console.log('%cINIT %cReactDOM.render() begin', 'color:blue', 'color:auto');
+
+  // declare web components for MUR
+  MUR.ViewLib.DeclareComponents();
+  //
+
   return new Promise((resolve, reject) => {
     try {
       ReactDOM.render(<AppShell />, document.querySelector('#app-container'), () => {

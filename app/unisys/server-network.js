@@ -165,7 +165,8 @@ UNET.RegisterRemoteHandlers = function (pkt) {
   let { messages = [] } = pkt.Data();
   let regd = [];
   // save message list, for later when having to delete
-  m_socket_msgs_list.set(uaddr, messages);
+  const existing = m_socket_msgs_list.get(uaddr) || [];
+  m_socket_msgs_list.set(uaddr, [...existing, ...messages]);
   // add uaddr for each message in the list
   // m_message_map[mesg] contains a Set
   messages.forEach(msg => {
@@ -447,7 +448,11 @@ function m_PromiseRemoteHandlers(pkt) {
     let { verbose } = opt;
     // get the address of the destination implementor of MESSAGE
     let d_sock = mu_sockets.get(d_uaddr);
-    if (d_sock === undefined) throw Error(ERR_INVALID_DEST + ` ${d_uaddr}`);
+    if (d_sock === undefined) {
+      // throw Error(ERR_INVALID_DEST + ` ${d_uaddr}`);
+      console.log(PR, `ERROR '${d_uaddr}' for '${pkt.Message()} doesn't exist`);
+      return Promise.resolve({ NOP: `no handler found for '${d_uaddr}'` });
+    }
     // Queue transaction from server
     // sends to destination socket d_sock
     // console.log(PR,`++ '${pkt.Message()}' FWD from ${pkt.SourceAddress()} to ${d_uaddr}`);
@@ -500,27 +505,29 @@ function m_SocketDelete(socket) {
   let rmesgs = m_socket_msgs_list.get(uaddr);
   if (Array.isArray(rmesgs)) {
     rmesgs.forEach(msg => {
-      let handlers = m_message_map.get(msg);
-      if (DBG) console.log(PR, `deleting '${msg}' reference to ${uaddr}`);
-      if (handlers) handlers.delete(uaddr);
+      let addressSet = m_message_map.get(msg);
+      if (DBG) console.log('---', uaddr, addressSet);
+      if (addressSet) {
+        addressSet.delete(uaddr);
+        if (DBG) console.log(PR, `...${uaddr} unregister '${msg}'`);
+      }
     });
   }
-
   // Unlock everything if the socket is being removed
   DB.RequestUnlock(uaddr);
-
+  // console list
   if (DBG) m_ListSockets(`del ${socket.UADDR}`);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  */
 function m_ListSockets(change) {
-  console.log(PR, 'SocketList change:', change);
+  console.log(PR, '...SocketList change:', change);
   // let's use iterators! for..of
   let values = mu_sockets.values();
   let count = 1;
   for (let socket of values) {
-    console.log(PR, `${count} - ${socket.UADDR}`);
+    console.log(PR, `   ${count} - ${socket.UADDR}`);
   }
 }
 

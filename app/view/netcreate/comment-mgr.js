@@ -20,7 +20,7 @@ const SETTINGS = require('settings');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
+const DBG = false;
 const PR = 'comment-mgr: ';
 
 const CMTBTNOFFSET = 10;

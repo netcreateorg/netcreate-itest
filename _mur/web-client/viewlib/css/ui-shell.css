@@ -1,0 +1,42 @@
+/* STYLING FOR UI SHELL INDEX */
+/* add styling in views/[hash].css next to [hash].html */
+
+body {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  margin: 0;
+
+  background-color: lightgray;
+  color: #333;
+  font-family: monospace;
+}
+
+#shell-view {
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 10px;
+}
+
+#shell-info {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#shell-info p {
+  text-align: center;
+}
+
+tt {
+  color: maroon;
+}
+
+@media (max-height: 600px) {
+  #shell-info p {
+    display: none;
+  }
+}

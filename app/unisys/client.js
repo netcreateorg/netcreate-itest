@@ -109,12 +109,11 @@ UNISYS.SetScope = root_module_id => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: SETTINGS ForceReloadSingleApp
     checks to see if settings flag is "dirty"; if it is, then reload the
-    location to ensure no linger apps are running in the background. Yes
+    location to ensure no lingering apps are running in the background. Yes
     this is a bit of a hack.
  */
-
-UNISYS.ForceReloadOnNavigation = () => {
-  SETTINGS.ForceReloadOnNavigation();
+UNISYS.IsReloadRequired = () => {
+  SETTINGS.IsReloadRequired();
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: return TRUE if passed module.id is within the current set

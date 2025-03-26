@@ -11,14 +11,17 @@
 
 const React = require('react');
 const ReactStrap = require('reactstrap');
-const { TabContent, TabPane, Nav, NavItem, NavLink, Row, Col, Button } = ReactStrap;
-const classnames = require('classnames');
+const UNISYS = require('unisys/client');
 const SETTINGS = require('settings');
+const classnames = require('classnames');
+// reactstrap components
+const { TabContent, TabPane, Nav, NavItem, NavLink, Row, Col, Button } = ReactStrap;
+// subcomponents
 const Help = require('./Help');
 const Vocabulary = require('./Vocabulary');
 const ImportExport = require('./ImportExport');
 const NCTemplate = require('./NCTemplate');
-const UNISYS = require('unisys/client');
+const MURSettingEditor = require('./MURSettingsEditor');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -126,6 +129,16 @@ class More extends UNISYS.Component {
                   Edit Template
                 </NavLink>
               </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: activeTab === '5' })}
+                  onClick={() => {
+                    this.toggleTab('5');
+                  }}
+                >
+                  TestTemplate
+                </NavLink>
+              </NavItem>
             </Nav>
           </div>
           <TabContent
@@ -139,6 +152,7 @@ class More extends UNISYS.Component {
             <TabPane tabId="2">{activeTab === '2' && <Vocabulary />}</TabPane>
             <TabPane tabId="3">{activeTab === '3' && <ImportExport />}</TabPane>
             <TabPane tabId="4">{activeTab === '4' && <NCTemplate />}</TabPane>
+            <TabPane tabId="5">{activeTab === '5' && <MURSettingEditor />}</TabPane>
           </TabContent>
         </div>
       </div>

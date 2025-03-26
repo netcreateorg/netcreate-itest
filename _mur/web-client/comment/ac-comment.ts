@@ -85,7 +85,7 @@ import DCCOMMENTS, {
   TCommentQueueActions
 } from './dc-comment.ts';
 
-const DBG = true;
+const DBG = false;
 const PR = 'ac-comments';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////

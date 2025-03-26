@@ -136,6 +136,18 @@ function ShortPath(path: string): string {
   return path.slice(root.length);
 }
 
+/// CREATE DELETE FILES ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function UnlinkFile(filepath) {
+  try {
+    FSE.unlinkSync(filepath);
+    return true;
+  } catch (err) {
+    if (err.code === 'ENOENT') return false;
+    console.log(err.code);
+  }
+}
+
 /// ASYNC DIRECTORY METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return array of filenames */
@@ -180,7 +192,12 @@ function ReadFile(filepath, opt?) {
   opt.encoding = opt.encoding || 'utf8';
   return FSE.readFileSync(filepath, opt);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function WriteFile(filepath, rawdata, opt?) {
+  opt = opt || {};
+  opt.encoding = opt.encoding || 'utf8';
+  FSE.writeFileSync(filepath, rawdata, opt);
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function AsyncReadFile(filepath, opt?) {
   opt = opt || {};
@@ -208,16 +225,6 @@ async function AsyncReadJSON(filepath) {
 async function AsyncWriteJSON(filepath, obj) {
   if (typeof obj !== 'string') obj = JSON.stringify(obj, null, 2);
   await UnsafeWriteFile(filepath, obj);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function UnlinkFile(filepath) {
-  try {
-    FSE.unlinkSync(filepath);
-    return true;
-  } catch (err) {
-    if (err.code === 'ENOENT') return false;
-    console.log(err.code);
-  }
 }
 
 /// SYNCHRONOUS TESTS /////////////////////////////////////////////////////////
@@ -247,6 +254,7 @@ export {
   //
   ReadFile,
   AsyncReadFile,
+  WriteFile,
   UnsafeWriteFile,
   AsyncReadJSON,
   AsyncWriteJSON,
