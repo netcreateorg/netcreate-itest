@@ -39,14 +39,14 @@ NCI.QueueHook('LOADASSETS', async () => {
 /** this code block will run as soon as the module is loaded */
 (async () => {
   // register for settings server push messages
-  NCI.QueueMessageRegistration('CLI_PSDATA', m_ServerSettingsPushed);
+  NCI.QueueMessageRegistration('CLI_PSDATA', m_ReceiveServerChanges);
 })();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** handle incoming settings change from the server */
-function m_ServerSettingsPushed(data: DataObj) {
-  LOG(...PR(`WIP server pushed data`), data);
+function m_ReceiveServerChanges(data: DataObj) {
+  if (DBG) LOG(...PR(`client received update`), data);
 
   // case 1: group set of properties
   const { groupName, propObj } = data; // update group
@@ -55,6 +55,7 @@ function m_ServerSettingsPushed(data: DataObj) {
     if (groupObj === undefined) SETTINGS[groupName] = {};
     Object.assign(SETTINGS[groupName], propObj);
     EM.emit(groupName, propObj);
+    EM.emit('*', { [groupName]: propObj });
     return;
   }
 
@@ -66,6 +67,7 @@ function m_ServerSettingsPushed(data: DataObj) {
     if (SETTINGS[gkey][pkey] === undefined) SETTINGS[gkey][pkey] = {};
     Object.assign(SETTINGS[gkey][pkey], value);
     EM.emit(dotProp, value);
+    EM.emit('*', { [gkey]: { [pkey]: value } });
     return;
   }
 
@@ -96,6 +98,7 @@ function Get(subkey?: string): OpResult {
 /** API: update a single property in the settings object to the server
  *  which will then push the change to all clients */
 async function UpdateProperty(dotProp: string, value: any) {
+  if (DBG) LOG(...PR(`client push property update`, { dotProp, value }));
   const opResult = await NCI.NetCall('SRV_PSOP', { op: 'update', dotProp, value });
   return opResult;
 }
@@ -103,6 +106,7 @@ async function UpdateProperty(dotProp: string, value: any) {
 /** API: update a group of properties in the settings object to the server
  *  which will then push the change to all clients */
 async function UpdateGroup(groupName: string, propObj: DataObj) {
+  if (DBG) LOG(...PR(`client push group update`, { groupName, propObj }));
   const opResult = await NCI.NetCall('SRV_PSOP', {
     op: 'update',
     groupName,
