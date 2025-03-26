@@ -29,28 +29,47 @@ function ReactListKey(prefix) {
   return `${prefix}${m_key_hack++}`;
 }
 
+/// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Subscribe to changes in the settings object
+ *  @param string propDef - 'group', 'group.prop', or '*' for all changes
+ *  @param function changeHandler - (propDef, eventObj) => {} */
+function Subscribe(propDef, changeHandler) {
+  Settings.Subscribe(propDef, changeHandler);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Subscribe to changes in the settings object
+ *  @param string propDef - 'group', 'group.prop', or '*' for all changes
+ *  @param function changeHandler - (propDef, eventObj) => {} */
+function Unsubscribe(propDef, changeHandler) {
+  Settings.Unsubscribe(propDef, changeHandler);
+}
+
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** PropertyDefs define the type and default value of a property, but not
+/** API: PropertyDefs define the type and default value of a property, but not
  *  the value itself. */
 function GetPropertyDefs() {
   return Settings.Get('PropertyDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** LayoutDefs define metadata for a property's UI representation */
+/** API: LayoutDefs define metadata for a property's UI representation */
 function GetLayoutDefs() {
   return Settings.Get('LayoutDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Update a property in the settings object, where dotProp is a string
- *  'groupName.propertyName' */
+/** API: Update a property in the settings object.
+ *  @param string dotProp - 'group.prop'
+ *  @param any value - new value for the property */
 async function UpdateProperty(dotProp, value) {
   const opResult = await Settings.UpdateProperty(dotProp, value);
   if (opResult.status === 'ok') return opResult;
   throw Error(`Failed to update ${dotProp} with value ${value}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Update a group of properties in the settings object */
+/** API: Update a group in the settings object.
+ *  @param string groupName - 'group'
+ *  @param object propObj - { prop: value, prop2: value2 } */
 async function UpdateGroup(groupName, propObj) {
   const opResult = await Settings.UpdateGroup(groupName, propObj);
   if (opResult.status === 'ok') return opResult;
@@ -65,5 +84,8 @@ module.exports = {
   GetLayoutDefs,
   //
   UpdateProperty,
-  UpdateGroup
+  UpdateGroup,
+  //
+  Subscribe,
+  Unsubscribe
 };

@@ -26,32 +26,27 @@ const EM = new EventMachine('settings_client');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NCI.QueueHook('LOADASSETS', async () => {
   const fn = 'LOADASSETS:';
-  LOG(...PR(fn, 'loading settings'));
   const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
   if (data.error) throw Error(`${fn} ${data.error}`);
   if (data.settings === undefined) throw Error(`${fn} no settings found in data`);
   if (Object.keys(data.settings).length === 0)
-    console.warn(`${fn} empty settings object`, data);
+    console.warn(`${fn} received empty settings object`, data);
   SETTINGS = data.settings;
-  Subscribe('*', data => {
-    LOG(...PR('handleSettingsUpdate:', data));
-    Object.assign(SETTINGS, data);
-  });
 });
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this message is for server-pushed change. TODO: Validation */
+/** this code block will run as soon as the module is loaded */
 (async () => {
-  NCI.QueueMessageRegistration('CLI_PSDATA', m_HandlePSData);
+  // register for settings server push messages
+  NCI.QueueMessageRegistration('CLI_PSDATA', m_ServerSettingsPushed);
 })();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** handle incoming settings change from the server */
-function m_HandlePSData(data: DataObj) {
-  const fn = 'm_HandlePSData:';
-  LOG(...PR(`${fn} received data`), data);
+function m_ServerSettingsPushed(data: DataObj) {
+  LOG(...PR(`WIP server pushed data`), data);
 
   // case 1: group set of properties
   const { groupName, propObj } = data; // update group
@@ -83,12 +78,12 @@ function m_HandlePSData(data: DataObj) {
   }
 
   /// case 4: nothing is set
-  throw Error(`${fn} unknown data format`, data);
+  throw Error(`server pushed unknown data format`, data);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return either the entire settings object, or a subkey */
+/** API: return either the entire settings object, or a subkey */
 function Get(subkey?: string): OpResult {
   const fn = 'Get:';
   if (typeof subkey === 'string' && subkey.length > 0) {
@@ -98,11 +93,15 @@ function Get(subkey?: string): OpResult {
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: update a single property in the settings object to the server
+ *  which will then push the change to all clients */
 async function UpdateProperty(dotProp: string, value: any) {
   const opResult = await NCI.NetCall('SRV_PSOP', { op: 'update', dotProp, value });
   return opResult;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: update a group of properties in the settings object to the server
+ *  which will then push the change to all clients */
 async function UpdateGroup(groupName: string, propObj: DataObj) {
   const opResult = await NCI.NetCall('SRV_PSOP', {
     op: 'update',
@@ -111,15 +110,14 @@ async function UpdateGroup(groupName: string, propObj: DataObj) {
   });
   return opResult;
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Subscribe setting change event. The scope is either * or a specific
+/** API: Subscribe to setting change event. The scope is either * or a specific
  *  subkey of the settings object */
 function Subscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
   EM.on(scope, evHdl);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Unsubscribe from setting change event */
+/** API: Unsubscribe from setting change event */
 function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
   EM.off(scope, evHdl);
 }
