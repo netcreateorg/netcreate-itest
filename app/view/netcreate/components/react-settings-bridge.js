@@ -32,17 +32,17 @@ function ReactListKey(prefix) {
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Subscribe to changes in the settings object
- *  @param string propDef - 'group', 'group.prop', or '*' for all changes
+ *  @param string event - 'group', 'group.prop', or '*' for all changes
  *  @param function changeHandler - (propDef, eventObj) => {} */
-function Subscribe(propDef, changeHandler) {
-  Settings.Subscribe(propDef, changeHandler);
+function Subscribe(event, changeHandler) {
+  Settings.Subscribe(event, changeHandler);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Subscribe to changes in the settings object
- *  @param string propDef - 'group', 'group.prop', or '*' for all changes
+ *  @param string event - 'group', 'group.prop', or '*' for all changes
  *  @param function changeHandler - (propDef, eventObj) => {} */
-function Unsubscribe(propDef, changeHandler) {
-  Settings.Unsubscribe(propDef, changeHandler);
+function Unsubscribe(event, changeHandler) {
+  Settings.Unsubscribe(event, changeHandler);
 }
 
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
