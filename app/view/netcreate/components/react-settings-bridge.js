@@ -44,15 +44,17 @@ function GetLayoutDefs() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Update a property in the settings object, where dotProp is a string
  *  'groupName.propertyName' */
-async function Update(dotProp, value) {
-  LOG(...PR('would update Settings', dotProp, value));
-  return UDATA.NetCall('SRV_PSOP', { op: 'update', dotProp, value });
+async function UpdateProperty(dotProp, value) {
+  const opResult = await Settings.UpdateProperty(dotProp, value);
+  if (opResult.status === 'ok') return opResult;
+  throw Error(`Failed to update ${dotProp} with value ${value}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Update a group of properties in the settings object */
 async function UpdateGroup(groupName, propObj) {
-  LOG(...PR('would update group', groupName, Object.keys(propObj)));
-  return UDATA.NetCall('SRV_PSOP', { op: 'update', groupName, propObj });
+  const opResult = await Settings.UpdateGroup(groupName, propObj);
+  if (opResult.status === 'ok') return opResult;
+  throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
@@ -62,6 +64,6 @@ module.exports = {
   GetPropertyDefs,
   GetLayoutDefs,
   //
-  Update,
+  UpdateProperty,
   UpdateGroup
 };

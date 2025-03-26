@@ -6,7 +6,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Update, UpdateGroup, ReactListKey: RLK } = require('./react-settings-bridge');
+const {
+  UpdateProperty,
+  UpdateGroup,
+  ReactListKey: RLK
+} = require('./react-settings-bridge');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +47,7 @@ function TextInput(props) {
   const handleSubmit = async event => {
     if (event.key === 'Enter') {
       console.log('submit:', event.target.value);
-      const opResult = await Update(`${group}.${name}`, event.target.value);
+      const opResult = await UpdateProperty(`${group}.${name}`, event.target.value);
       if (opResult.error) console.log('Error:', opResult.error);
     }
   };

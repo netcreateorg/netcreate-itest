@@ -98,6 +98,21 @@ function Get(subkey?: string): OpResult {
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function UpdateProperty(dotProp: string, value: any) {
+  const opResult = await NCI.NetCall('SRV_PSOP', { op: 'update', dotProp, value });
+  return opResult;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function UpdateGroup(groupName: string, propObj: DataObj) {
+  const opResult = await NCI.NetCall('SRV_PSOP', {
+    op: 'update',
+    groupName,
+    propObj
+  });
+  return opResult;
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Subscribe setting change event. The scope is either * or a specific
  *  subkey of the settings object */
 function Subscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
@@ -114,6 +129,9 @@ function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
 export {
   //
   Get, // (subkey?: string) => Promise<OpResult>
+  UpdateProperty, //
+  UpdateGroup,
+  //
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void
 };
