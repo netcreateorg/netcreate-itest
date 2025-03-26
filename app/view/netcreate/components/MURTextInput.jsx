@@ -17,7 +17,7 @@ const LOG = console.log.bind(console);
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { itemStyle, labelStyle, inputStyle, ttStyle } = GetStyles();
+const { itemGrid, labelStyle, inputStyle, popupStyle } = GetStyles();
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,11 +32,14 @@ function TextInput(props) {
   const { label, tooltip, help, placeholder, value, default: defValue } = metadata;
 
   const [labelColor, setLabelColor] = React.useState('black');
-  const [tooltipStyle, setTooltipStyle] = React.useState({ ...ttStyle });
-  const [oldStyle, setOldStyle] = React.useState({ ...ttStyle });
+  const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
+  const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
   const [oldValue] = React.useState(value || defValue);
   const [inputValue, setInputValue] = React.useState(oldValue);
 
+  /// HANDLERS ///
+
+  // input key return will submit the value to settings object
   const handleSubmit = async event => {
     if (event.key === 'Enter') {
       console.log('submit:', event.target.value);
@@ -45,49 +48,55 @@ function TextInput(props) {
     }
   };
 
+  // input changes will update the current inputValue
   const handleTyping = event => {
     setInputValue(event.target.value);
   };
 
+  // hovering over label will show tooltip
   const handleTooltip = event => {
     if (event.type === 'mouseover') {
       const offset = EventTargetOffsetStyle(event);
       setTooltipStyle({
-        ...ttStyle,
+        ...popupStyle,
         ...offset,
         display: 'block',
         content: tooltip || ''
       });
       setLabelColor('maroon');
     } else if (event.type === 'mouseout') {
-      setTooltipStyle({ ...ttStyle });
+      setTooltipStyle({ ...popupStyle });
       setLabelColor('black');
     }
   };
 
+  // hovering over a changed input will show the old value
   const showOldValue = event => {
     if (oldValue === inputValue) {
-      setOldStyle({ ...ttStyle });
+      setOldStyle({ ...popupStyle });
       return;
     } else if (event.type === 'mouseover') {
       const offset = EventTargetOffsetStyle(event);
       setOldStyle({
-        ...ttStyle,
+        ...popupStyle,
         ...offset,
         display: 'block',
         content: oldValue || ''
       });
     } else if (event.type === 'mouseout') {
-      setOldStyle({ ...ttStyle });
+      setOldStyle({ ...popupStyle });
     }
   };
 
+  /// RENDER ///
+
+  // conditional flags based on inputValue
   const mod = inputValue !== oldValue;
   const bgColor = mod ? '#ffff00a0' : 'white';
   const pad = mod ? '1rem' : '0';
 
   return (
-    <div style={itemStyle}>
+    <div style={itemGrid}>
       <label
         htmlFor={name}
         style={{ ...labelStyle, color: labelColor }}

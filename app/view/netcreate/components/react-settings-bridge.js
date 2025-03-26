@@ -80,15 +80,19 @@ async function UpdateGroup(groupName, propObj) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const padding = '0.2rem 0.4rem';
 const margin = '0.2rem 0.4rem';
-const itemStyle = {
+const border = '1px solid #cc8';
+// itemGrid is for the container of a label and input
+const itemGrid = {
   display: 'grid',
   gridTemplateColumns: 'minmax(200px,max-content) auto',
   alignItems: 'baseline',
   margin
 };
+// styling for the label and input
 const labelStyle = { paddingRight: '0.5rem' };
-const inputStyle = { border: '1px solid #cc8', padding };
-const ttStyle = {
+const inputStyle = { border, padding };
+// popupStyle is for the tooltip
+const popupStyle = {
   position: 'fixed',
   backgroundColor: 'gray',
   color: 'white',
@@ -99,7 +103,7 @@ const ttStyle = {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetStyles() {
-  return { itemStyle, labelStyle, inputStyle, ttStyle };
+  return { itemGrid, labelStyle, inputStyle, popupStyle };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EventTargetOffsetStyle(event) {
