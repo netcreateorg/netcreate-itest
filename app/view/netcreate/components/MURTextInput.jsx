@@ -6,39 +6,29 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const {
-  UpdateProperty,
-  UpdateGroup,
-  ReactListKey: RLK
-} = require('./react-settings-bridge');
+const RSB = require('./react-settings-bridge');
+const { UpdateProperty, UpdateGroup, ReactlListKey: RLK } = RSB;
+const { GetStyles, EventTargetOffsetStyle } = RSB;
+
+/// CONSTANTS /////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = true;
+const LOG = console.log.bind(console);
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const itemStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(200px,max-content) auto',
-  margin: '0.25rem'
-};
-const labelStyle = { paddingRight: '0.5rem' };
-const inputStyle = { border: '1px solid #cc8' };
-const ttStyle = {
-  position: 'fixed',
-  backgroundColor: 'gray',
-  color: 'white',
-  padding: '5px',
-  zIndex: 1000,
-  maxWidth: '250px',
-  display: 'none'
-};
+const { itemStyle, labelStyle, inputStyle, ttStyle } = GetStyles();
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { group, name, metadata } = props;
-  if (typeof group !== 'string') return <p>TextInput bad group</p>;
-  if (typeof name !== 'string') return <p>TextInput bad name</p>;
-  if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
+  const { group, name, metadata, memory } = props;
+  if (DBG) {
+    if (typeof group !== 'string') return <p>TextInput bad group</p>;
+    if (typeof name !== 'string') return <p>TextInput bad name</p>;
+    if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
+  }
   const { label, tooltip, help, placeholder, value, default: defValue } = metadata;
 
   const [labelColor, setLabelColor] = React.useState('black');
@@ -61,11 +51,11 @@ function TextInput(props) {
 
   const handleTooltip = event => {
     if (event.type === 'mouseover') {
+      const offset = EventTargetOffsetStyle(event);
       setTooltipStyle({
         ...ttStyle,
+        ...offset,
         display: 'block',
-        left: `${event.pageX + 5}px`,
-        top: `${event.pageY + 15}px`,
         content: tooltip || ''
       });
       setLabelColor('maroon');
@@ -80,12 +70,11 @@ function TextInput(props) {
       setOldStyle({ ...ttStyle });
       return;
     } else if (event.type === 'mouseover') {
-      const rect = event.target.getBoundingClientRect();
+      const offset = EventTargetOffsetStyle(event);
       setOldStyle({
         ...ttStyle,
+        ...offset,
         display: 'block',
-        left: `${rect.left + window.scrollX}px`,
-        top: `${rect.top + window.scrollY + 30}px`,
         content: oldValue || ''
       });
     } else if (event.type === 'mouseout') {

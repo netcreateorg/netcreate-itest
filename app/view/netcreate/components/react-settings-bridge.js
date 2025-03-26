@@ -76,6 +76,40 @@ async function UpdateGroup(groupName, propObj) {
   throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
 }
 
+/// SHARED STYLING OBJECTS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const padding = '0.2rem 0.4rem';
+const margin = '0.2rem 0.4rem';
+const itemStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(200px,max-content) auto',
+  alignItems: 'baseline',
+  margin
+};
+const labelStyle = { paddingRight: '0.5rem' };
+const inputStyle = { border: '1px solid #cc8', padding };
+const ttStyle = {
+  position: 'fixed',
+  backgroundColor: 'gray',
+  color: 'white',
+  padding,
+  zIndex: 1000,
+  maxWidth: '20rem',
+  display: 'none'
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetStyles() {
+  return { itemStyle, labelStyle, inputStyle, ttStyle };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function EventTargetOffsetStyle(event) {
+  const rect = event.target.getBoundingClientRect();
+  return {
+    left: `${rect.left + window.scrollX}px`,
+    top: `${rect.top + window.scrollY + rect.height + 2}px`
+  };
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
@@ -87,5 +121,8 @@ module.exports = {
   UpdateGroup,
   //
   Subscribe,
-  Unsubscribe
+  Unsubscribe,
+  //
+  GetStyles,
+  EventTargetOffsetStyle
 };
