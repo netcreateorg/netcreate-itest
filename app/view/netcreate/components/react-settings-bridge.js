@@ -15,21 +15,8 @@ const LOG = console.log.bind(console);
 const PR = ConsoleStyler('SettingClient', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let m_settings = {}; // settings object split into subkeys
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const MOD = UNISYS.NewModule(module.id);
 const UDATA = UNISYS.NewDataLink(MOD);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this initiates the settings from the server. the settings module
- *  manages server updates and emits notifications */
-UNISYS.Hook('LOADASSETS', async () => {
-  if (Object.keys(m_settings).length > 0) return;
-  m_settings = await Settings.Get();
-  Settings.Subscribe('*', data => {
-    LOG(...PR('handleSettingsUpdate:', data));
-    m_settings = data;
-  });
-});
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,12 +34,12 @@ function ReactListKey(prefix) {
 /** PropertyDefs define the type and default value of a property, but not
  *  the value itself. */
 function GetPropertyDefs() {
-  return m_settings.PropertyDefs || {};
+  return Settings.Get('PropertyDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** LayoutDefs define metadata for a property's UI representation */
 function GetLayoutDefs() {
-  return m_settings.LayoutDefs || {};
+  return Settings.Get('LayoutDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Update a property in the settings object, where dotProp is a string

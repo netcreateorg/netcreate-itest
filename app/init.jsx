@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     MUR.NCI.InteropConnect(UNISYS); // MUR INTEROP
     await UNISYS.JoinNet(); // UNISYS socket connection (that is all)
     await UNISYS.EnterApp(); // TEST_CONF, INITIALIZE, LOADASSETS, CONFIGURE
-    await MUR.Settings.Get(); // MUR INTEROP
     await m_RenderApp(); // compose React view
     await UNISYS.SetupDOM(); // DOM_READY
     await UNISYS.SetupRun(); // RESET, START, APP_READY, RUN

@@ -41,24 +41,47 @@ NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
   return { error: `unknown operation: ${op}` }; // required by UNISYS network protocol
 });
 
+/// PERMISSIONS AND ACCESS CONTROL PLACEHOLDERS ///////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_AccessToken(pkt): string {
+  const { accessToken } = pkt;
+  if (accessToken === undefined) return 'missing accessToken';
+  if (typeof accessToken !== 'string') return 'invalid accessToken';
+  if (accessToken.length === 0) return 'empty accessToken';
+  return '';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_HasPermission(): string {
+  return '';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_ValidateData(): string {
+  return '';
+}
+
 /// SRV_PSOP HANDLERS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function PSOP_Get(pkt) {
   return { settings: SETTINGS }; // required by UNISYS network protocol
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** the 'update' operation expects either groupName+propObj or dotProp+value
+ *  to determine what to update */
 function PSOP_Update(pkt) {
-  const { groupName, propObj, dotProp, value } = pkt.data;
-  if (groupName && propObj) {
-    LOG(`would update: ${groupName} ${JSON.stringify(propObj)}`);
-  } else if (dotProp && value !== undefined) {
-    if (!TEXT.IsDottedProperty(dotProp))
-      return { error: `invalid dotProp '${dotProp}'` };
-    LOG(`would update: ${dotProp} = ${value}`);
-  } else {
-    return { error: 'missing groupName/propObj or dotProp/value' };
-  }
-  return { status: 'ok' }; // required by UNISYS network protocol
+  // validate accessToken globally
+  assert_AccessToken(pkt);
+  // decode packaet operation
+  const { groupName, propObj } = pkt.data; // update group
+  const { dotProp, value } = pkt.data; // update property
+  // case 1 - update a group with a an object of props
+  if (groupName && propObj) UpdateGroup(groupName, propObj);
+  // case 2 - update a property with a value
+  else if (dotProp && value !== undefined) return UpdateProperty(dotProp, value);
+  // if got this far, there
+  return { error: 'missing groupName/propObj or dotProp/value' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function PSOP_Persist(pkt) {
@@ -66,6 +89,35 @@ function PSOP_Persist(pkt) {
   if (typeof filename !== 'string') return { error: `filename should be string` };
   WriteDefaultSettings(filename);
   return { status: 'ok' }; // required by UNISYS network protocol
+}
+
+/// SETTINGS UPDATE METHODS ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateGroup(groupName, propObj) {
+  assert_HasPermission();
+  assert_ValidateData();
+  Object.assign(SETTINGS[groupName], propObj);
+  NCI.NetSend('CLI_PSDATA', { groupName, propObj });
+  return { status: 'ok' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateProperty(dotProp, value) {
+  assert_HasPermission();
+  if (TEXT.IsDottedProperty(dotProp) === false)
+    return { error: `invalid dotProp: ${dotProp}` };
+  const [groupName, propName] = dotProp.split('.');
+  assert_ValidateData();
+  // SETTINGS[groupName][propName] = value;
+  NCI.NetSend('CLI_PSDATA', { dotProp, value });
+  return { status: 'ok' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateSettings(settingsObj) {
+  assert_HasPermission();
+  assert_ValidateData();
+  Object.assign(SETTINGS, settingsObj);
+  NCI.NetSend('CLI_PSDATA', { settings: SETTINGS });
+  return { status: 'ok' };
 }
 
 /// API YAML METHODS //////////////////////////////////////////////////////////

@@ -14,7 +14,7 @@ import * as PATH from 'node:path';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// NOTE: these types are not same as nc-client-interop.ts
-type NC_UMsg = `SRV_${string}`; // all uppercase
+type NC_UMsg = string; // all uppercase, SRV_ or CLI_
 type NC_Data = { [key: string]: any };
 type NC_UPkt = NC_Data & { msg: NC_UMsg }; // packet
 type NC_UHdl = (pkt: NC_UPkt) => any; // handler function

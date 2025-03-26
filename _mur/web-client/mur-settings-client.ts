@@ -19,72 +19,82 @@ type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('settings', 'TagCyan');
-const DBG = false;
+const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let SETTINGS: DataObj = undefined;
+let SETTINGS: DataObj = {};
 const EM = new EventMachine('settings_client');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NCI.QueueHook('LOADASSETS', async () => {
+  const fn = 'LOADASSETS:';
+  LOG(...PR(fn, 'loading settings'));
+  const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
+  if (data.error) throw Error(`${fn} ${data.error}`);
+  if (data.settings === undefined) throw Error(`${fn} no settings found in data`);
+  if (Object.keys(data.settings).length === 0)
+    console.warn(`${fn} empty settings object`, data);
+  SETTINGS = data.settings;
+  Subscribe('*', data => {
+    LOG(...PR('handleSettingsUpdate:', data));
+    Object.assign(SETTINGS, data);
+  });
+});
+
+/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** this message is for server-pushed change. TODO: Validation */
+(async () => {
+  NCI.QueueMessageRegistration('CLI_PSDATA', m_HandlePSData);
+})();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** handle incoming settings change from the server */
 function m_HandlePSData(data: DataObj) {
   const fn = 'm_HandlePSData:';
-  const { settings, group, prop } = data;
+  LOG(...PR(`${fn} received data`), data);
 
-  /// case 1: settings is set
-  if (settings !== undefined) {
-    SETTINGS = settings;
-    EM.emit('*', { ...settings });
+  // case 1: group set of properties
+  const { groupName, propObj } = data; // update group
+  if (groupName && propObj) {
+    const groupObj = SETTINGS[groupName];
+    if (groupObj === undefined) SETTINGS[groupName] = {};
+    Object.assign(SETTINGS[groupName], propObj);
+    EM.emit(groupName, propObj);
     return;
   }
 
-  /// case 2: group is set
-  if (group !== undefined) {
-    // { group: ...props }
-    const groupNames = Object.keys(group);
-    groupNames.forEach(gn => {
-      const gset = group[gn];
-      EM.emit(group, { ...gset });
-    });
-    Object.assign(SETTINGS, group);
-    return;
-  }
-
-  /// case 3: prop is set
-  if (prop !== undefined) {
-    // prop is define { groupName.propName: value }
-    const groupNames = Object.keys(prop);
-    if (groupNames.length !== 1)
-      throw Error('prop obj should only contain one group');
-    let gpkey = groupNames[0];
-    const [gkey, pkey, ...extra] = gpkey.split('.');
-    if (extra.length > 0)
-      throw Error('group.prop addressing only supports one level');
+  // case 2: single property update
+  const { dotProp, value } = data; // update property
+  if (dotProp !== undefined && value !== undefined) {
+    const [gkey, pkey] = dotProp.split('.');
     if (SETTINGS[gkey] === undefined) SETTINGS[gkey] = {};
-    Object.assign(SETTINGS[gkey], prop[gkey]);
-    EM.emit(gpkey, { ...prop[gkey][pkey] });
+    if (SETTINGS[gkey][pkey] === undefined) SETTINGS[gkey][pkey] = {};
+    Object.assign(SETTINGS[gkey][pkey], value);
+    EM.emit(dotProp, value);
+    return;
+  }
+
+  // case 3: full settings update
+  const { settings } = data; // update all settings
+  if (settings !== undefined) {
+    SETTINGS = Object.assign(SETTINGS, settings);
+    EM.emit('*', settings);
     return;
   }
 
   /// case 4: nothing is set
-  LOG(`${fn} no settings, group, or prop found in data`);
+  throw Error(`${fn} unknown data format`, data);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return either the entire settings object, or a subkey */
-async function Get(subkey?: string): Promise<OpResult> {
+function Get(subkey?: string): OpResult {
   const fn = 'Get:';
-  if (SETTINGS === undefined) {
-    const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
-    if (data.error) throw Error(`${fn} ${data.error}`);
-    if (data.settings === undefined) throw Error(`${fn} no settings found in data`);
-    SETTINGS = data.settings;
-  }
   if (typeof subkey === 'string' && subkey.length > 0) {
     if (SETTINGS[subkey] !== undefined) return SETTINGS[subkey];
     return { error: `subkey '${subkey}' not found in settings` };
   }
-  if (DBG) LOG(...PR(`${fn} returning settings`), SETTINGS);
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,11 +108,6 @@ function Subscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
 function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
   EM.off(scope, evHdl);
 }
-
-/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this message is for server-pushed change. TODO: Validation */
-NCI.QueueMessageRegistration('CLI_PSDATA', m_HandlePSData);
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

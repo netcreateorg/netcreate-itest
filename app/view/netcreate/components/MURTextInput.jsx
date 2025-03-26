@@ -44,7 +44,7 @@ function TextInput(props) {
     if (event.key === 'Enter') {
       console.log('submit:', event.target.value);
       const opResult = await Update(`${group}.${name}`, event.target.value);
-      console.log('Update Result:', opResult);
+      if (opResult.error) console.log('Error:', opResult.error);
     }
   };
 
