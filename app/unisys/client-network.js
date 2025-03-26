@@ -87,17 +87,16 @@ NETWORK.Connect = function (datalink, opt) {
   // uses values that were embedded in index.ejs on load
   let wsURI = `ws://${NETSOCK.uaddr}:${NETSOCK.uport}`;
   NETSOCK.ws = new WebSocket(wsURI);
-  if (DBG.connect) console.log(PR, 'OPEN SOCKET TO', wsURI);
 
   // create listeners
   NETWORK.AddListener('open', function (event) {
-    if (DBG.connect) console.log(PR, '..OPEN', event.target.url);
+    if (DBG.connect) console.log(PR, 'connecting to', event.target.url);
     m_status = M2_CONNECTED;
     // message handling continues in 'message' handler
     // the first message is assumed to be registration data
   });
   NETWORK.AddListener('close', function (event) {
-    if (DBG.connect) console.log(PR, '..CLOSE', event.target.url);
+    if (DBG.connect) console.log(PR, 'closed', event.target.url);
     NetMessage.GlobalOfflineMode();
     m_status = M_STANDALONE;
   });
@@ -144,7 +143,7 @@ function m_HandleRegistrationMessage(msgEvent) {
   NETWORK.RemoveListener('message', m_HandleRegistrationMessage);
   m_status = M3_REGISTERED;
   // (2) initialize global settings for netmessage
-  if (DBG.connect) console.log(PR, `connected to ${UADDR}`, NETSOCK);
+  if (DBG.connect) console.log(`${PR} connected as %c${UADDR}`, 'color:red');
   NETSOCK.ws.UADDR = NetMessage.DefaultServerUADDR();
   NetMessage.GlobalSetup({ uaddr: UADDR, netsocket: NETSOCK.ws });
   // (3) connect regular message handler

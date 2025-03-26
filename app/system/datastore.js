@@ -59,7 +59,7 @@ DSTOR.Hook('INITIALIZE', () => {
 
   UDATA.OnAppStateChange('SESSION', function (decodedData) {
     let { isValid } = decodedData;
-    console.log(PR, 'Handling SESSION', isValid || '[NO LOGIN TOKEN]');
+    // console.log(PR, 'Handling SESSION', isValid || '[NO LOGIN TOKEN]');
     if (isValid) DSTOR.SetSessionGroupID(decodedData);
   });
 });
@@ -73,9 +73,9 @@ DSTOR.SetSessionGroupID = function (decodedData) {
   let { token, isValid } = decodedData;
   if (isValid) {
     NetMessage.GlobalSetGroupID(token);
-    console.log('setting NetMessage group id', token);
+    console.log(`${PR} valid token %c${token}`, 'color:red');
   } else {
-    console.warn('will not set bad group id:', token);
+    console.warn(`${PR} bad token %c${token} ignored`, 'color:red');
   }
 };
 
@@ -315,7 +315,7 @@ DSTOR.SaveTemplateFile = template => {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get Template File Path.
-    Called by templateEditor-mgr when downloading template file.
+    Called by template-editor-mgr when downloading template file.
  */
 DSTOR.GetTemplateTOMLFileName = () => {
   return UDATA.Call('SRV_GET_TEMPLATETOML_FILENAME');

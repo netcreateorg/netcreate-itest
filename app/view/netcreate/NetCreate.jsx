@@ -68,7 +68,7 @@ import URCommentStatus from './components/URCommentStatus';
 class NetCreate extends UNISYS.Component {
   constructor() {
     super();
-    UNISYS.ForceReloadOnNavigation();
+    UNISYS.IsReloadRequired();
 
     // URSYS TEST CODE - not used by NetCreate
     const SM = new UR.StateMgr('NETCREATE');

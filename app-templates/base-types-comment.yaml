@@ -1,0 +1,18 @@
+# metadata
+_schemaVersion: '2.0'
+_key: TypeDefs
+
+# this declares the data structure of a "comment type"
+# the actual stored values are in 'set-ui-comment-types.yaml'
+
+# declare complex types (PascalCase)
+CommentType:
+  type: object
+  slug.type: id
+  label.type: string
+  prompts:
+    type: object
+    format.type: string
+    prompt.type:: string
+    help.type: string
+    feedback.type: string

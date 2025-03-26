@@ -7,9 +7,20 @@
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// ben's comment manager
 export * as COMMENT from './comment/ac-comment.ts';
+/// sri's web components
+export * as ViewLib from './viewlib/index.ts';
+/// interop with NetCreate
+export * as NCI from './nc-client-interop.ts';
+/// settings client
+export * as Settings from './mur-settings-client.ts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export * from '../common/@common.ts';
 export { ConsoleStyler } from '../common/util-prompts.ts';
+
+/// FORWARDED TYPE EXPORTS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type { DataObj, ErrObj, StatusObj, OpResult } from '../_types/ursys.d.ts';

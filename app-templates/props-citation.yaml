@@ -1,0 +1,9 @@
+# metadata
+_schemaVersion: '2.0'
+_key: PropertyDefs
+
+# Default citation settings for the project (?)
+citationPrompts:
+  citation:
+    type: string
+    default: 'No citation set'
