@@ -157,7 +157,7 @@ ComponentDefs:
     - out-datetime
   Panels:
     - out-table
-LayoutDefs:
+MetaDefs:
   EdgeDefCommon:
     isProvenance:
       control: in-checkbox

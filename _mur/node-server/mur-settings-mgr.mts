@@ -204,15 +204,15 @@ function Get() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return layout metadata for a given groupName or all */
-function GetLayoutDefs(groupName) {
-  const layoutDefs = SETTINGS['LayoutDefs'];
-  if (layoutDefs === undefined) return { error: `no LayoutDefs` };
-  if (groupName === undefined) return { ...layoutDefs };
+function GetMetaDefs(groupName) {
+  const metaDefs = SETTINGS['MetaDefs'];
+  if (metaDefs === undefined) return { error: `no MetaDefs` };
+  if (groupName === undefined) return { ...metaDefs };
   if (typeof groupName !== 'string') return { error: `groupName must be string` };
-  const found = layoutDefs[groupName];
-  if (layoutDefs[groupName] === undefined && found)
+  const found = metaDefs[groupName];
+  if (metaDefs[groupName] === undefined && found)
     return {
-      error: `make sure LayoutDefs follow PropertyDefs for ${groupName}`
+      error: `make sure MetaDefs follow PropertyDefs for ${groupName}`
     };
   return found || { error: `no LayoutDef for ${groupName}` };
 }
@@ -224,5 +224,5 @@ export {
   WriteDefaultSettings, // (filename?) => void
   WriteSettingsValues, // (settings, filename?) => void
   Get, // () => obj
-  GetLayoutDefs // (groupName?) => obj
+  GetMetaDefs // (groupName?) => obj
 };

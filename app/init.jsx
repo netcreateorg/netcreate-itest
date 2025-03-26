@@ -126,7 +126,7 @@ function m_RenderApp() {
       alert(
         `m_RenderApp() Lifecycle Error.\nOpen Javascript Console, then press "OK" for for debugging details.`
       );
-      debugger;
+      // debugger;
     }
   }); // promise
 }

@@ -15,7 +15,7 @@ const { Settings, ConsoleStyler } = require('ursys-min');
 const {
   ReactListKey: KH,
   GetPropertyDefs,
-  GetLayoutDefs
+  GetMetaDefs
 } = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 
@@ -30,14 +30,13 @@ const LOG = console.log.bind(console);
 /** return a settings ui for rendering inside a React component */
 function GeneratePropList() {
   const props = GetPropertyDefs();
-  const layouts = GetLayoutDefs();
+  const metadata = GetMetaDefs();
   const groupUI = [];
   Object.keys(props).forEach(gn => {
     groupUI.push(
       <PropertyGroup
-        group={gn}
-        properties={props[gn]}
-        layout={layouts[gn]}
+        group={{ [gn]: props[gn] }}
+        metadata={{ [gn]: metadata[gn] }}
         key={KH('GRP')}
       />
     );

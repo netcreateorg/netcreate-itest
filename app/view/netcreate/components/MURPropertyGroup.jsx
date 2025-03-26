@@ -6,17 +6,21 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const { ReactListKey: RLK } = require('./react-settings-bridge');
+const RSB = require('./react-settings-bridge');
+const { RLK, DerefPropertyList } = RSB;
 import TextInput from './MURTextInput';
+
+/// CONSTANTS /////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = true;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GroupHeader(props) {
-  const { group, title, description } = props;
+  const { label } = props;
   return (
     <span key={RLK('GN')}>
-      <b>{title || group}</b>
+      <b>{label}</b>
     </span>
   );
 }
@@ -24,29 +28,38 @@ function GroupHeader(props) {
 /// COMPONENTS ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function PropertyGroup(props) {
-  // properties and layout are scoped to the groupname
-  const { group, properties, layout } = props;
-  if (typeof group !== 'string') return <p>PropertyGroup bad group</p>;
-  if (!properties) return <p>PropertyGroup bad properties</p>;
+  const {
+    group, // { groupname: { propname: { type, default }, {}... }
+    metadata // { groupname:{ propname: { _groupMeta, propname: metadata, {}... } }
+  } = props;
+  if (DBG) {
+    if (typeof group !== 'object') return <p>PropertyGroup bad groupDef</p>;
+    if (typeof metadata !== 'object') return <p>PropertyGroup bad metadata</p>;
+  }
+  const gdata = DerefPropertyList(group);
+  if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
+  const { groupName, properties } = gdata;
+  const meta = metadata[groupName];
   const propsUI = [];
-  Object.entries(properties).forEach(([name, def]) => {
-    const metadata = { ...def, ...layout[name] };
-    if (def.type)
+  const propList = Object.keys(properties);
+  propList.forEach(p => {
+    if (properties[p].type) {
       propsUI.push(
-        <TextInput group={group} name={name} layout={metadata} key={RLK('TI')} />
+        <TextInput property={properties[p]} metadata={meta[p]} key={RLK('TI')} />
       );
+    }
   });
-  const { title, description } = layout._groupMeta || {};
+  const { title, description } = metadata[groupName]._groupMeta || {};
   return (
     <div key={RLK('PG')} style={{ margin: '1rem' }}>
       <details open>
         <summary>
-          <GroupHeader group={group} description={description} title={title} />
+          <GroupHeader label={title || groupName} />
         </summary>
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
-        <ui-group group={group}>{propsUI}</ui-group>
+        <ui-group group={groupName}>{propsUI}</ui-group>
       </details>
     </div>
   );

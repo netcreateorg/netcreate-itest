@@ -53,9 +53,9 @@ function GetPropertyDefs() {
   return Settings.Get('PropertyDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: LayoutDefs define metadata for a property's UI representation */
-function GetLayoutDefs() {
-  return Settings.Get('LayoutDefs');
+/** API: MetaDefs define metadata for a property's UI representation */
+function GetMetaDefs() {
+  return Settings.Get('MetaDefs');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update a property in the settings object.
@@ -74,6 +74,35 @@ async function UpdateGroup(groupName, propObj) {
   const opResult = await Settings.UpdateGroup(groupName, propObj);
   if (opResult.status === 'ok') return opResult;
   throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
+}
+
+/// DECODERS //////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: Return the name of the single key in an object, undefined
+ *  otherwise */
+function GetSingularKey(obj) {
+  const groupList = Object.keys(obj).filter(key => !key.startsWith('_'));
+  if (groupList.length !== 1) return;
+  return groupList[0];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: Dereference groupObj, returning groupName and properties list */
+function DerefPropertyList(groupObj) {
+  const groupName = GetSingularKey(groupObj);
+  if (groupName === undefined) return { error: 'groupObj must have a single key' };
+  const properties = groupObj[groupName];
+  const deref = { groupName, properties };
+  //
+  return deref; // { groupname, properties:{[propName]:{ definition props }} }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: Dereference metaObj, returning just the properites for the */
+function DerefSingularMetaDef(metaObj) {
+  const groupName = GetSingularKey(metaObj);
+  if (groupName === undefined) return { error: 'metaObj must have a single key' };
+  const deref = metaObj[groupName];
+  //
+  return deref; // { metadata props }
 }
 
 /// SHARED STYLING OBJECTS ////////////////////////////////////////////////////
@@ -118,8 +147,13 @@ function EventTargetOffsetStyle(event) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
   ReactListKey,
+  RLK: ReactListKey,
+  //
   GetPropertyDefs,
-  GetLayoutDefs,
+  GetMetaDefs,
+  //
+  DerefPropertyList,
+  DerefSingularMetaDef,
   //
   UpdateProperty,
   UpdateGroup,

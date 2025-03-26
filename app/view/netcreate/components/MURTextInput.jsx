@@ -7,7 +7,7 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-const { UpdateProperty, UpdateGroup, ReactlListKey: RLK } = RSB;
+const { UpdateProperty, DerefSingularMetaDef, RLK } = RSB;
 const { GetStyles, EventTargetOffsetStyle } = RSB;
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -23,14 +23,13 @@ const { itemGrid, labelStyle, inputStyle, popupStyle } = GetStyles();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { group, name, layout } = props;
+  const { property, metadata } = props;
   if (DBG) {
-    if (typeof group !== 'string') return <p>TextInput bad group</p>;
-    if (typeof name !== 'string') return <p>TextInput bad name</p>;
-    if (typeof layout !== 'object') return <p>TextInput bad layout</p>;
+    if (typeof property !== 'object') return <p>TextInput bad groupDef</p>;
+    if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
   }
-  // get ui metadata
-  const { label, tooltip, help, placeholder, value, default: defValue } = layout;
+  const { name, value, default: defValue } = property;
+  const { label, tooltip, help, placeholder } = metadata;
   // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });

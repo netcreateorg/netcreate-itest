@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: LayoutDefs
+_key: MetaDefs
 
 # this file declares the default metadata for rendering a project
 # user interface. it does not store values! it defines the text that
