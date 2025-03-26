@@ -43,6 +43,9 @@ function TextInput(props) {
 
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...ttStyle });
+  const [oldStyle, setOldStyle] = React.useState({ ...ttStyle });
+  const [oldValue] = React.useState(value || defValue);
+  const [inputValue, setInputValue] = React.useState(oldValue);
 
   const handleSubmit = async event => {
     if (event.key === 'Enter') {
@@ -53,7 +56,7 @@ function TextInput(props) {
   };
 
   const handleTyping = event => {
-    console.log('typing:', event.target.value);
+    setInputValue(event.target.value);
   };
 
   const handleTooltip = event => {
@@ -72,6 +75,28 @@ function TextInput(props) {
     }
   };
 
+  const showOldValue = event => {
+    if (oldValue === inputValue) {
+      setOldStyle({ ...ttStyle });
+      return;
+    } else if (event.type === 'mouseover') {
+      const rect = event.target.getBoundingClientRect();
+      setOldStyle({
+        ...ttStyle,
+        display: 'block',
+        left: `${rect.left + window.scrollX}px`,
+        top: `${rect.top + window.scrollY + 30}px`,
+        content: oldValue || ''
+      });
+    } else if (event.type === 'mouseout') {
+      setOldStyle({ ...ttStyle });
+    }
+  };
+
+  const mod = inputValue !== oldValue;
+  const bgColor = mod ? '#ffff00a0' : 'white';
+  const pad = mod ? '1rem' : '0';
+
   return (
     <div style={itemStyle}>
       <label
@@ -85,12 +110,23 @@ function TextInput(props) {
       <input
         type="text"
         name="${name}"
-        style={{ ...inputStyle, labelColor }}
-        defaultValue={defValue}
+        style={{
+          ...inputStyle,
+          color: labelColor,
+          backgroundColor: bgColor,
+          paddingRight: pad
+        }}
+        defaultValue={inputValue}
         onKeyDown={handleSubmit}
         onInput={handleTyping}
+        onMouseOver={showOldValue}
+        onMouseOut={showOldValue}
       />
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
+      <div style={oldStyle}>
+        <span style={{ opacity: 0.5 }}>old value: </span>
+        {oldValue}
+      </div>
     </div>
   );
 }
