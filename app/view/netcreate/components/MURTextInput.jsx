@@ -23,14 +23,15 @@ const { itemGrid, labelStyle, inputStyle, popupStyle } = GetStyles();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { group, name, metadata, memory } = props;
+  const { group, name, layout } = props;
   if (DBG) {
     if (typeof group !== 'string') return <p>TextInput bad group</p>;
     if (typeof name !== 'string') return <p>TextInput bad name</p>;
-    if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
+    if (typeof layout !== 'object') return <p>TextInput bad layout</p>;
   }
-  const { label, tooltip, help, placeholder, value, default: defValue } = metadata;
-
+  // get ui metadata
+  const { label, tooltip, help, placeholder, value, default: defValue } = layout;
+  // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });

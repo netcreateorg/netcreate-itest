@@ -33,7 +33,7 @@ function PropertyGroup(props) {
     const metadata = { ...def, ...layout[name] };
     if (def.type)
       propsUI.push(
-        <TextInput group={group} name={name} metadata={metadata} key={RLK('TI')} />
+        <TextInput group={group} name={name} layout={metadata} key={RLK('TI')} />
       );
   });
   const { title, description } = layout._groupMeta || {};
