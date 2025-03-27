@@ -24,6 +24,7 @@
   --clr-bg: #dae9f2;
   --clr-cat-fg: #fff; /* call to action */
   --clr-cat-bg: #c35400; /* call to action */
+  --clr-warning: rgb(162, 0, 0);
   --clr-cat-light: #f7f3f2;
   --clr-secondary: #6a8899; /* navy */
   --clr-system: #355869; /* dark navy for UI/system labels */
@@ -52,6 +53,10 @@ body {
   font-weight: var(--font-weight-normal);
 }
 
+.system {
+  color: var(--clr-system);
+  font-size: var(--font-size-xs);
+}
 .help {
   color: var(--clr-system-faded);
   font-size: var(--font-size-xs);
@@ -184,6 +189,9 @@ svg#netgraph .nodes text {
 }
 /* Buttons ----------------------------------------------------------------- */
 button {
+  color: var(--clr-system);
+  background: var(--clr-fg);
+  border-color: var(--clr-system);
   border-width: 1px;
   border-radius: 8px;
   line-height: 1.5rem;
@@ -205,7 +213,7 @@ button:hover {
   background-color: var(--clr-system); /* !important; */
 }
 /* Button Icons ------------------------------------------------------------ */
-button.cat {
+button.cat:not(:hover) {
   color: var(--clr-cat-fg);
   background-color: var(--clr-cat-bg);
 }
@@ -218,7 +226,12 @@ button.icon {
 button.icon:hover {
   background-color: #35586922; /* !important; */
 }
-button.outline {
+button.warning:not(:hover) {
+  border: none;
+  color: var(--clr-fg);
+  background-color: var(--clr-warning);
+}
+button.outline:not(:hover) {
   border: none;
   color: inherit;
   background-color: transparent;

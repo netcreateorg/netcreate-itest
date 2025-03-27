@@ -109,7 +109,7 @@
 }
 .filter-group h1 {
   color: var(--clr-system);
-  font-size: var(--font-size-reduced);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   margin-bottom: 0.4rem;

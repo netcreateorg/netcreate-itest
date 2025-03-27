@@ -1,0 +1,21 @@
+.NCImportExport .panel {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background-color: rgba(226, 150, 68, 0.2);
+  font-size: var(--font-size-sm);
+}
+
+.NCImportExport .panel .buttonbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.NCImportExport .panel div.file-import {
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 0.5rem 0;
+}
+.NCImportExport .panel h2,
+.NCImportExport .panel div.file-import input {
+  font-size: var(--font-size-xs);
+}

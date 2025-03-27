@@ -2,7 +2,7 @@
   position: absolute;
   display: grid;
   grid-template-rows: 30px auto;
-  width: 300px;
+  width: 400px;
   height: 90%;
   top: 0;
   right: 0;
@@ -25,5 +25,6 @@
 }
 
 #popover .popover-content {
-  overflow-y: auto;
+  display: flex;
+  overflow-y: hidden;
 }

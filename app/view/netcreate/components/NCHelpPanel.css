@@ -4,7 +4,11 @@
 }
 
 /* tabpanel --------------------------------------------------------------- */
-#NCHelpPanel .tabs button {
+#NCTabPanel {
+  display: flex;
+  flex-direction: column;
+}
+#NCTabPanel .tabs button {
   font-weight: var(--font-weight-normal);
   padding: 8px 26px 2px 26px;
   opacity: 50%;
@@ -13,36 +17,40 @@
   border: none;
   border-radius: 0;
 }
-#NCHelpPanel .tabs button:hover {
+#NCTabPanel .tabs button:hover {
   opacity: 100%;
 }
-#NCHelpPanel .tabs button.selected {
+#NCTabPanel .tabs button.selected {
   font-weight: var(--font-weight-bold);
   opacity: 100%;
   border-bottom: 4px solid var(--clr-cat-bg);
 }
 
-#NCHelpPanel .tabpanels {
+#NCTabPanel .tabpanels {
   background-color: #fff6;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
-#NCHelpPanel h1 {
-  font-size: var(--font-size-normal);
+#NCTabPanel h1 {
+  font-size: var(--font-size-reduced);
   font-weight: var(--font-weight-bold);
+  margin-block-start: 1rem;
 }
-#NCHelpPanel ul {
+#NCTabPanel h1:first-child {
+  margin-block-start: 0;
+}
+#NCTabPanel ul {
   margin: 0;
   padding: 0 0 0 20px;
 }
-#NCHelpPanel li {
+#NCTabPanel li {
   margin: 0;
   padding: 0;
 }
-#NCHelpPanel dt {
+#NCTabPanel dt {
   font-weight: var(--font-weight-bold);
 }
-#NCHelpPanel dd {
+#NCTabPanel dd {
   margin: 0 0 10px 0;
   padding: 0;
 }

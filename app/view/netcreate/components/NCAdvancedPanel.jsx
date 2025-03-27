@@ -9,47 +9,50 @@
 
 import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
-import NCHelpVocabulary from './NCHelpVocabulary';
-import NCHelpText from './NCHelpText';
+import ImportExport from './ImportExport';
+import NCTemplate from './NCTemplate';
+import MURSettingEditor from './MURSettingsEditor';
 import URPopover from './URPopover';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Initialize UNISYS DATA LINK for react component
-const UDATAOwner = { name: 'NCHelpPanel' };
+const UDATAOwner = { name: 'NCAdvancedPanel' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const VIEWS = {
-  help: 'Help',
-  vocabulary: 'Vocabulary'
+  importexport: 'Import/Export',
+  template: 'Template',
+  settings: 'Settings'
 };
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
-function NCHelpPanel() {
+function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState('help');
+  const [openTab, setOpenTab] = useState('importexport');
 
   useEffect(() => {
-    UDATA.OnAppStateChange('PANELSTATE', evt_ToggleHelp);
+    UDATA.OnAppStateChange('PANELSTATE', evt_ToggleAdvanced);
     return () => {
-      UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleHelp);
+      UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleAdvanced);
     };
   }, []);
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function evt_ToggleHelp(PANELSTATE) {
-    setIsOpen(PANELSTATE.helpIsOpen);
+  function evt_ToggleAdvanced(PANELSTATE) {
+    setIsOpen(PANELSTATE.advancedIsOpen);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function ui_CloseHelp() {
+  function ui_CloseAdvanced() {
     const PANELSTATE = UDATA.AppState('PANELSTATE');
-    UDATA.SetAppState('PANELSTATE', { ...PANELSTATE, helpIsOpen: false });
+    UDATA.SetAppState('PANELSTATE', { ...PANELSTATE, advancedIsOpen: false });
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_SelectTab(tab) {
+    console.log('setting tab to', tab);
     setOpenTab(tab);
   }
 
@@ -57,15 +60,23 @@ function NCHelpPanel() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   let jsx;
-  if (openTab === 'help') {
-    jsx = <NCHelpText />;
-  } else {
-    jsx = <NCHelpVocabulary />;
+  switch (openTab) {
+    case 'importexport':
+      jsx = <ImportExport />;
+      break;
+    case 'template':
+      jsx = <NCTemplate />;
+      break;
+    case 'settings':
+      jsx = <MURSettingEditor />;
+      break;
+    default:
+      break;
   }
 
   if (!isOpen) return null;
   return (
-    <URPopover title="?" onClose={ui_CloseHelp}>
+    <URPopover title="Advanced" onClose={ui_CloseAdvanced}>
       <div id="NCTabPanel">
         <div className="tabs" role="tablist">
           {Object.keys(VIEWS).map(k => (
@@ -91,4 +102,4 @@ function NCHelpPanel() {
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default NCHelpPanel;
+export default NCAdvancedPanel;

@@ -1,7 +1,5 @@
-<svg width="2" height="10" viewBox="0 0 2 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Group 1">
-<circle id="Ellipse 57" cx="1" cy="9" r="1" fill="black"/>
-<circle id="Ellipse 58" cx="1" cy="5" r="1" fill="black"/>
-<circle id="Ellipse 59" cx="1" cy="1" r="1" fill="black"/>
-</g>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="8" cy="13.231" r="1.5" fill="black"/>
+<circle cx="8" cy="8" r="1.5" fill="black"/>
+<circle cx="8" cy="2.76935" r="1.5" fill="black"/>
 </svg>

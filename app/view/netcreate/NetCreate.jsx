@@ -59,6 +59,7 @@ const FILTER = require('./components/filter/FilterEnums');
 import PANELMGR from './panel-mgr';
 import NCInfoPanel from './components/NCInfoPanel';
 import NCHelpPanel from './components/NCHelpPanel';
+import NCAdvancedPanel from './components/NCAdvancedPanel';
 import NCFiltersPanel from './components/filter/NCFiltersPanel';
 import URButtonToggle from './components/URButtonToggle';
 import URCommentStatus from './components/URCommentStatus';
@@ -264,6 +265,7 @@ class NetCreate extends UNISYS.Component {
         {/*** DIALOGS ***************/}
         <div id="dialog-container"></div>
         <NCHelpPanel />
+        <NCAdvancedPanel />
       </div>
     ); // end return
   } // end render()
