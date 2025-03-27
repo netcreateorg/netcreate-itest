@@ -29,14 +29,14 @@ function GroupHeader(props) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function PropertyGroup(props) {
   const {
-    group, // { groupname: { propname: { type, default }, {}... }
+    groupDef, // { groupname: { propname: { type, default }, {}... }
     metadata // { groupname:{ propname: { _groupMeta, propname: metadata, {}... } }
   } = props;
   if (DBG) {
-    if (typeof group !== 'object') return <p>PropertyGroup bad groupDef</p>;
+    if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
     if (typeof metadata !== 'object') return <p>PropertyGroup bad metadata</p>;
   }
-  const gdata = DerefPropertyList(group);
+  const gdata = DerefPropertyList(groupDef);
   if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
   const { groupName, properties } = gdata;
   const meta = metadata[groupName];
@@ -45,7 +45,7 @@ function PropertyGroup(props) {
   propList.forEach(p => {
     if (properties[p].type) {
       propsUI.push(
-        <TextInput property={properties[p]} metadata={meta[p]} key={RLK('TI')} />
+        <TextInput propDef={properties[p]} metadata={meta[p]} key={RLK('TI')} />
       );
     }
   });
@@ -59,7 +59,7 @@ function PropertyGroup(props) {
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
-        <ui-group group={groupName}>{propsUI}</ui-group>
+        <ui-groupDef groupDef={groupName}>{propsUI}</ui-groupDef>
       </details>
     </div>
   );

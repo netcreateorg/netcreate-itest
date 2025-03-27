@@ -23,12 +23,12 @@ const { itemGrid, labelStyle, inputStyle, popupStyle } = GetStyles();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { property, metadata } = props;
+  const { propDef, metadata } = props;
   if (DBG) {
-    if (typeof property !== 'object') return <p>TextInput bad groupDef</p>;
+    if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
     if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
   }
-  const { name, value, default: defValue } = property;
+  const { name, value, default: defValue } = propDef;
   const { label, tooltip, help, placeholder } = metadata;
   // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
