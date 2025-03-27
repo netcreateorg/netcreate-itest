@@ -16,8 +16,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const ReactStrap = require('reactstrap');
-const { Button, Table } = ReactStrap;
 const SETTINGS = require('settings');
 const NetMessage = require('unisys/common-netmessage-class');
 
@@ -277,16 +275,25 @@ class ImportExport extends UNISYS.Component {
 
     const importBtnDisabled = !okToImport;
 
+    const exportjsx = (
+      <div className="panel">
+        <h1>Export Data</h1>
+        <p className="system">Export data in .csv format.</p>
+        <div className="buttonbar">
+          <button className="small" type="button" onClick={this.onNodesExportSelect}>
+            Export Nodes
+          </button>
+          <button className="small" type="button" onClick={this.onEdgesExportSelect}>
+            Export Edges
+          </button>
+        </div>
+      </div>
+    );
+
     let importjsx;
     if (preventImport && !importIsActive) {
       importjsx = (
-        <div
-          style={{
-            backgroundColor: 'rgba(240,240,240,0.95)',
-            marginTop: '10px',
-            padding: '10px 20px'
-          }}
-        >
+        <div className="panel">
           <p>
             <i>
               You cannot import data while someone is editing a node, edge, or
@@ -300,38 +307,32 @@ class ImportExport extends UNISYS.Component {
       );
     } else {
       importjsx = (
-        <div
-          hidden={importDisabled}
-          style={{
-            backgroundColor: 'rgba(240,240,240,0.95)',
-            marginTop: '10px',
-            padding: '10px 20px'
-          }}
-        >
+        <div className="panel" hidden={importDisabled}>
           <h1>Import Data</h1>
-          <div className="small text-muted">
-            <i>Import .csv data</i>
-          </div>
-          <div className="small text-muted">
+          <p className="system">Import .csv data</p>
+          <p>
             To specify node and edge IDs in your import file, use the next unused ID:
-            <ul>
-              <li>Next unused NODE ID: {nextNodeId}</li>
-              <li>Next unused EDGE ID: {nextEdgeId}</li>
-            </ul>
+          </p>
+          <ul>
+            <li>Next unused NODE ID: {nextNodeId}</li>
+            <li>Next unused EDGE ID: {nextEdgeId}</li>
+          </ul>
+          <p>
             Importing data will <b>merge</b> the new nodes and edges into the existing
             nodes and edges.
-            <ul>
-              <li>
-                Imported nodes/edges with matching ids will replace existing objects
-              </li>
-              <li>
-                Existing objects that do not match imported nodes/edges will not be
-                modified or removed
-              </li>
-            </ul>
-          </div>
-          <label className="small text-muted">
-            Nodes:&nbsp;
+          </p>
+          <ul>
+            <li>
+              Imported nodes/edges with matching ids will replace existing objects
+            </li>
+            <li>
+              Existing objects that do not match imported nodes/edges will not be
+              modified or removed
+            </li>
+          </ul>
+          <p></p>
+          <h2>Nodes</h2>
+          <div className="file-import">
             <input
               type="file"
               accept="text/csv"
@@ -344,12 +345,12 @@ class ImportExport extends UNISYS.Component {
                 this.clearNodefileSelect();
               }}
             />
-            &nbsp;<i className="small">{nodefileStatus}</i>
-            <br />
-          </label>
-          <br />
-          <label className="small text-muted">
-            Edges:&nbsp;
+            <label htmlFor="nodefileInput" className="system">
+              {nodefileStatus}
+            </label>
+          </div>
+          <h2>Edges</h2>
+          <div className="file-import">
             <input
               type="file"
               accept="text/csv"
@@ -362,33 +363,32 @@ class ImportExport extends UNISYS.Component {
                 this.clearEdgefileSelect();
               }}
             />
-            &nbsp;<i className="small">{edgefileStatus}</i>
-            <br />
-          </label>
-          <br />
+            <label htmlFor="edgefileInput" className="system">
+              {edgefileStatus}
+            </label>
+          </div>
           <label>
-            <Button
-              style={{ fontSize: '0.8em', padding: '0px 2px' }}
-              outline
+            <button
+              className="small outline"
+              type="button"
               onClick={this.clearFileSelect}
             >
               Clear File Selections
-            </Button>
+            </button>
           </label>
-          <br />
-          {nodeValidationMsgs && <div className="small">{nodeValidationMsgs}</div>}
-          {edgeValidationMsgs && <div className="small">{edgeValidationMsgs}</div>}
-          {importMsgs && <div className="small">{importMsgs}</div>}
-          <Button
-            size="sm"
-            outline
-            color={importBtnDisabled ? 'light' : 'primary'}
+          <div>
+            {nodeValidationMsgs && <p>{nodeValidationMsgs}</p>}
+            {edgeValidationMsgs && <p>{edgeValidationMsgs}</p>}
+            {importMsgs && <p>{importMsgs}</p>}
+          </div>
+          <button
+            className={`small ${importBtnDisabled ? '' : 'cat'}`}
+            type="button"
             disabled={importBtnDisabled}
             onClick={this.onDoImport}
           >
             Import
-          </Button>
-          &nbsp;
+          </button>
         </div>
       );
     }
@@ -396,19 +396,15 @@ class ImportExport extends UNISYS.Component {
     let unlockAlljsx;
     if (ISADMIN) {
       unlockAlljsx = (
-        <div>
-          <hr />
+        <div className="panel">
           <h1>Admin Tools</h1>
-          <Button size="sm" outline color={'warning'} onClick={this.unlockAll}>
-            Force Unlock All
-          </Button>
-          <label className="small text-muted">
-            Unlock ALL Template, Import, Node, and Edge Editing.
-            <br />
+          <p>Unlock ALL Template, Import, Node, and Edge Editing.</p>
+          <p>
             When someone on the network is editing a template, importing data, or
             editing a node or edge, everyone else on the network is prevented from
             editing a template or importing data and editing nodes and edges.
-            <br />
+          </p>
+          <p>
             ADMINS: Use this force the server to release the lock on editing if you
             know the lock was left on in error, e.g. you know that there is no one on
             the network actively editing a template, importing, editing a node or an
@@ -418,32 +414,17 @@ class ImportExport extends UNISYS.Component {
               editing or importing, you can delete their work, or even worse,{' '}
               <b>corrupt the database!</b>
             </p>
-          </label>
+          </p>
+          <button className="small warning" type="button" onClick={this.unlockAll}>
+            Force Unlock All
+          </button>
         </div>
       );
     }
 
     return (
-      <div>
-        <div
-          style={{
-            backgroundColor: 'rgba(240,240,240,0.95)',
-            padding: '10px 20px'
-          }}
-        >
-          <h1>Export Data</h1>
-          <i className="small text-muted">Export data in .csv format.</i>
-          <br />
-          <Button size="sm" outline onClick={this.onNodesExportSelect}>
-            Export Nodes
-          </Button>
-          &nbsp;
-          <Button size="sm" outline onClick={this.onEdgesExportSelect}>
-            Export Edges
-          </Button>
-          &nbsp;
-        </div>
-
+      <div className="NCImportExport">
+        {exportjsx}
         {importjsx}
         {unlockAlljsx}
       </div>
