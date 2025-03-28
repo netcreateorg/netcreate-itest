@@ -48,6 +48,7 @@ function NCFiltersPanel({ hidden }) {
     nodes: FILTERDEFS.nodes,
     edges: FILTERDEFS.edges,
     filterAction: FILTER.ACTION.FADE,
+    filterActionHelp: '',
     focusSourceLabel: undefined,
     focusRange: undefined,
     statsSummary: ''
@@ -77,9 +78,7 @@ function NCFiltersPanel({ hidden }) {
       filterAction: data.filterAction || prevState.filterAction,
       filterActionHelp: data.filterActionHelp || prevState.filterActionHelp,
       focusSourceLabel:
-        data.focus && data.focus.sourceLabel
-          ? `"${data.focus.sourceLabel}"`
-          : '<nothing selected>',
+        data.focus && data.focus.sourceLabel ? data.focus.sourceLabel : '',
       focusRange: data.focus && data.focus.range ? data.focus.range : undefined
     }));
   }

@@ -348,7 +348,15 @@ function m_FilterDefine(data) {
       FILTERDEFS.edges.filters = edgeFilters;
     }
   } else if (data.group === 'focus') {
-    FILTERDEFS.focus.range = data.filter.value;
+    if (data.filter.deselectNode) {
+      // clear out sourceLabel to allow focus filter to select a new node
+      FILTERDEFS.focus.source = undefined;
+      FILTERDEFS.focus.sourceLabel = '';
+    }
+    if (data.filter.sourceLabel)
+      FILTERDEFS.focus.sourceLabel = data.filter.sourceLabel;
+    if (data.filter.source) FILTERDEFS.focus.source = data.filter.source;
+    if (data.filter.range) FILTERDEFS.focus.range = data.filter.range;
   } else {
     throw `FILTER_DEFINE called with unknown group: ${data.group}`;
   }

@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
-import FILTER from './FilterEnums';
+import NCAutoSuggest from '../NCAutoSuggest';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,6 +23,7 @@ const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NCFocusFilter({ focusSourceLabel, focusRange }) {
   const [state, setState] = useState({
+    focusInputLabel: focusSourceLabel, // Used locally to define result
     focusRange // Used locally to define result
   });
 
@@ -30,16 +31,57 @@ function NCFocusFilter({ focusSourceLabel, focusRange }) {
   useEffect(() => {
     BroadcastChange();
   }, [state]);
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  useEffect(() => {
+    setState(prevState => ({ ...prevState, focusInputLabel: focusSourceLabel })); // update local state
+  }, [focusSourceLabel]);
 
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_NodeInputUpdate(key, value) {
+    setState(prevState => ({ ...prevState, focusInputLabel: value })); // update local state
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /**
+   * User has selected a node with NCAutoSuggest, either
+   * - Clicking on a suggested node
+   * - Hitting Enter with the form field showing either a valid node or a new node
+   * @param {string} key is 'id' or 'label'
+   * @param {string} label
+   * @param {number} id
+   */
+  function ui_NodeSelect(key, label, id) {
+    if (UDATA) {
+      const NCDATA = UDATA.AppState('NCDATA');
+      const foundNode = NCDATA.nodes.find(n => n.id === id);
+      if (foundNode)
+        UDATA.LocalCall('FILTER_DEFINE', {
+          group: 'focus',
+          filter: {
+            source: id,
+            sourceLabel: foundNode.label
+          }
+        }); // set a SINGLE filter
+    }
+    // this.ValidateSourceTarget(key, label, id);
+  }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeValue(e) {
     // The built in <input min="0"> will keep the step buttons from going below 0,
     // but the user can still input "0".  We can't just use Math.min() because the
     // user would not be allowed to use backspace to delete the value before
     // entering a new number.  Replacing invalid numbers with a blank value
-    // feels like a  more natural way of editing.
-    const focusRange = e.target.value < 1 ? '' : e.target.value;
+    // feels like a more natural way of editing.
+    const focusRange = e.target.value < 1 ? '' : Number(e.target.value);
     setState(prevState => ({ ...prevState, focusRange }));
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_DeselectNode(e) {
+    UDATA.LocalCall('FILTER_DEFINE', {
+      group: 'focus',
+      filter: {
+        deselectNode: true // hacky -- force m_FilterDefine to clear the selection
+      }
+    });
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function BroadcastChange() {
@@ -50,7 +92,7 @@ function NCFocusFilter({ focusSourceLabel, focusRange }) {
       UDATA.LocalCall('FILTER_DEFINE', {
         group: 'focus',
         filter: {
-          value: focusRange
+          range: focusRange
         }
       }); // set a SINGLE filter
   }
@@ -63,13 +105,41 @@ function NCFocusFilter({ focusSourceLabel, focusRange }) {
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  // show button if node is selected
+  // else show autosuugst
+  // clicking enables autosuggest
+  let selectedNodeJsx;
+  let selectedNodeHelp;
+  if (focusSourceLabel) {
+    selectedNodeJsx = (
+      <button type="button" className="focusnode" onClick={ui_DeselectNode}>
+        {focusSourceLabel}
+      </button>
+    );
+    selectedNodeHelp = 'Click to select another node';
+  } else {
+    selectedNodeJsx = (
+      <NCAutoSuggest
+        value={state.focusInputLabel}
+        onChange={ui_NodeInputUpdate}
+        onSelect={ui_NodeSelect}
+      />
+    );
+    selectedNodeHelp = 'Click a node or type a node name..';
+  }
+
   return (
     <div className="filter-group">
       <h1></h1>
       <form className="filter-item" onSubmit={ui_OnSubmit}>
         <fieldset>
+          <label className="help"></label>
+          <p className="help">{selectedNodeHelp}</p>
+        </fieldset>
+        <fieldset>
           <label className="help">Selected Node:</label>
-          <input type="text" readOnly value={focusSourceLabel} />
+          {selectedNodeJsx}
         </fieldset>
         <fieldset>
           <label className="help">
