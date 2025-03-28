@@ -35,10 +35,7 @@
 }
 .NCFiltersPanel .tabselectors button.selected {
   color: var(--clr-fg);
-  background-color: var(--clr-system);
-}
-.NCFiltersPanel .tabselectors button.selected:focus {
-  outline: none;
+  background-color: var(--clr-system-light);
 }
 
 .NCFiltersPanel .tabpanels {
@@ -50,6 +47,9 @@
   margin-bottom: 0.5rem;
   overflow-y: scroll;
   background-color: var(--clr-fg);
+}
+.NCFiltersPanel .tabpanels > .help {
+  margin: 0.5rem 0;
 }
 .NCFiltersPanel .tabpanels > section {
   display: flex;
@@ -66,6 +66,7 @@
 /* Forms ------------------------------------------------------------------ */
 .NCFiltersPanel fieldset {
   display: flex;
+  align-items: anchor-center;
   margin-bottom: 0.125rem;
   border: none;
 }
@@ -105,14 +106,14 @@
   flex-direction: column;
 }
 .filter-group hr {
-  margin: 0.5rem 0 0 0;
+  margin: 1rem 0 0.5rem 0;
 }
 .filter-group h1 {
   color: var(--clr-system);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  margin-bottom: 0.4rem;
+  margin: 0.5rem 0;
 }
 
 .filter-item.form-inline label {

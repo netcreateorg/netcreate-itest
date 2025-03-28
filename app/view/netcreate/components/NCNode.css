@@ -278,9 +278,6 @@
   color: #666;
   background-color: #fff8;
 }
-.nccomponent .tabcontainer .tabselectors button.selected:focus {
-  outline: none;
-}
 /* hide tab icon on small screen */
 .nccomponent .tabcontainer .tabselectors button img {
   display: none;

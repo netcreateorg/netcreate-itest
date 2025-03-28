@@ -193,7 +193,6 @@ function NCInfoPanel() {
           <button
             key={k}
             className={state.activeTab === TABS[k].label ? 'selected' : ''}
-            tabIndex={state.activeTab === TABS[k].label ? '0' : '-1'}
             onClick={() => evt_SelectTab(k)}
             role="tab"
             type="button"
@@ -207,8 +206,8 @@ function NCInfoPanel() {
       </div>
 
       <div id="filtersSummary">
+        {!state.filtersSummary && state.graphStats}
         {state.filtersSummary}
-        {!state.filtersSummary && state.graphStats}&nbsp;
         {state.filtersSummary && (
           <button className="cat" onClick={evt_ClearFilters}>
             Clear Filters

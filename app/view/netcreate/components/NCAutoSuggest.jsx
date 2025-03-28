@@ -219,10 +219,11 @@ class NCAutoSuggest extends UNISYS.Component {
         }
       }
     }
-    if (keystroke === 'Escape' || keystroke === 'Tab') {
-      event.preventDefault(); // prevent tab key from going to the next field
+    if (keystroke === 'Escape') {
+      // close autosuggest
+      event.preventDefault();
       event.stopPropagation();
-      this.setState({ matches: [], higlightedLine: -1 }); // close autosuggest
+      this.setState({ matches: [], higlightedLine: -1 });
     }
     if (keystroke === 'ArrowUp') newHighlightedLine--;
     if (keystroke === 'ArrowDown') newHighlightedLine++;
@@ -286,6 +287,7 @@ class NCAutoSuggest extends UNISYS.Component {
           key={`${parentKey}input`}
           value={value}
           type="string"
+          autoFocus
           className={!isValidNode ? 'invalid' : ''}
           onChange={this.m_UIUpdate}
           onKeyDown={this.m_UIKeyDown}

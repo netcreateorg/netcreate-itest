@@ -138,7 +138,6 @@ function NCFiltersPanel({ hidden }) {
           <button
             key={k}
             className={filterAction === TABS[k].action ? 'selected' : ''}
-            tabIndex={filterAction === TABS[k].action ? '0' : '-1'}
             onClick={() => ui_SelectFilterAction(TABS[k].action)}
             role="tab"
             type="button"
