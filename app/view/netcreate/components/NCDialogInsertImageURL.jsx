@@ -86,8 +86,16 @@ class NCDialogInsertImageURL extends React.Component {
       onOK,
       onCancel
     } = this.props;
-    const OKBtn = <button onClick={this.m_UIOnOK}>{okmessage}</button>;
-    const CancelBtn = <button onClick={this.m_UIOnCancel}>{cancelmessage}</button>;
+    const OKBtn = (
+      <button onClick={this.m_UIOnOK} autoFocus>
+        {okmessage}
+      </button>
+    );
+    const CancelBtn = (
+      <button onClick={this.m_UIOnCancel} type="button">
+        {cancelmessage}
+      </button>
+    );
 
     return !isOpen ? (
       ''
