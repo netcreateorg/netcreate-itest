@@ -15,6 +15,8 @@ export * as ViewLib from './viewlib/index.ts';
 export * as NCI from './nc-client-interop.ts';
 /// settings client
 export * as Settings from './mur-settings-client.ts';
+/// data normalization
+export * as DataNorm from '../common/util-data-norm.ts';
 
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

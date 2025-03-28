@@ -7,7 +7,7 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-const { RLK, DerefPropertyList } = RSB;
+const { DerefGroupDef } = RSB;
 import TextInput from './MURTextInput';
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@ const DBG = true;
 function GroupHeader(props) {
   const { label } = props;
   return (
-    <span key={RLK('GN')}>
+    <span>
       <b>{label}</b>
     </span>
   );
@@ -36,7 +36,7 @@ function PropertyGroup(props) {
     if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
     if (typeof metadata !== 'object') return <p>PropertyGroup bad metadata</p>;
   }
-  const gdata = DerefPropertyList(groupDef);
+  const gdata = DerefGroupDef(groupDef);
   if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
   const { groupName, properties } = gdata;
   const meta = metadata[groupName];
@@ -44,14 +44,16 @@ function PropertyGroup(props) {
   const propList = Object.keys(properties);
   propList.forEach(p => {
     if (properties[p].type) {
+      const key = `in-${groupName}.${p}`;
       propsUI.push(
-        <TextInput propDef={properties[p]} metadata={meta[p]} key={RLK('TI')} />
+        <TextInput propDef={properties[p]} metadata={meta[p]} key={key} />
       );
     }
   });
   const { title, description } = metadata[groupName]._groupMeta || {};
+  const key = `pg-${groupName}`;
   return (
-    <div key={RLK('PG')} style={{ margin: '1rem' }}>
+    <div key={key} style={{ margin: '1rem' }}>
       <details open>
         <summary>
           <GroupHeader label={title || groupName} />

@@ -7,7 +7,7 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-const { UpdateProperty, DerefSingularMetaDef, RLK } = RSB;
+const { UpdateProperty, DerefSingularMetaDef, ValueChanged, RLK } = RSB;
 const { GetStyles, EventTargetOffsetStyle } = RSB;
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@ const LOG = console.log.bind(console);
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { itemGrid, labelStyle, inputStyle, popupStyle } = GetStyles();
+const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = GetStyles();
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,29 +28,41 @@ function TextInput(props) {
     if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
     if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
   }
-  const { name, value, default: defValue } = propDef;
+  const { value, default: defValue } = propDef;
   const { label, tooltip, help, placeholder } = metadata;
   // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
   const [oldValue] = React.useState(value || defValue);
-  const [inputValue, setInputValue] = React.useState(oldValue);
+  const [inputValue, setInputValue] = React.useState(value || defValue);
+
+  /// TESTS ///
+
+  function assert_is_modified() {
+    if (label === 'description')
+      console.log(
+        `old / input / propDef\n${oldValue} \t${inputValue} \t${propDef.value}`
+      );
+  }
 
   /// HANDLERS ///
 
-  // input key return will submit the value to settings object
-  const handleSubmit = async event => {
-    if (event.key === 'Enter') {
-      console.log('submit:', event.target.value);
-      const opResult = await UpdateProperty(`${group}.${name}`, event.target.value);
-      if (opResult.error) console.log('Error:', opResult.error);
-    }
-  };
-
   // input changes will update the current inputValue
   const handleTyping = event => {
-    setInputValue(event.target.value);
+    propDef.value = event.target.value;
+    setInputValue(propDef.value);
+  };
+
+  // input key return will submit the value to settings object
+  const handleEnterSubmit = async event => {
+    if (event.key === 'Enter') handleSubmit(event);
+  };
+
+  // input blur will submit the value to settings object
+  const handleSubmit = async event => {
+    propDef.value = event.target.value;
+    ValueChanged();
   };
 
   // hovering over label will show tooltip
@@ -92,8 +104,10 @@ function TextInput(props) {
 
   // conditional flags based on inputValue
   const mod = inputValue !== oldValue;
-  const bgColor = mod ? '#ffff00a0' : 'white';
+  const bgColor = mod ? modColor : 'white';
   const pad = mod ? '1rem' : '0';
+
+  assert_is_modified();
 
   return (
     <div style={itemGrid}>
@@ -115,7 +129,8 @@ function TextInput(props) {
           paddingRight: pad
         }}
         defaultValue={inputValue}
-        onKeyDown={handleSubmit}
+        onKeyDown={handleEnterSubmit}
+        onBlur={handleSubmit}
         onInput={handleTyping}
         onMouseOver={showOldValue}
         onMouseOut={showOldValue}

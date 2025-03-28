@@ -11,11 +11,14 @@
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { Settings, ConsoleStyler } = require('ursys-min');
+const { Settings, ConsoleStyler, DataNorm } = require('ursys-min');
 const {
-  ReactListKey: KH,
   GetPropertyDefs,
-  GetMetaDefs
+  FlattenPropertyDefs,
+  GetMetaDefs,
+  GetStyles,
+  OnValueChanged,
+  OffValueChanged
 } = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 

@@ -20,13 +20,14 @@ const UDATA = UNISYS.NewDataLink(MOD);
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let m_key_hack = 0;
+let m_key_dict = {};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Hacky way to generate a React key prop, which is required for rendering
  *  lists of components in an array */
 function ReactListKey(prefix) {
   if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
-  return `${prefix}${m_key_hack++}`;
+  if (m_key_dict[prefix] === undefined) m_key_dict[prefix] = 100;
+  return `${prefix}${m_key_dict[prefix]++}`;
 }
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
@@ -76,6 +77,23 @@ async function UpdateGroup(groupName, propObj) {
   throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
 }
 
+/// VALUE CHANGES /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const VALUE_LISTENERS = new Set();
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Notify that a value has changed */
+function ValueChanged() {
+  VALUE_LISTENERS.forEach(listener => listener());
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function OnValueChanged(listener) {
+  VALUE_LISTENERS.add(listener);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function OffValueChanged(listener) {
+  VALUE_LISTENERS.delete(listener);
+}
+
 /// DECODERS //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** UTILITY: Return the name of the single key in an object, undefined
@@ -87,7 +105,7 @@ function GetSingularKey(obj) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** UTILITY: Dereference groupObj, returning groupName and properties list */
-function DerefPropertyList(groupObj) {
+function DerefGroupDef(groupObj) {
   const groupName = GetSingularKey(groupObj);
   if (groupName === undefined) return { error: 'groupObj must have a single key' };
   const properties = groupObj[groupName];
@@ -104,12 +122,29 @@ function DerefSingularMetaDef(metaObj) {
   //
   return deref; // { metadata props }
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: promote a named key as the direct value of a property,
+ *  converting { group:{prop:{value:1}} } to { group: {prop:1} } for using
+ *  in a settings values structure */
+function FlattenPropertyDefs(propDefs, key = 'value') {
+  const flat = {};
+  Object.keys(propDefs).forEach(groupName => {
+    flat[groupName] = {};
+    const group = propDefs[groupName];
+    Object.keys(group).forEach(propName => {
+      const propDef = group[propName];
+      flat[groupName][propName] = propDef[key];
+    });
+  });
+  return flat;
+}
 
 /// SHARED STYLING OBJECTS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const padding = '0.2rem 0.4rem';
 const margin = '0.2rem 0.4rem';
 const border = '1px solid #cc8';
+const modColor = '#ffff00a0';
 // itemGrid is for the container of a label and input
 const itemGrid = {
   display: 'grid',
@@ -130,9 +165,17 @@ const popupStyle = {
   maxWidth: '20rem',
   display: 'none'
 };
+// opBtnStyle is for operation buttons
+const opBtnStyle = {
+  backgroundColor: 'white',
+  border,
+  padding,
+  margin,
+  cursor: 'pointer'
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetStyles() {
-  return { itemGrid, labelStyle, inputStyle, popupStyle };
+  return { itemGrid, labelStyle, inputStyle, popupStyle, opBtnStyle, modColor };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EventTargetOffsetStyle(event) {
@@ -148,12 +191,16 @@ function EventTargetOffsetStyle(event) {
 module.exports = {
   ReactListKey,
   RLK: ReactListKey,
+  ValueChanged,
+  OnValueChanged,
+  OffValueChanged,
   //
   GetPropertyDefs,
   GetMetaDefs,
   //
-  DerefPropertyList,
+  DerefGroupDef,
   DerefSingularMetaDef,
+  FlattenPropertyDefs,
   //
   UpdateProperty,
   UpdateGroup,
