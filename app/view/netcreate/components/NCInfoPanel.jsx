@@ -201,7 +201,7 @@ function NCInfoPanel() {
             aria-controls={TABS[k].label}
           >
             {TABS[k].label}
-            {TABS[k].icon && <img src={TABS[k].icon} />}
+            {TABS[k].icon && <img src={TABS[k].icon} role="presentation" />}
           </button>
         ))}
       </div>
@@ -217,6 +217,8 @@ function NCInfoPanel() {
       </div>
 
       <div className="tabpanels">
+        <section id={TABS.GRAPH.label} className="hidden" role="tabpanel" />
+
         <section
           id={TABS.NODESTABLE.label}
           aria-labelledby={TABS.NODESTABLE.label}

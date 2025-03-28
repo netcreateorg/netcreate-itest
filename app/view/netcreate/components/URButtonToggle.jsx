@@ -27,8 +27,9 @@ function URButtonToggle({ title, selected, onClick, children }) {
     <button
       className={`URButtonToggle icon ${selected ? 'selected' : ''}`}
       type="button"
+      role="switch"
       aria-label={title}
-      aria-selected={selected}
+      aria-checked={selected}
       onClick={onClick}
     >
       {children}

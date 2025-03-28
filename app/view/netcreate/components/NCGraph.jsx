@@ -198,15 +198,15 @@ class NCGraph extends UNISYS.Component {
       <div className="NCGraph" ref={dom => (this.dom = dom)}>
         <div className="zoom-buttons">
           <button onClick={this.onZoomIn} role="button" aria-label="Zoom In">
-            <img src="/images/icn_plus.svg" />
+            <img src="/images/icn_plus.svg" alt="" />
           </button>
           &nbsp;
           <button onClick={this.onZoomReset} role="button" aria-label="Zoom Reset">
-            <img src="/images/icn_circle.svg" />
+            <img src="/images/icn_circle.svg" alt="" />
           </button>
           &nbsp;
           <button onClick={this.onZoomOut} role="button" aria-label="Zoom Out">
-            <img src="/images/icn_minus.svg" />
+            <img src="/images/icn_minus.svg" alt="" />
           </button>
         </div>
         <div className="legend">

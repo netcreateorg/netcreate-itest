@@ -16,8 +16,7 @@
   font-weight: var(--font-weight-medium);
   line-height: inherit; /* keeps selected cat visible */
   padding: 8px 26px 6px 26px;
-  opacity: 50%;
-  color: var(--clr-system) !important;
+  color: var(--clr-system-disabled) !important;
   background-color: transparent !important;
   border: none;
   border-radius: 0;
@@ -28,13 +27,18 @@
 #InfoPanel .tabs button.selected {
   font-weight: var(--font-weight-);
   opacity: 100%;
+  color: var(--clr-system);
   border-bottom: 4px solid var(--clr-cat-bg);
 }
 #InfoPanel .tabs button img {
+  opacity: 50%;
   width: 20px;
   height: 20px;
   padding-left: 0.5rem;
   vertical-align: middle;
+}
+#InfoPanel .tabs button.selected img {
+  opacity: 1;
 }
 
 #InfoPanel .tabpanels {
@@ -54,8 +58,8 @@
 #filtersSummary {
   padding: 5px 10px;
   font-size: 0.8em;
-  color: #fffc;
-  background-color: var(--clr-secondary);
+  color: #fff;
+  background-color: var(--clr-system-light);
 }
 #filtersSummary button {
   border: none;

@@ -28,6 +28,8 @@
   --clr-cat-light: #f7f3f2;
   --clr-secondary: #6a8899; /* navy */
   --clr-system: #355869; /* dark navy for UI/system labels */
+  --clr-system-light: #4b7c94; /* light navy for UI/system bg */
+  --clr-system-disabled: #526b78; /* dark navy for UI/system labels */
   --clr-system-faded: #35586999; /* transparent UI/system labels */
   --clr-system-fadedmore: #35586966; /* transparent UI/system labels */
   --clr-base-font: #161616;
