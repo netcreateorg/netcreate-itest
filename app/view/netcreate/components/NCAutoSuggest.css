@@ -1,3 +1,9 @@
+.NCAutoSuggest {
+  flex: 1; /* NCSearch */
+  display: flex;
+  flex-direction: column;
+}
+
 .matchlist {
   position: absolute;
   color: #3339;

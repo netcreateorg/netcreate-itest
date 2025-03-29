@@ -122,7 +122,6 @@ body {
   text-align: center;
 }
 .nc-navbar {
-  /* position: fixed; 2025-03 review: not needed if we're using flex */
   top: 0;
   height: 38px;
   padding: 10px;
