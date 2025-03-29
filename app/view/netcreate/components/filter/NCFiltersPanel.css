@@ -6,6 +6,10 @@
   padding: 5px;
   z-index: 1500;
 }
+.NCFiltersPanel.hidden {
+  /* Hide filters AND disable focus */
+  display: none;
+}
 
 .NCFiltersPanel .help {
   padding-right: 0.5em;
