@@ -197,22 +197,7 @@ class NetCreate extends UNISYS.Component {
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     const NAVBAR = (
       <nav className="--NetCreate_Fixed_Top nc-navbar" role="navigation">
-        <URButtonToggle
-          title="Show/Hide Advanced"
-          selected={PANELMGR.AdvancedIsOpen()}
-          onClick={PANELMGR.ToggleAdvanced}
-          tabindex="12"
-        >
-          <img src="images/icn_advanced.svg" alt="Advanced" />
-        </URButtonToggle>
-        <URButtonToggle
-          title="Show/Hide Help"
-          selected={PANELMGR.HelpIsOpen()}
-          onClick={PANELMGR.ToggleHelp}
-          tabindex="11"
-        >
-          <img src="images/icn_help.svg" alt="Help" />
-        </URButtonToggle>
+        <div style={{ width: '3rem' }}></div>
         <SessionShell />
         <div style={{ flexGrow: 1 }}></div>
         <URCommentStatus
@@ -222,6 +207,27 @@ class NetCreate extends UNISYS.Component {
         <div style={{ flexGrow: 1 }}></div>
         <img src="images/netcreate-logo.svg" height="25px" alt="NetCreate Logo" />
       </nav>
+    );
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// Force Help and Advanced to render AFTER main page
+    /// so that focus tab order comes AFTER the main content.
+    const NAVBTNS = (
+      <div className="nc-navbar-btns">
+        <URButtonToggle
+          title="Show/Hide Help"
+          selected={PANELMGR.HelpIsOpen()}
+          onClick={PANELMGR.ToggleHelp}
+        >
+          <img src="images/icn_help.svg" alt="Help" />
+        </URButtonToggle>
+        <URButtonToggle
+          title="Show/Hide Advanced"
+          selected={PANELMGR.AdvancedIsOpen()}
+          onClick={PANELMGR.ToggleAdvanced}
+        >
+          <img src="images/icn_advanced.svg" alt="Advanced" />
+        </URButtonToggle>
+      </div>
     );
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -263,6 +269,8 @@ class NetCreate extends UNISYS.Component {
               <NCFiltersPanel hidden={!layoutFiltersOpen} />
             </div>
           </div>
+
+          {NAVBTNS}
         </div>
         {/*** DIALOGS ***************/}
         <div id="dialog-container"></div>

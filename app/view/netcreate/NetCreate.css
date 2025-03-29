@@ -45,6 +45,7 @@
   --font-weight-bold: 600;
   --z-top: 6000;
   --z-popover: 5000;
+  --z-navbar: 2500;
 }
 
 html {
@@ -123,6 +124,8 @@ body {
   width: 100%;
   text-align: center;
 }
+
+/* NC Navbar -------------------------------------------------------------- */
 .nc-navbar {
   top: 0;
   height: 38px;
@@ -133,7 +136,13 @@ body {
   align-items: center;
   gap: 1rem;
   background-color: var(--clr-bg);
-  z-index: 2500; /* sets comment-status and comment threads */
+  z-index: var(--z-navbar);
+}
+.nc-navbar-btns {
+  position: absolute;
+  top: 3px;
+  right: 0;
+  z-index: var(--z-navbar);
 }
 /* Bootstrap override */
 .nav-item {
