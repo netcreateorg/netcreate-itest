@@ -25,7 +25,7 @@
 #comment-bar {
   display: flex;
   align-self: flex-start;
-  margin-top: 10px;
+  /* margin-top: 10px; */
   font-size: 0.8rem;
   z-index: 2000;
 }
@@ -44,6 +44,7 @@
 #comment-bar:hover h3,
 #comment-panel.expanded h3 {
   width: auto;
+  line-height: 0.5rem; /* center with cmtbtn */
   max-width: 120px;
   transition: all 0.1s ease-in;
 }
@@ -181,7 +182,7 @@
   padding: 5px 10px;
   position: relative; /* allow comment-icons to scroll */
   max-height: 300px;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 .comments-unread .comment-item {
   display: block;

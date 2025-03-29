@@ -1,3 +1,8 @@
+*,
+::after,
+::before {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
 }
@@ -25,4 +30,7 @@ fieldset {
   margin-inline: 0;
   padding-block: 0;
   padding-inline: 0;
+}
+svg {
+  vertical-align: middle; /* align svg with text */
 }
