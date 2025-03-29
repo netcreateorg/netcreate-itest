@@ -201,6 +201,7 @@ class NetCreate extends UNISYS.Component {
           title="Show/Hide Advanced"
           selected={PANELMGR.AdvancedIsOpen()}
           onClick={PANELMGR.ToggleAdvanced}
+          tabindex="12"
         >
           <img src="images/icn_advanced.svg" alt="Advanced" />
         </URButtonToggle>
@@ -208,6 +209,7 @@ class NetCreate extends UNISYS.Component {
           title="Show/Hide Help"
           selected={PANELMGR.HelpIsOpen()}
           onClick={PANELMGR.ToggleHelp}
+          tabindex="11"
         >
           <img src="images/icn_help.svg" alt="Help" />
         </URButtonToggle>

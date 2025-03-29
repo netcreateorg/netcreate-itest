@@ -19,7 +19,7 @@ const PR = 'URButtonToggle';
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function URButtonToggle({ title, selected, onClick, children }) {
+function URButtonToggle({ title, selected, onClick, children, tabindex }) {
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -31,6 +31,7 @@ function URButtonToggle({ title, selected, onClick, children }) {
       aria-label={title}
       aria-checked={selected}
       onClick={onClick}
+      tabIndex={tabindex}
     >
       {children}
     </button>
