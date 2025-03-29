@@ -31,7 +31,7 @@ function URPopover({ title, onClose, children }) {
       aria-label="Close"
       onClick={onClose}
     >
-      <img src="images/icn_plus.svg" />
+      <img src="images/icn_plus.svg" alt="" />
     </button>
   );
   return (
