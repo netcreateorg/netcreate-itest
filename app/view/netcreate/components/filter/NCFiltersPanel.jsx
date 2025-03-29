@@ -128,10 +128,8 @@ function NCFiltersPanel({ hidden }) {
     ));
   }
 
-  if (hidden) return null;
-
   return (
-    <div className="NCFiltersPanel">
+    <div className="NCFiltersPanel" hidden={hidden}>
       <div className="tabselectors" role="tablist">
         {Object.keys(TABS).map(k => (
           <button
