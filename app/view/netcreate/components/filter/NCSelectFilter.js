@@ -74,7 +74,9 @@ function NCSelectFilter({
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeOperator(event) {
-    setState(prevState => ({ ...prevState, operator: event.target.value }));
+    // on first update, we also need to set the default selected value
+    const value = state.value || (options && options.length > 0) ? options[0] : 0;
+    setState(prevState => ({ ...prevState, operator: event.target.value, value }));
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeValue(event) {
