@@ -63,13 +63,14 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// these styles are copied from AutoComplete.css
 const INPUT_STYLE = {
-  border: '1px solid #5F7C8B',
+  border: '1px solid #c35400',
   borderLeft: '0',
   borderRadius: '0 5px 5px 0',
-  padding: '0.25rem 0.5rem',
+  padding: '4px 8px 3px 8px',
   fontFamily: 'Helvetica, sans-serif',
   fontWeight: 400,
   fontSize: '10px',
+  lineHeight: '13px',
   textAlign: 'right',
   textTransform: 'uppercase'
 };
@@ -86,12 +87,13 @@ const LABEL_STYLE = {
   color: '#355869'
 };
 const LOGIN_BTN_STYLE = {
-  padding: '0.25rem 0.5rem',
+  padding: '4px 8px 3px 8px',
   fontSize: '10px',
-  border: '1px solid #E07141',
+  lineHeight: '13px',
+  border: '1px solid #c35400',
   borderRadius: '5px 0 0 5px',
   color: 'white',
-  backgroundColor: '#E07141'
+  backgroundColor: '#c35400'
 };
 /// Move login to navbar
 const NAV_LOGIN_STYLE = {
@@ -106,10 +108,15 @@ const VALID = {
   borderColor: 'green',
   outlineColor: 'green'
 };
+const VALIDBTN = {
+  backgroundColor: 'green',
+  borderColor: 'green',
+  outlineColor: 'green'
+};
 const INVALID = {
-  color: '#C83E3E',
-  borderColor: '#C83E3E',
-  outlineColor: '#C83E3E'
+  color: '#a20000',
+  borderColor: '#a20000',
+  outlineColor: '#a20000'
 };
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -199,7 +206,7 @@ class SessionShell extends UNISYS.Component {
   renderLogin() {
     let { token, classId, projId, groupId, subId, hashedId, isValid } = this.state;
     if (token) token = token.toUpperCase();
-    let formFeedback, tip, input;
+    let formFeedback, tip, loginbtn, input;
     tip = 'type your login token';
     if (classId) tip = 'token part [1/3]...';
     if (projId) tip = 'token part [2/3]...';
@@ -211,6 +218,16 @@ class SessionShell extends UNISYS.Component {
       //
       if (subId === 0) {
         tip = `...optional ID number`;
+        loginbtn = (
+          <button
+            style={LOGIN_BTN_STYLE}
+            disabled={!isValid}
+            onSubmit={this.onSubmit}
+            type="submit"
+          >
+            LOGIN
+          </button>
+        );
         input = (
           <input
             name="sessionToken"
@@ -230,6 +247,16 @@ class SessionShell extends UNISYS.Component {
         );
       } /* if subId!==0 */ else {
         tip = 'CLICK LOGIN BUTTON';
+        loginbtn = (
+          <button
+            style={{ ...LOGIN_BTN_STYLE, ...VALIDBTN }}
+            disabled={!isValid}
+            onSubmit={this.onSubmit}
+            type="submit"
+          >
+            LOGIN
+          </button>
+        );
         input = (
           <input
             name="sessionToken"
@@ -249,6 +276,16 @@ class SessionShell extends UNISYS.Component {
         );
       }
     } /* if not groupId*/ else {
+      loginbtn = (
+        <button
+          style={LOGIN_BTN_STYLE}
+          disabled={!isValid}
+          onSubmit={this.onSubmit}
+          type="submit"
+        >
+          LOGIN
+        </button>
+      );
       input = (
         <input
           name="sessionToken"
@@ -275,14 +312,7 @@ class SessionShell extends UNISYS.Component {
         style={NAV_LOGIN_STYLE}
       >
         {formFeedback}
-        <button
-          style={LOGIN_BTN_STYLE}
-          disabled={!isValid}
-          onSubmit={this.onSubmit}
-          type="submit"
-        >
-          LOGIN
-        </button>
+        {loginbtn}
         {input}
       </form>
     );
