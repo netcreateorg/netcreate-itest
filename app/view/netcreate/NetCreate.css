@@ -1,5 +1,7 @@
 /* Z-Index
 
+      6000  top layer
+            ToolTip .modal, .tooltiptextabove, .tooltiptext
       5000  NCDialog
       3000  nc-savelert      
       2500  nc-navbar > comment-status
@@ -15,7 +17,6 @@
         10  NCNode .nccomponent
          9  NCNode .screen ============
          1  URTable th
-         1  ToolTip .modal, .tooltiptextabove, .tooltiptext
          0  NetCreate
 */
 
@@ -42,6 +43,7 @@
   --font-weight-normal: 300;
   --font-weight-medium: 400;
   --font-weight-bold: 600;
+  --z-top: 6000;
   --z-popover: 5000;
 }
 
