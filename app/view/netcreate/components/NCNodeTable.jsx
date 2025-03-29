@@ -155,6 +155,8 @@ function NCNodeTable({ isOpen }) {
           {!disableEdit && (
             <button
               className="outline"
+              type="button"
+              aria-label="View Node"
               onClick={event => ui_ClickViewNode(event, value)}
             >
               {ICON_VIEW}
@@ -163,6 +165,8 @@ function NCNodeTable({ isOpen }) {
           {!disableEdit && !isLocked && (
             <button
               className="outline"
+              type="button"
+              aria-label="Edit Node"
               onClick={event => ui_ClickEditNode(event, value)}
             >
               {ICON_PENCIL}
@@ -186,6 +190,8 @@ function NCNodeTable({ isOpen }) {
       return (
         <button
           className="outline"
+          type="button"
+          aria-label={`View ${value} Node`}
           onClick={event => ui_ClickViewNode(event, tdata.id)}
         >
           <span>{value}</span>

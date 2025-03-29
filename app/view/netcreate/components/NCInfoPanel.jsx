@@ -192,6 +192,7 @@ function NCInfoPanel() {
         {Object.keys(TABS).map(k => (
           <button
             key={k}
+            id={k}
             className={state.activeTab === TABS[k].label ? 'selected' : ''}
             onClick={() => evt_SelectTab(k)}
             role="tab"
@@ -220,7 +221,7 @@ function NCInfoPanel() {
 
         <section
           id={TABS.NODESTABLE.label}
-          aria-labelledby={TABS.NODESTABLE.label}
+          aria-labelledby="NODESTABLE"
           role="tabpanel"
           className={state.activeTab !== TABS.NODESTABLE.label ? 'hidden' : ''}
         >
@@ -229,7 +230,7 @@ function NCInfoPanel() {
 
         <section
           id={TABS.EDGESTABLE.label}
-          aria-labelledby={TABS.EDGESTABLE.label}
+          aria-labelledby="EDGESTABLE"
           role="tabpanel"
           className={state.activeTab !== TABS.EDGESTABLE.label ? 'hidden' : ''}
         >

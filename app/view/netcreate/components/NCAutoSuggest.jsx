@@ -281,7 +281,9 @@ class NCAutoSuggest extends UNISYS.Component {
         : undefined;
     return (
       <div>
-        <div className="helptop">Click on a node, or type a node name</div>
+        <label className="helptop" htmlFor={parentKey}>
+          Click on a node, or type a node name
+        </label>
         <input
           id={parentKey}
           key={`${parentKey}input`}

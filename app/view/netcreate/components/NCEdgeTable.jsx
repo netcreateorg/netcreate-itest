@@ -162,6 +162,8 @@ function NCEdgeTable({ isOpen }) {
           {!disableEdit && (
             <button
               className="outline"
+              type="button"
+              aria-label="View Edge"
               onClick={event => ui_ClickViewEdge(event, value)}
             >
               {ICON_VIEW}
@@ -170,6 +172,8 @@ function NCEdgeTable({ isOpen }) {
           {!disableEdit && !isLocked && (
             <button
               className="outline"
+              type="button"
+              aria-label="Edge Edge"
               onClick={event => ui_ClickEditEdge(event, value)}
             >
               {ICON_PENCIL}
@@ -193,6 +197,8 @@ function NCEdgeTable({ isOpen }) {
       return (
         <button
           className="outline"
+          type="button"
+          aria-label="View Edge"
           onClick={event => ui_ClickViewNode(event, value.id)}
         >
           <span>{value.label}</span>
