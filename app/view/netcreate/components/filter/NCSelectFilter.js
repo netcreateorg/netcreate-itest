@@ -130,6 +130,7 @@ function NCSelectFilter({
           value={value}
           onChange={ui_OnChangeValue}
           disabled={operator === FILTER.OPERATORS.NO_OP.key}
+          aria-label={`${keylabel} filter value`}
         >
           {operator !== FILTER.OPERATORS.NO_OP.key
             ? options.map(op => (

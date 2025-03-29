@@ -139,14 +139,14 @@ function NCFiltersPanel({ hidden }) {
             role="tab"
             type="button"
             aria-selected={filterAction === TABS[k].action}
-            aria-controls={TABS[k].label}
+            aria-controls="tabpanel"
           >
             {TABS[k].label}
           </button>
         ))}
       </div>
 
-      <div className="tabpanels">
+      <div className="tabpanels" id="tabpanel">
         <label className="help">{filterActionHelp}</label>
 
         {FilterControlPanel}

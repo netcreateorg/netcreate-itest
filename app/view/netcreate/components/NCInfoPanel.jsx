@@ -172,6 +172,8 @@ function NCInfoPanel() {
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /// NOTE: The `id=graph` tabpanel needs to be defined for wcag compliance
+  ///       but it is hidden and not used.
   return (
     <div
       id="InfoPanel"
