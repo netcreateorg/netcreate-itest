@@ -298,7 +298,6 @@ class NCAutoSuggest extends UNISYS.Component {
           placeholder={SEARCH_PLACEHOLDER}
           autoComplete="off" // turn off Chrome's default autocomplete, which conflicts
         />
-        <br />
         {uShowMatchlist && matchList && (
           <div style={{ position: 'relative' }}>
             <div
