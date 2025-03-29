@@ -196,7 +196,7 @@ class NetCreate extends UNISYS.Component {
     );
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     const NAVBAR = (
-      <div className="--NetCreate_Fixed_Top nc-navbar">
+      <nav className="--NetCreate_Fixed_Top nc-navbar" role="navigation">
         <URButtonToggle
           title="Show/Hide Advanced"
           selected={PANELMGR.AdvancedIsOpen()}
@@ -219,12 +219,12 @@ class NetCreate extends UNISYS.Component {
         />
         <div style={{ flexGrow: 1 }}></div>
         <img src="images/netcreate-logo.svg" height="25px" alt="NetCreate Logo" />
-      </div>
+      </nav>
     );
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     return (
-      <div className="--NetCreate nc-base">
+      <main className="--NetCreate nc-base" role="main">
         {DISCONNECTED_MSG}
         {NAVBAR}
 
@@ -266,7 +266,7 @@ class NetCreate extends UNISYS.Component {
         <div id="dialog-container"></div>
         <NCHelpPanel />
         <NCAdvancedPanel />
-      </div>
+      </main>
     ); // end return
   } // end render()
 } // end class NetCreate
