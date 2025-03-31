@@ -31,16 +31,14 @@ const LOG = console.log.bind(console);
 /// FUNCTIONAL COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return a settings ui for rendering inside a React component */
-function GeneratePropList() {
-  const props = GetPropertyDefs();
-  const metadata = GetMetaDefs();
+function GeneratePropList(propDefs, metadata) {
   const groupUI = [];
-  Object.keys(props).forEach(gn => {
+  Object.keys(propDefs).forEach(gn => {
     groupUI.push(
       <PropertyGroup
-        groupDef={{ [gn]: props[gn] }}
+        groupDef={{ [gn]: propDefs[gn] }}
         metadata={{ [gn]: metadata[gn] }}
-        key={KH('GRP')}
+        key={gn}
       />
     );
   });
