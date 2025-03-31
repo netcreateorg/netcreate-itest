@@ -30,27 +30,18 @@ function GroupHeader(props) {
 function PropertyGroup(props) {
   const {
     groupDef, // { groupname: { propname: { type, default }, {}... }
-    metadata // { groupname:{ propname: { _groupMeta, propname: metadata, {}... } }
+    metaDef // { groupname:{ propname: { _groupMeta, propname: metaDef, {}... } }
   } = props;
   if (DBG) {
     if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
-    if (typeof metadata !== 'object') return <p>PropertyGroup bad metadata</p>;
+    if (typeof metaDef !== 'object') return <p>PropertyGroup bad metaDef</p>;
   }
   const gdata = DerefGroupDef(groupDef);
   if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
   const { groupName, properties } = gdata;
-  const meta = metadata[groupName];
-  const propsUI = [];
-  const propList = Object.keys(properties);
-  propList.forEach(p => {
-    if (properties[p].type) {
-      const key = `in-${groupName}.${p}`;
-      propsUI.push(
-        <TextInput propDef={properties[p]} metadata={meta[p]} key={key} />
-      );
-    }
-  });
-  const { title, description } = metadata[groupName]._groupMeta || {};
+  const propList = Object.keys(properties); // list of property names
+  const meta = metaDef[groupName];
+  const { title, description } = metaDef[groupName]._groupMeta || {};
   const key = `pg-${groupName}`;
   return (
     <div key={key} style={{ margin: '1rem' }}>
@@ -61,7 +52,17 @@ function PropertyGroup(props) {
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
-        <ui-groupDef groupDef={groupName}>{propsUI}</ui-groupDef>
+        <ui-groupDef groupDef={groupName}>
+          {propList.map(p => {
+            if (properties[p].type) {
+              const key = `in-${groupName}.${p}`;
+              return (
+                <TextInput propDef={properties[p]} metaDef={meta[p]} key={key} />
+              );
+            }
+            return null;
+          })}
+        </ui-groupDef>
       </details>
     </div>
   );

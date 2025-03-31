@@ -17,48 +17,76 @@ const {
   GetMetaDefs,
   GetStyles,
   OnValueChanged,
-  OffValueChanged
+  OffValueChanged,
+  GetContext
 } = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 const { diff } = require('deep-object-diff');
-const { SettingsProvider, useSettings } = require('./MURSettingsProvider'); // import the provider
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const PR = ConsoleStyler('SetEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-
-/// FUNCTIONAL COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return a settings ui for rendering inside a React component */
-function GeneratePropList(propDefs, metadata) {
-  const groupUI = [];
-  Object.keys(propDefs).forEach(gn => {
-    groupUI.push(
-      <PropertyGroup
-        groupDef={{ [gn]: propDefs[gn] }}
-        metadata={{ [gn]: metadata[gn] }}
-        key={gn}
-      />
-    );
-  });
-  return groupUI;
+/** a react context object, providing access to the values prop of the
+ *  SettingsProvider. It has to be defined within the React App root */
+const SettingsContext = GetContext(); // get the settings context
+
+/// CUSTOM HOOK FOR SETTINGS CONTEXT //////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** React Hook to manage settings context */
+function useSettings(initialSettings = {}) {
+  //
+  const [needsUpdate, triggerUpdate] = React.useState({ init: '' });
+
+  /** universal get settings */
+  const get = dotProp => Settings.Get(dotProp);
+
+  /** update property via settings manager, then trigger rerender */
+  const updateProperty = async (dotProp, value) => {
+    const opResult = await Settings.UpdateProperty(dotProp, value);
+    const { error, changed } = opResult;
+    if (error) {
+      console.error(`updateProperty: ${error}`);
+      return false; // indicate failure
+    }
+    triggerUpdate(opResult); // trigger a rerender
+    return true;
+  };
+
+  /** update group of properties via settings manager, then trigger rerender */
+  const updateGroup = async (groupName, propObj) => {
+    const opResult = await Settings.UpdateGroup(groupName, propObj);
+    const { error, changed } = opResult;
+    if (error) {
+      console.error(`updateGroup: ${error}`);
+      return false;
+    }
+    triggerUpdate(opResult); // trigger a rerender
+    return true;
+  };
+
+  return {
+    // to trigger rerender
+    needsUpdate,
+    // api
+    get,
+    updateProperty,
+    updateGroup
+  };
 }
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function MURSettingsEditor(props) {
-  const settings = Settings.Get(); // get the initial settings
-  const settingsAPI = useSettings(settings);
-  LOG(...PR(settingsAPI));
+function MURSettingsEditor() {
+  const api = useSettings();
 
   function saveChanges() {}
   function revertChanges() {}
 
   const propDefs = GetPropertyDefs();
   const metaDefs = GetMetaDefs();
-  const propsUI = GeneratePropList(propDefs, metaDefs);
   const { opBtnStyle, modColor } = GetStyles();
 
   const mod = false;
@@ -66,7 +94,7 @@ function MURSettingsEditor(props) {
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
   return (
-    <SettingsProvider settings={settingsAPI}>
+    <SettingsContext.Provider value={api}>
       <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
         Save Changes
       </button>
@@ -74,8 +102,14 @@ function MURSettingsEditor(props) {
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
         Revert Changes
       </button>
-      {propsUI}
-    </SettingsProvider>
+      {Object.keys(propDefs).map(gn => (
+        <PropertyGroup
+          groupDef={{ [gn]: propDefs[gn] }}
+          metaDef={{ [gn]: metaDefs[gn] }}
+          key={gn}
+        />
+      ))}
+    </SettingsContext.Provider>
   );
 }
 

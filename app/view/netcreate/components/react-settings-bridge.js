@@ -23,11 +23,20 @@ const UDATA = UNISYS.NewDataLink(MOD);
 let m_key_dict = {};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Hacky way to generate a React key prop, which is required for rendering
- *  lists of components in an array */
+ *  lists of components in an array. Shouldn't use this except for throwaway
+ *  lists for debugging */
 function ReactListKey(prefix) {
   if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
   if (m_key_dict[prefix] === undefined) m_key_dict[prefix] = 100;
   return `${prefix}${m_key_dict[prefix]++}`;
+}
+
+/// SETTINGS CONTEXT //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SettingsContext = Settings.GetContext(); // get the settings context
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetContext() {
+  return SettingsContext;
 }
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
@@ -209,5 +218,7 @@ module.exports = {
   Unsubscribe,
   //
   GetStyles,
-  EventTargetOffsetStyle
+  EventTargetOffsetStyle,
+  //
+  GetContext
 };

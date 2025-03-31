@@ -6,36 +6,40 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
+const { Settings } = require('ursys-min'); // import the settings manager
 const RSB = require('./react-settings-bridge');
-const { UpdateProperty, DerefSingularMetaDef, ValueChanged, RLK } = RSB;
-const { GetStyles, EventTargetOffsetStyle } = RSB;
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
+const SettingsContext = RSB.GetContext();
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = GetStyles();
+const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles();
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { propDef, metadata } = props;
+  const { propDef, metaDef } = props;
   if (DBG) {
     if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
-    if (typeof metadata !== 'object') return <p>TextInput bad metadata</p>;
+    if (typeof metaDef !== 'object') return <p>TextInput bad metaDef</p>;
   }
   const { value, default: defValue } = propDef;
-  const { label, tooltip, help, placeholder } = metadata;
+  const { label, tooltip, help, placeholder } = metaDef;
   // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
   const [oldValue] = React.useState(value || defValue);
   const [inputValue, setInputValue] = React.useState(value || defValue);
+
+  /// CONTEXT ///
+
+  const api = React.useContext(SettingsContext);
 
   /// TESTS ///
 
@@ -60,15 +64,18 @@ function TextInput(props) {
   };
 
   // input blur will submit the value to settings object
-  const handleSubmit = async event => {
-    propDef.value = event.target.value;
-    ValueChanged();
-  };
+  const handleSubmit = React.useCallback(
+    event => {
+      propDef.value = event.target.value;
+      LOG('handleSubmit API', api, 'propDef', propDef);
+    },
+    [api]
+  );
 
   // hovering over label will show tooltip
   const handleTooltip = event => {
     if (event.type === 'mouseover') {
-      const offset = EventTargetOffsetStyle(event);
+      const offset = RSB.EventTargetOffsetStyle(event);
       setTooltipStyle({
         ...popupStyle,
         ...offset,
@@ -88,7 +95,7 @@ function TextInput(props) {
       setOldStyle({ ...popupStyle });
       return;
     } else if (event.type === 'mouseover') {
-      const offset = EventTargetOffsetStyle(event);
+      const offset = RSB.EventTargetOffsetStyle(event);
       setOldStyle({
         ...popupStyle,
         ...offset,
@@ -107,7 +114,7 @@ function TextInput(props) {
   const bgColor = mod ? modColor : 'white';
   const pad = mod ? '1rem' : '0';
 
-  assert_is_modified();
+  // assert_is_modified();
 
   return (
     <div style={itemGrid}>

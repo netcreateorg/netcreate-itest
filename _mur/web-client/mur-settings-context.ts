@@ -1,6 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  description
+  This is a REFERENCE IMPLEMENTATION of a settings context for React.
+  The actual context and hooks have to be defined in the top level component
+  of the actual root view.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -9,9 +11,13 @@ import { Get, UpdateProperty, UpdateGroup } from './mur-settings-client.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SettingsContext = createContext(null);
+const SettingsContext = createContext({ origin: 'mur-settings-context' });
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetContext() {
+  return SettingsContext;
+}
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// HOOKS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Reference Custom Hook: React Hook to manage settings context
  *  This should NOT be imported directly, but rather be copied to
@@ -59,4 +65,4 @@ function useSettings(initialSettings = {}) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { SettingsContext };
+export { useSettings, GetContext };
