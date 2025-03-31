@@ -193,7 +193,7 @@ function EventTargetOffsetStyle(event) {
  *  implementation is in mur-settings-context */
 function useSettings(initialSettings = {}) {
   //
-  const [needsUpdate, triggerUpdate] = React.useState({ init: '' });
+  const [updateCount, triggerUpdate] = React.useState(0);
 
   /** universal get settings */
   const get = dotProp => Settings.Get(dotProp);
@@ -224,8 +224,8 @@ function useSettings(initialSettings = {}) {
 
   return {
     // to trigger rerender
-    needsUpdate,
-    forceUpdate: () => triggerUpdate({ timestamp: new Date().toISOString() }),
+    updateCount,
+    forceUpdate: () => triggerUpdate(prev => prev + 1),
     // api
     get,
     updateProperty,

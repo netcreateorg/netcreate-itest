@@ -28,7 +28,7 @@ function GetSettingsContext() {
  *  have to duplicate it over there somewhere to match both instance
  *  and potentailly the version */
 function useSettings() {
-  const [needsUpdate, triggerUpdate] = React.useState({});
+  const [updateCount, triggerUpdate] = React.useState({});
 
   /** universal get settings */
   const get = dotProp => Get(dotProp);
@@ -59,7 +59,7 @@ function useSettings() {
 
   return {
     // to trigger rerender
-    needsUpdate,
+    updateCount,
     forceUpdate: () => triggerUpdate({ timestamp: new Date().toISOString() }),
     // api
     get,

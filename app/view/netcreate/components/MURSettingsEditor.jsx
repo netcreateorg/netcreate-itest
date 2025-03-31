@@ -38,20 +38,26 @@ const SettingsContext = GetSettingsContext(); // get the settings context
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
   const api = useSettings();
+  const [oldCount, setOldCount] = React.useState(api.updateCount);
 
-  function saveChanges() {}
-  function revertChanges() {}
+  function saveChanges() {
+    setOldCount(api.updateCount);
+    LOG(...PR('would save changes'));
+  }
+  function revertChanges() {
+    LOG(...PR('would revert changes'));
+  }
 
   const propDefs = GetPropertyDefs();
   const metaDefs = GetMetaDefs();
   const { opBtnStyle, modColor } = GetStyles();
 
-  const mod = false;
+  const mod = api.updateCount !== oldCount;
   const backgroundColor = mod ? modColor : 'white';
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
   return (
-    <SettingsContext.Provider value={api} needsUpdate={api.needsUpdate}>
+    <SettingsContext.Provider value={api} updateCount={api.updateCount}>
       <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
         Save Changes
       </button>

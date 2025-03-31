@@ -66,7 +66,7 @@ function TextInput(props) {
   // input blur will submit the value to settings object
   const handleSubmit = async event => {
     propDef.value = event.target.value;
-    LOG('handleSubmit API needsUpdate (old)', api.needsUpdate);
+    LOG('handleSubmit API updateCount (old)', api.updateCount);
     api.forceUpdate();
   };
 
