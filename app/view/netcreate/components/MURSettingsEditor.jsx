@@ -1,4 +1,3 @@
-/* eslint-disable no-alert */
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Property Editor Panel
@@ -11,7 +10,7 @@
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { Settings, ConsoleStyler, DataNorm } = require('ursys-min');
+const { Settings, ConsoleStyler } = require('ursys-min');
 const {
   GetPropertyDefs,
   FlattenPropertyDefs,
@@ -21,6 +20,8 @@ const {
   OffValueChanged
 } = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
+const { diff } = require('deep-object-diff');
+const { SettingsProvider, useSettings } = require('./MURSettingsProvider'); // import the provider
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,40 +48,37 @@ function GeneratePropList(propDefs, metadata) {
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class MURSettingEditor extends UNISYS.Component {
-  constructor(props) {
-    super(props);
-    // UNISYS.Component already has UDATA and exposes these handlers
-    // see client-react-component.jsx for more info
-    this.handleSettingsUpdate = this.handleSettingsUpdate.bind(this);
-  }
+function MURSettingsEditor(props) {
+  const settings = Settings.Get(); // get the initial settings
+  const settingsAPI = useSettings(settings);
+  LOG(...PR(settingsAPI));
 
-  /// REACT LIFECYCLE ///
+  function saveChanges() {}
+  function revertChanges() {}
 
-  async componentDidMount() {
-    Settings.Subscribe('*', this.handleSettingsUpdate);
-    // props are sorted in order they are merged in mur-settings-mgr.mts
-  }
+  const propDefs = GetPropertyDefs();
+  const metaDefs = GetMetaDefs();
+  const propsUI = GeneratePropList(propDefs, metaDefs);
+  const { opBtnStyle, modColor } = GetStyles();
 
-  componentWillUnmount() {
-    Settings.Unsubscribe('*', this.handleSettingsUpdate);
-  }
+  const mod = false;
+  const backgroundColor = mod ? modColor : 'white';
+  const btnStyle = { ...opBtnStyle, backgroundColor };
 
-  /// DATA EVENT HANDLERS ///
-
-  /** called after subscribing via Settings.Subscribe() */
-  handleSettingsUpdate(data) {
-    const { settings, group, prop } = data;
-  }
-
-  /// RENDERED OUTPUT ///
-
-  render() {
-    const propsUI = GeneratePropList();
-    return <div>{propsUI}</div>;
-  }
+  return (
+    <SettingsProvider settings={settingsAPI}>
+      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
+        Save Changes
+      </button>
+      &nbsp;
+      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
+        Revert Changes
+      </button>
+      {propsUI}
+    </SettingsProvider>
+  );
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = MURSettingEditor;
+module.exports = MURSettingsEditor;
