@@ -1,8 +1,12 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  This is a REFERENCE IMPLEMENTATION of a settings context for React.
-  The actual context and hooks have to be defined in the top level component
-  of the actual root view.
+  MUR Settings Context
+  
+  Centralized React Context for Settings Manager
+  
+  Usage:
+    - wrap your component tree with <SettingsProvider>
+    - use the `useSettings` hook in your components
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -13,17 +17,17 @@ import { Get, UpdateProperty, UpdateGroup } from './mur-settings-client.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SettingsContext = createContext({ origin: 'mur-settings-context' });
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetContext() {
+function GetSettingsContext() {
   return SettingsContext;
 }
 
 /// HOOKS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Reference Custom Hook: React Hook to manage settings context
- *  This should NOT be imported directly, but rather be copied to
- *  the top-level component that needs it */
-function useSettings(initialSettings = {}) {
-  //
+/** React Hook to manage settings context. Note that this module is
+ *  defined in a different React context than the legacy app, so you
+ *  have to duplicate it over there somewhere to match both instance
+ *  and potentailly the version */
+function useSettings() {
   const [needsUpdate, triggerUpdate] = React.useState({});
 
   /** universal get settings */
@@ -56,6 +60,7 @@ function useSettings(initialSettings = {}) {
   return {
     // to trigger rerender
     needsUpdate,
+    forceUpdate: () => triggerUpdate({ timestamp: new Date().toISOString() }),
     // api
     get,
     updateProperty,
@@ -65,4 +70,4 @@ function useSettings(initialSettings = {}) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { useSettings, GetContext };
+export { useSettings, GetSettingsContext };

@@ -31,14 +31,6 @@ function ReactListKey(prefix) {
   return `${prefix}${m_key_dict[prefix]++}`;
 }
 
-/// SETTINGS CONTEXT //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SettingsContext = Settings.GetContext(); // get the settings context
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetContext() {
-  return SettingsContext;
-}
-
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Subscribe to changes in the settings object
@@ -195,6 +187,52 @@ function EventTargetOffsetStyle(event) {
   };
 }
 
+/// CUSTOM HOOK FOR SETTINGS CONTEXT //////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** React Hook to manage settings context. The original reference
+ *  implementation is in mur-settings-context */
+function useSettings(initialSettings = {}) {
+  //
+  const [needsUpdate, triggerUpdate] = React.useState({ init: '' });
+
+  /** universal get settings */
+  const get = dotProp => Settings.Get(dotProp);
+
+  /** update property via settings manager, then trigger rerender */
+  const updateProperty = async (dotProp, value) => {
+    const opResult = await Settings.UpdateProperty(dotProp, value);
+    const { error, changed } = opResult;
+    if (error) {
+      console.error(`updateProperty: ${error}`);
+      return false; // indicate failure
+    }
+    triggerUpdate(opResult); // trigger a rerender
+    return true;
+  };
+
+  /** update group of properties via settings manager, then trigger rerender */
+  const updateGroup = async (groupName, propObj) => {
+    const opResult = await Settings.UpdateGroup(groupName, propObj);
+    const { error, changed } = opResult;
+    if (error) {
+      console.error(`updateGroup: ${error}`);
+      return false;
+    }
+    triggerUpdate(opResult); // trigger a rerender
+    return true;
+  };
+
+  return {
+    // to trigger rerender
+    needsUpdate,
+    forceUpdate: () => triggerUpdate({ timestamp: new Date().toISOString() }),
+    // api
+    get,
+    updateProperty,
+    updateGroup
+  };
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
@@ -220,5 +258,6 @@ module.exports = {
   GetStyles,
   EventTargetOffsetStyle,
   //
-  GetContext
+  GetSettingsContext: Settings.GetSettingsContext,
+  useSettings // locally-defined to match react version/instance
 };

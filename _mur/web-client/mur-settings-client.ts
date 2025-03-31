@@ -9,7 +9,7 @@
 import * as NCI from './nc-client-interop.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { EventMachine } from '../common/class-event-machine.ts';
-import { SettingsContext } from './mur-settings-context.ts'; // for React context
+import { GetSettingsContext, useSettings } from './mur-settings-context.ts'; // for React context
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -126,11 +126,6 @@ function Subscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
 function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
   EM.off(scope, evHdl);
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Getter for the settings context for React usage */
-function GetContext() {
-  return SettingsContext;
-}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -143,5 +138,6 @@ export {
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   //
-  GetContext // for React context usage
+  GetSettingsContext, // for React context usage
+  useSettings // for React hook usage (may not work in legacy js)
 };

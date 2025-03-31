@@ -18,7 +18,8 @@ const {
   GetStyles,
   OnValueChanged,
   OffValueChanged,
-  GetContext
+  useSettings,
+  GetSettingsContext
 } = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 const { diff } = require('deep-object-diff');
@@ -31,51 +32,7 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a react context object, providing access to the values prop of the
  *  SettingsProvider. It has to be defined within the React App root */
-const SettingsContext = GetContext(); // get the settings context
-
-/// CUSTOM HOOK FOR SETTINGS CONTEXT //////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** React Hook to manage settings context */
-function useSettings(initialSettings = {}) {
-  //
-  const [needsUpdate, triggerUpdate] = React.useState({ init: '' });
-
-  /** universal get settings */
-  const get = dotProp => Settings.Get(dotProp);
-
-  /** update property via settings manager, then trigger rerender */
-  const updateProperty = async (dotProp, value) => {
-    const opResult = await Settings.UpdateProperty(dotProp, value);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateProperty: ${error}`);
-      return false; // indicate failure
-    }
-    triggerUpdate(opResult); // trigger a rerender
-    return true;
-  };
-
-  /** update group of properties via settings manager, then trigger rerender */
-  const updateGroup = async (groupName, propObj) => {
-    const opResult = await Settings.UpdateGroup(groupName, propObj);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateGroup: ${error}`);
-      return false;
-    }
-    triggerUpdate(opResult); // trigger a rerender
-    return true;
-  };
-
-  return {
-    // to trigger rerender
-    needsUpdate,
-    // api
-    get,
-    updateProperty,
-    updateGroup
-  };
-}
+const SettingsContext = GetSettingsContext(); // get the settings context
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,7 +51,7 @@ function MURSettingsEditor() {
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
   return (
-    <SettingsContext.Provider value={api}>
+    <SettingsContext.Provider value={api} needsUpdate={api.needsUpdate}>
       <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
         Save Changes
       </button>

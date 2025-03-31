@@ -13,7 +13,7 @@ const RSB = require('./react-settings-bridge');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
-const SettingsContext = RSB.GetContext();
+const SettingsContext = RSB.GetSettingsContext();
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -64,13 +64,11 @@ function TextInput(props) {
   };
 
   // input blur will submit the value to settings object
-  const handleSubmit = React.useCallback(
-    event => {
-      propDef.value = event.target.value;
-      LOG('handleSubmit API', api, 'propDef', propDef);
-    },
-    [api]
-  );
+  const handleSubmit = async event => {
+    propDef.value = event.target.value;
+    LOG('handleSubmit API needsUpdate (old)', api.needsUpdate);
+    api.forceUpdate();
+  };
 
   // hovering over label will show tooltip
   const handleTooltip = event => {
