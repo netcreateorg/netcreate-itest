@@ -150,7 +150,11 @@ function LoadSettings(dir) {
       throw Error(`specified schema file not found: ${u_short(p)}`);
     }
     const yaml: string = FILE.ReadFile(p).toString();
-    const { _key, _schemaVersion: _sch, ...obj } = parse(yaml, { merge: true });
+    const {
+      _schemaLayer,
+      _schemaVersion: _sch,
+      ...obj
+    } = parse(yaml, { merge: true });
     // detect schema version mismatch for this file
     if (!detectedSchema) detectedSchema = _sch;
     if (detectedSchema !== _sch) {
@@ -159,10 +163,10 @@ function LoadSettings(dir) {
       LOG(`schema mismatch: ${cfile}: ${_sch} nomatch ${pfile}`);
       process.exit(1);
     }
-    // check for _key and handle differently
-    if (typeof _key === 'string' && _key.length > 0) {
-      if (SETTINGS[_key] === undefined) SETTINGS[_key] = {};
-      Object.assign(SETTINGS[_key], obj);
+    // check for _schemaLayer and handle differently
+    if (typeof _schemaLayer === 'string' && _schemaLayer.length > 0) {
+      if (SETTINGS[_schemaLayer] === undefined) SETTINGS[_schemaLayer] = {};
+      Object.assign(SETTINGS[_schemaLayer], obj);
     } else Object.assign(SETTINGS, obj);
   });
   // after processing all files, update the schema version

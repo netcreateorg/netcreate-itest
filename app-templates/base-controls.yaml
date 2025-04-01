@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: ComponentDefs
+_schemaLayer: ComponentDefs
 
 # these correspond to webcomponent custom tags
 
