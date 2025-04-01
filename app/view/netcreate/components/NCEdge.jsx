@@ -1204,6 +1204,7 @@ class NCEdge extends UNISYS.Component {
           onClick={this.UIEnableSourceTargetSelect}
           style={{ backgroundColor: color + '55', borderColor: color }}
           disabled={disabled}
+          autoFocus={!disabled}
           type="button"
         >
           {value || EDGE_NOT_SET_LABEL}
