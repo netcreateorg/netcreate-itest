@@ -155,6 +155,7 @@ function URCommentVBtn({ cref }) {
         hasReadComments={state.hasReadComments}
         selected={state.isOpen}
         onClick={evt_OnClick}
+        ariaLabel={`Comments (${state.count})`}
       />
     </div>
   );

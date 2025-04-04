@@ -50,7 +50,8 @@ function URCommentSVGBtn({
   selected,
   disabled,
   small,
-  onClick
+  onClick,
+  ariaLabel = `Comments (${count})`
 }) {
   // REVIEW: Remove?  not being used?
   const svgRef = useRef(null);
@@ -130,12 +131,21 @@ function URCommentSVGBtn({
 
   const size = small ? '24' : '32';
   return (
-    <div id={uiref} className={'commentbtn' + state.css} onClick={onClick}>
+    <button
+      id={uiref}
+      className={'commentbtn' + state.css}
+      onClick={onClick}
+      disabled={disabled}
+      type="button"
+      role="switch"
+      aria-label={ariaLabel}
+      aria-checked={selected}
+    >
       <div className="comment-count">{state.label}</div>
       <svg width={size} height={size}>
         <g className={state.svgClass}>{CMTMGR.COMMENTICON}</g>
       </svg>
-    </div>
+    </button>
   );
 }
 

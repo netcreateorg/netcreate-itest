@@ -315,7 +315,7 @@
 
 .nccomponent .titlebar {
   display: grid;
-  grid-template-columns: 60px auto 30px;
+  grid-template-columns: 60px auto 34px;
   align-items: center;
   /* display: flex;
   justify-content: space-between;

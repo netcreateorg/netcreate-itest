@@ -215,36 +215,38 @@ function URCommentStatus(props) {
   );
 
   const UnreadRepliesToMeButtonJSX = (
-    <div>
+    <div className="comment-summary-item">
       <URCommentSVGBtn
         uiref="unreadRepliesToMe"
         count={countRepliesToMe}
         hasUnreadComments={countRepliesToMe > 0}
         hasReadComments={countRepliesToMe === 0}
         selected={false}
+        disabled // display only
         onClick={evt_ExpandPanel}
+        ariaLabel={`Unread replies to me (${countRepliesToMe})`}
       />
-      <h3>&nbsp;unread replies to me</h3>
+      <label htmlFor="unreadRepliesToMe">unread replies to me</label>
     </div>
   );
   const UnreadButtonJSX = (
-    <div>
+    <div className="comment-summary-item">
       <URCommentSVGBtn
         uiref="unread"
         count={countUnread}
         hasUnreadComments={countUnread > 0}
         hasReadComments={countUnread === 0}
         selected={false}
+        disabled // display only
         onClick={evt_ExpandPanel}
+        ariaLabel={`Unread comments (${countUnread})`}
       />
-      <h3>&nbsp;unread</h3>
+      <label htmlFor="unread">unread</label>
     </div>
   );
 
   return (
     <div>
-      <URCommentCollectionMgr />
-      <URDialog info={CMTSTATUS.dialog} />
       <div id="comment-bar">
         <div
           id="comment-alert"
@@ -253,17 +255,22 @@ function URCommentStatus(props) {
           {!uiIsExpanded && <div className="comment-status-body">{message}</div>}
         </div>
         <div>
-          <div
+          <button
             id="comment-summary"
             className={`${uiIsExpanded ? ' expanded' : ''}`}
             onClick={evt_ExpandPanel}
+            role="button"
+            tabIndex="0"
+            aria-label={`Expand Comment Status`}
           >
             {UnreadRepliesToMeButtonJSX}&nbsp;{UnreadButtonJSX}
-          </div>
+          </button>
           <div
             id="comment-panel"
             className={`${uiIsExpanded ? ' expanded' : ''}`}
             onClick={evt_Close}
+            role="button"
+            tabIndex="0"
           >
             <div className="comments-unread">
               {UnreadRepliesToMeButtonJSX}
@@ -271,10 +278,10 @@ function URCommentStatus(props) {
               {UnreadButtonJSX}
               <div className="comment-status-body">{unreadCommentItems}</div>
               <div className="commentbar">
-                <button className="small" onClick={evt_Close}>
+                <button className="small" onClick={evt_Close} role="button">
                   Close
                 </button>
-                <button className="small" onClick={evt_MarkAllRead}>
+                <button className="small" onClick={evt_MarkAllRead} role="button">
                   Mark All Read
                 </button>
               </div>
@@ -282,6 +289,8 @@ function URCommentStatus(props) {
           </div>
         </div>
       </div>
+      <URCommentCollectionMgr />
+      <URDialog info={CMTSTATUS.dialog} />
     </div>
   );
 }

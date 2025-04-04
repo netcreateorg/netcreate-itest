@@ -13,6 +13,8 @@ h4,
 h5,
 h6 {
   margin: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
 }
 input {
   font-family: unset;

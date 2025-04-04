@@ -311,7 +311,6 @@ function URComment({ cref, cid, uid }) {
       commenter_text: [...commenter_text]
     }));
   }
-
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** The URComment conditionally renders its display state based on several
@@ -351,34 +350,43 @@ function URComment({ cref, cid, uid }) {
 
   /// SUB COMPONENTS
   const EditBtn = (
-    <button className="outline small" onClick={evt_EditBtn}>
+    <button className="outline small" onClick={evt_EditBtn} type="button">
       Edit
     </button>
   );
   const DeleteBtn = (
-    <button className="outline small danger" onClick={evt_DeleteBtn}>
+    <button className="outline small danger" onClick={evt_DeleteBtn} type="button">
       Delete
     </button>
   );
-  const SaveBtn = <button onClick={evt_SaveBtn}>Save</button>;
+  const SaveBtn = (
+    <button onClick={evt_SaveBtn} type="button">
+      Save
+    </button>
+  );
   const ReplyBtn = uAllowReply ? (
-    <button onClick={evt_ReplyBtn}>Reply</button>
+    <button onClick={evt_ReplyBtn} type="button">
+      Reply
+    </button>
   ) : (
     <div></div> // empty div to keep layout consistent
   );
   const CancelBtn = (
-    <button className="secondary" onClick={evt_CancelBtn}>
+    <button className="secondary" onClick={evt_CancelBtn} type="button">
       Cancel
     </button>
   );
   const TypeSelector = (
-    <select value={selected_comment_type} onChange={evt_TypeSelector}>
-      {[...commentTypes.entries()].map(type => (
-        <option key={type[0]} value={type[0]}>
-          {type[1].label}
-        </option>
-      ))}
-    </select>
+    <label className="commentTypeLabel">
+      Select a comment type
+      <select value={selected_comment_type} onChange={evt_TypeSelector}>
+        {[...commentTypes.entries()].map(type => (
+          <option key={type[0]} value={type[0]}>
+            {type[1].label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
   const SelectedType = commentTypes.get(selected_comment_type);
   const SelectedTypeLabel = SelectedType ? SelectedType.label : 'Type not found';
@@ -450,6 +458,7 @@ function URComment({ cref, cid, uid }) {
         className={`comment ${comment.comment_isMarkedDeleted ? 'deleted' : ''} ${
           cvobj.isMarkedRead ? '' : 'unread'
         }`}
+        tabIndex="0"
       >
         <div>
           <div className="commenter">{commenter}</div>

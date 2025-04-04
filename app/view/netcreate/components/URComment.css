@@ -8,8 +8,8 @@
   --comment-font-size-medium: 12px;
   --comment-font-weight-light: 300;
   --comment-font-weight-medium: 400;
-  --comment-status-font-color: #d84a0088;
-  --comment-system-font-color: #0003;
+  --comment-status-font-color: #d84a00;
+  --comment-system-font-color: #555;
   --disabled-opacity: 0.5;
   --cmtbtn-read: #696969; /* svg symbols */
   --cmtbtn-unread-light: #ffe143; /* svg symbols */
@@ -25,24 +25,25 @@
 #comment-bar {
   display: flex;
   align-self: flex-start;
-  /* margin-top: 10px; */
+  margin-top: -11px;
   font-size: 0.8rem;
   z-index: 2000;
 }
-#comment-bar h3 {
-  display: inline-block;
+#comment-bar .comment-summary-item label {
+  display: none;
   color: var(--comment-status-font-color);
   margin: 3px 0 5px 0;
   font-size: 10px;
+  font-weight: var(--comment-font-weight-medium);
   width: 1px;
   max-width: 1px;
-  height: 1em;
-  margin: 0;
   overflow: hidden;
   transition: all 0.1s ease-in;
 }
-#comment-bar:hover h3,
-#comment-panel.expanded h3 {
+#comment-bar:hover .comment-summary-item label,
+#comment-bar:focus .comment-summary-item label,
+#comment-panel.expanded .comment-summary-item label {
+  display: inline-block;
   width: auto;
   line-height: 0.5rem; /* center with cmtbtn */
   max-width: 120px;
@@ -95,20 +96,27 @@
   display: flex;
   color: var(--comment-status-font-color);
   background-color: var(--comment-bg-light);
-  border-radius: 15px;
-  height: 1.8rem;
+  border: none;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  height: 2.3rem;
   line-height: 1.3rem;
   cursor: pointer;
   width: fit-content;
   padding: 1px 5px;
-  float: right;
+}
+#comment-summary:focus h3 {
+  width: auto;
+  line-height: 0.5rem; /* center with cmtbtn */
+  max-width: 120px;
+  transition: all 0.1s ease-in;
 }
 #comment-summary.expanded {
   display: none;
 }
-#comment-summary span {
-  display: inline-block;
-  margin: 0 0.5rem 0 0.2rem;
+#comment-summary .comment-summary-item {
+  display: flex;
+  align-items: center;
 }
 #comment-summary svg#comment-icon,
 .comments-unread svg#comment-icon {
@@ -124,7 +132,8 @@
 /* Comment Panel ----------------------------------------------------------- */
 #comment-panel {
   background-color: var(--comment-bg-light);
-  border-radius: 15px;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
   display: none;
   width: fit-content;
   padding: 5px;
@@ -135,6 +144,7 @@
   height: fit-content;
   /* pop out so so sidebars don't move */
   position: absolute;
+  top: 0;
   margin-left: -300px;
 }
 /* Comment Alert ----------------------------------------------------------- */
@@ -168,7 +178,7 @@
   right: 10px; /* float to the left of the main status */
 }
 .comment-status-body {
-  margin-left: 1.3rem;
+  margin-left: 32px;
   padding-bottom: 0.5rem;
   overflow: hidden;
   white-space: nowrap;
@@ -307,10 +317,13 @@ svg#comment-icon {
   padding: 5px;
   cursor: default;
 }
-.comment:hover {
+.comment:focus {
   background-color: #fff8;
+  outline: 2px auto;
 }
-
+.comment:focus.unread {
+  border-width: 4px;
+}
 .comment.unread {
   border: 3px solid var(--comment-bg-new);
 }
@@ -325,7 +338,7 @@ svg#comment-icon {
 .comment.deleted .date,
 .comment.deleted .help /* .help uses nccomponent */,
 .comment.deleted .commentId {
-  color: #0003;
+  color: var(--comment-commenter-font-color);
 }
 .comment.deleted .label::before {
   content: 'DELETED';
@@ -358,7 +371,7 @@ svg#comment-icon {
 .comment .commentId,
 .comment-status-body .commenter,
 .comment .commentTypeBar .commentTypeLabel {
-  color: #0008;
+  color: var(--comment-commenter-font-color);
   font-size: var(--comment-font-size-medium);
   font-weight: var(--comment-font-weight-medium);
   line-height: 14px;
@@ -418,7 +431,7 @@ svg#comment-icon {
   border: none;
   font-size: 0.7em;
 }
-.comment:hover .editmenu {
+.comment:focus .editmenu {
   visibility: visible;
 }
 
@@ -438,6 +451,7 @@ svg#comment-icon {
   padding: 0 3px;
   color: #0006;
   background-color: #fff2;
+  border: none;
   cursor: pointer;
 }
 
@@ -494,10 +508,10 @@ svg#comment-icon {
   /* visibility: hidden; */
   display: none;
 }
-.comment:hover .commentbar {
+.comment:focus .commentbar {
   padding-top: 5px;
 }
-.comment:hover .commentbar button {
+.comment:focus-within .commentbar button {
   /* visibility: visible; */
   display: block;
 }
@@ -584,9 +598,19 @@ svg#comment-icon {
 
 /* SVG Comment Icons ------------------------------------------------------- */
 .commentbtn {
-  /* URCommentBtn & URCommentVBtn */
+  appearance: none; /* Removes default button styling */
+  background: none !important; /* override NetCreate.css */
+  border: none !important; /* override NetCreate.css */
+  padding: 1px 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
   display: inline-block;
-  cursor: pointer;
+  width: fit-content;
+  height: 30px;
+}
+.commentbtn:focus {
+  outline: 2px solid;
 }
 .commentbtn.disabled {
   /* URCommentBtn & URCommentVBtn */
@@ -609,6 +633,12 @@ svg#comment-icon {
 }
 .commentbtn.hasReadComments .comment-count {
   color: var(--cmtbtn-read);
+}
+
+button.commentbtn svg {
+  /* override NetCreate.css `button svg` */
+  width: revert;
+  height: revert;
 }
 
 .svgcmt-read .svg-fill {
