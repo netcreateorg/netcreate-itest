@@ -202,7 +202,9 @@ function URCommentStatus(props) {
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  if (!uid) return ''; // if not logged in, there's no comment status
+
+  // Uncomment this line to disable the comments if not logged in
+  // if (!uid) return ''; // if not logged in, there's no comment status
 
   const { countRepliesToMe, countUnread } = CMTMGR.GetCommentStats();
   const unreadRepliesToMe = CMTMGR.GetUnreadRepliesToMe();
