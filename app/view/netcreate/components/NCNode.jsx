@@ -977,7 +977,9 @@ class NCNode extends UNISYS.Component {
     const NCDATA = this.AppState('NCDATA');
     const TEMPLATE = this.AppState('TEMPLATE');
     const me = (
-      <span style={{ color: 'rgba(0,0,0,0.2)', fontStyle: 'italic' }}>this node</span>
+      <span style={{ color: '#888', fontStyle: 'italic', fontWeight: 'normal' }}>
+        this node
+      </span>
     );
     return (
       <div className="edges">

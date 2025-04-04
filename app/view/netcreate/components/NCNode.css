@@ -20,11 +20,10 @@
 .nccomponent button {
   background-color: #fff6;
   border-radius: 5px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   color: #333;
-  text-transform: uppercase;
   font-size: 0.9em;
 }
 .nccomponent button:hover,
@@ -44,7 +43,7 @@
   width: 100%;
   box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
@@ -60,7 +59,7 @@
   width: 100%;
   box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
@@ -76,7 +75,7 @@
 .nccomponent select {
   width: 100%;
   border-radius: 5px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
@@ -86,7 +85,7 @@
 .nccomponent button.cancelbtn {
   background-color: transparent;
   border-color: #0004;
-  color: #0006;
+  color: #666;
 }
 .nccomponent button.sourcetargetbtn {
   border-radius: 15px;
@@ -116,6 +115,7 @@
   width: 100%;
   margin: 0 0 3px 0;
   text-align: left;
+  font-weight: bold;
   overflow: hidden;
 }
 .nccomponent button.addedgebutton {
@@ -221,7 +221,7 @@
   grid-template-columns: 50px auto;
 }
 .nccomponent .formview.typeview label {
-  color: #0004;
+  color: #666;
   opacity: 1;
 }
 .nccomponent .formview .edgetypeRow {
@@ -324,7 +324,7 @@
 .nccomponent .titlebar .nodenumber {
   font-size: 10px;
   line-height: 26px; /* match CommmentBtn */
-  color: #0004;
+  color: #666;
   padding-right: 0.4em;
 }
 .nccomponent .titlebar .nodelabel label {
@@ -364,6 +364,6 @@
   align-self: flex-start;
   margin-left: 0;
   border-color: #0002;
-  color: #0006;
+  color: #666;
   background-color: transparent;
 }
