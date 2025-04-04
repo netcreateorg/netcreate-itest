@@ -34,6 +34,9 @@ function NCFilterGroupProperties({ group, transparency }) {
   // this is overkill to have these be separate, but mirroring the other filter components and aiming
   // to have future additional properties here, so this way the flow won't change (change functions call trigger change)
   function BroadcastChange() {
+    // if no data has changed, skip update
+    if (transparency === state.transparency) return;
+
     // for debugging
     // console.log(
     //   'Filter group for ' +

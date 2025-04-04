@@ -102,6 +102,9 @@ function NCStringFilter({
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function BroadcastChange() {
+    // if no data has changed, skip update
+    if (operator === state.operator && value === state.value) return;
+
     const filterDef = {
       id,
       type,
