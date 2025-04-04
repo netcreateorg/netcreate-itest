@@ -44,7 +44,7 @@ class NCGraph extends UNISYS.Component {
   constructor(props) {
     super(props);
     this.state = {
-      ncGraphRenderer: {},
+      ncGraphRenderer: undefined,
       d3data: {},
       nodeTypes: [],
       edgeTypes: []
@@ -78,6 +78,7 @@ class NCGraph extends UNISYS.Component {
    */
   updateVData(data) {
     if (DBG) console.log(PR, 'got state D3DATA', data, RENDERMGR);
+    if (!this.state.ncGraphRenderer) return;
     const d3data = RENDERMGR.ProcessNCData(data);
     this.state.ncGraphRenderer.SetData(d3data);
   }
