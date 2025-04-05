@@ -409,11 +409,11 @@ class ImportExport extends UNISYS.Component {
             know the lock was left on in error, e.g. you know that there is no one on
             the network actively editing a template, importing, editing a node or an
             edge.
-            <p>
-              <b>WARNING</b>: Use this with utmost caution! If someone is actively
-              editing or importing, you can delete their work, or even worse,{' '}
-              <b>corrupt the database!</b>
-            </p>
+          </p>
+          <p>
+            <b>WARNING</b>: Use this with utmost caution! If someone is actively
+            editing or importing, you can delete their work, or even worse,{' '}
+            <b>corrupt the database!</b>
           </p>
           <button className="small warning" type="button" onClick={this.unlockAll}>
             Force Unlock All
