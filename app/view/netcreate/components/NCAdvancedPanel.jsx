@@ -22,8 +22,8 @@ const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const VIEWS = {
-  importexport: 'Import/Export',
   template: 'Template',
+  importexport: 'Import/Export',
   settings: 'Settings'
 };
 
@@ -61,11 +61,11 @@ function NCAdvancedPanel() {
 
   let jsx;
   switch (openTab) {
-    case 'importexport':
-      jsx = <ImportExport />;
-      break;
     case 'template':
       jsx = <NCTemplate />;
+      break;
+    case 'importexport':
+      jsx = <ImportExport />;
       break;
     case 'settings':
       jsx = <MURSettingEditor />;
