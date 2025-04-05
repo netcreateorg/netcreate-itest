@@ -17,7 +17,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import UNISYS from 'unisys/client';
 import CMTMGR from '../comment-mgr';
 import URCommentCollectionMgr from './URCommentCollectionMgr';
@@ -55,6 +55,9 @@ function URCommentStatus(props) {
   const [uiIsExpanded, setUiIsExpanded] = useState(false);
   const [dummy, setDummy] = useState(0); // Dummy state variable to force update
 
+  // const ref_commentbar = useRef(null);
+  const ref_commentstatus_close = useRef(null);
+
   /** Component Effect - register listeners on mount */
   useEffect(() => {
     UDATA.OnAppStateChange('CMTSTATUS', state_CMTSTATUS, UDATAOwner);
@@ -72,6 +75,13 @@ function URCommentStatus(props) {
       clearTimeout(ResetTimer);
     };
   }, []);
+
+  useEffect(() => {
+    // wcag set focus to the close button when the panel is expanded
+    if (uiIsExpanded && ref_commentstatus_close.current) {
+      ref_commentstatus_close.current.focus();
+    }
+  }, [uiIsExpanded]);
 
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -141,6 +151,15 @@ function URCommentStatus(props) {
     clearTimeout(ResetTimer);
     setActiveCSS('appear');
     setUiIsExpanded(true);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function evt_KeyDownExpandPanel(event) {
+    // handle focus
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.stopPropagation();
+      evt_ExpandPanel();
+    }
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function evt_Close() {
@@ -257,22 +276,22 @@ function URCommentStatus(props) {
           {!uiIsExpanded && <div className="comment-status-body">{message}</div>}
         </div>
         <div>
-          <button
+          <div
             id="comment-summary"
             className={`${uiIsExpanded ? ' expanded' : ''}`}
             onClick={evt_ExpandPanel}
+            onKeyDown={evt_KeyDownExpandPanel}
             role="button"
             tabIndex="0"
             aria-label={`Expand Comment Status`}
           >
             {UnreadRepliesToMeButtonJSX}&nbsp;{UnreadButtonJSX}
-          </button>
+          </div>
           <div
             id="comment-panel"
             className={`${uiIsExpanded ? ' expanded' : ''}`}
             onClick={evt_Close}
             role="button"
-            tabIndex="0"
           >
             <div className="comments-unread">
               {UnreadRepliesToMeButtonJSX}
@@ -280,7 +299,12 @@ function URCommentStatus(props) {
               {UnreadButtonJSX}
               <div className="comment-status-body">{unreadCommentItems}</div>
               <div className="commentbar">
-                <button className="small" onClick={evt_Close} role="button">
+                <button
+                  className="small"
+                  onClick={evt_Close}
+                  role="button"
+                  ref={ref_commentstatus_close}
+                >
                   Close
                 </button>
                 <button className="small" onClick={evt_MarkAllRead} role="button">
