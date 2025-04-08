@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
-import ImportExport from './ImportExport';
+import NCImportExport from './NCImportExport';
 import NCTemplate from './NCTemplate';
 import MURSettingEditor from './MURSettingsEditor';
 import URPopover from './URPopover';
@@ -65,7 +65,7 @@ function NCAdvancedPanel() {
       jsx = <NCTemplate />;
       break;
     case 'importexport':
-      jsx = <ImportExport />;
+      jsx = <NCImportExport />;
       break;
     case 'settings':
       jsx = <MURSettingEditor />;

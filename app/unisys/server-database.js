@@ -572,6 +572,37 @@ DB.PKT_UpdateDatabase = function (pkt) {
   LOGGER.WriteRLog(pkt.InfoObj(), `updatedatabase`);
   return { OK: true };
 };
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: reset database from scratch */
+DB.PKT_ReplaceDatabase = function (pkt) {
+  if (DBG) console.log(PR, `PKT_SetDatabase`);
+  let { nodes = [], edges = [], comments = [], readby = [] } = pkt.Data();
+  if (!nodes.length) console.log(PR, 'WARNING: empty nodes array');
+  else console.log(PR, `setting ${nodes.length} nodes...`);
+  if (!edges.length) console.log(PR, 'WARNING: empty edges array');
+  else console.log(PR, `setting ${edges.length} edges...`);
+  if (!comments.length) console.log(PR, 'WARNING: empty comments array');
+  else console.log(PR, `setting ${comments.length} comments...`);
+  if (!readby.length) console.log(PR, 'WARNING: empty readby array');
+  else console.log(PR, `setting ${readby.length} readby...`);
+
+  // Save Backup First!
+  m_BackupDatabase();
+
+  NODES.clear();
+  NODES.insert(nodes);
+  EDGES.clear();
+  EDGES.insert(edges);
+  COMMENTS.clear();
+  COMMENTS.insert(comments);
+  READBY.clear();
+  READBY.insert(readby);
+  m_db.saveDatabase();
+  // DB.InitializeDatabase();
+  LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
+  return { OK: true };
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// WARN: Side Effect: Changes `m_max_nodeID`
 function m_CalculateMaxNodeID() {

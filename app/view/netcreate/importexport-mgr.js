@@ -1014,22 +1014,42 @@ MOD.EdgefileValidate = async data => {
 /** API METHOD
  *  This is triggered when the user clicks the "Import" button.
  *  Forces a RELOAD_DB after the import data is merged into the database.
+ *  `replace` is used to "load" a project with Turbo360
+ *  @param {boolean} replace -- replace data instead of merge
  *  @returns {messageJsx} -- summary of file imported
  */
-MOD.Import = async () => {
-  // Write to database!
-  const mergeData = { nodes: nodesToImport, edges: edgesToImport };
-  await UDATA.LocalCall('DB_MERGE', mergeData).then(res => {
-    // Reload NCDATA from the DB to get new Node and Edge Ids created during the merge
-    UDATA.LocalCall('RELOAD_DB');
-  });
-  const importedFiles = [];
-  if (nodeFile) importedFiles.push(nodeFile.name);
-  if (edgeFile) importedFiles.push(edgeFile.name);
-  const importedFileNames = importedFiles.join(', ');
-  return {
-    messageJsx: <div>{importedFileNames} Import Completed!</div>
-  };
+MOD.Import = async replace => {
+  if (replace) {
+    // replace data (instead of merge?)
+    return new Promise((resolve, reject) => {
+      const d3data = { nodes: nodesToImport, edges: edgesToImport };
+      UDATA.Call('SRV_DBREPLACE', d3data).then(res => {
+        if (res.OK) {
+          console.log(PR, `database set OK`, res);
+          // Reload NCDATA from the DB to get new Node and Edge Ids created during the merge
+          UDATA.LocalCall('RELOAD_DB');
+          resolve(res);
+        } else {
+          reject(new Error(JSON.stringify(res)));
+        }
+      });
+    });
+  } else {
+    // Merge data
+    // Write to database!
+    const mergeData = { nodes: nodesToImport, edges: edgesToImport };
+    await UDATA.LocalCall('DB_MERGE', mergeData).then(res => {
+      // Reload NCDATA from the DB to get new Node and Edge Ids created during the merge
+      UDATA.LocalCall('RELOAD_DB');
+    });
+    const importedFiles = [];
+    if (nodeFile) importedFiles.push(nodeFile.name);
+    if (edgeFile) importedFiles.push(edgeFile.name);
+    const importedFileNames = importedFiles.join(', ');
+    return {
+      messageJsx: <div>{importedFileNames} Import Completed!</div>
+    };
+  }
 };
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////

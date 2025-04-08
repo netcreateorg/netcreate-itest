@@ -32,6 +32,10 @@ const PR = 'ImportExport';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const NODEFILESTATUS_DEFAULT = 'Select a node .csv file to import';
 const EDGEFILESTATUS_DEFAULT = 'Select an edge .csv file to import';
+const IMPORTTYPE = {
+  MERGE: 'merge',
+  REPLACE: 'replace'
+};
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -230,7 +234,8 @@ class ImportExport extends UNISYS.Component {
 
   onDoImport() {
     if (DBG) console.log(PR, 'onDoImport');
-    IMPORTEXPORT.Import().then(result => {
+    const replace = document.getElementById('import-replace').checked;
+    IMPORTEXPORT.Import(replace).then(result => {
       this.setState({
         okToImport: false, // imported, so hide "Import" button
         nodeOkToImport: false,
@@ -317,19 +322,54 @@ class ImportExport extends UNISYS.Component {
             <li>Next unused NODE ID: {nextNodeId}</li>
             <li>Next unused EDGE ID: {nextEdgeId}</li>
           </ul>
-          <p>
-            Importing data will <b>merge</b> the new nodes and edges into the existing
-            nodes and edges.
-          </p>
-          <ul>
-            <li>
-              Imported nodes/edges with matching ids will replace existing objects
-            </li>
-            <li>
-              Existing objects that do not match imported nodes/edges will not be
-              modified or removed
-            </li>
-          </ul>
+          <p> </p>
+          <h2>Replace vs Merge</h2>
+          <fieldset>
+            <label>
+              <input
+                id="import-replace"
+                type="radio"
+                name="importtype"
+                value={IMPORTTYPE.REPLACE}
+                defaultChecked
+              />
+              Replace
+            </label>
+            <div>
+              <p>
+                {' '}
+                <b>Replace</b> existing nodes and edges. Use this to <b>load</b> a new
+                project
+              </p>
+              <ul>
+                <li>Existing objects will be removed</li>
+              </ul>
+            </div>
+            <label>
+              <input
+                id="import-merge"
+                type="radio"
+                name="importtype"
+                value={IMPORTTYPE.MERGE}
+              />
+              Merge
+            </label>
+            <div>
+              <p>
+                <b>Merge</b> the new nodes and edges into the existing nodes and
+                edges. Use this to add additional data to an existing project.
+              </p>
+              <ul>
+                <li>
+                  Imported nodes/edges with matching ids will replace existing objects
+                </li>
+                <li>
+                  Existing objects that do not match imported nodes/edges will not be
+                  modified or removed
+                </li>
+              </ul>
+            </div>
+          </fieldset>
           <p></p>
           <h2>Nodes</h2>
           <div className="file-import">
@@ -377,9 +417,9 @@ class ImportExport extends UNISYS.Component {
             </button>
           </label>
           <div>
-            {nodeValidationMsgs && <p>{nodeValidationMsgs}</p>}
-            {edgeValidationMsgs && <p>{edgeValidationMsgs}</p>}
-            {importMsgs && <p>{importMsgs}</p>}
+            {nodeValidationMsgs && <div>{nodeValidationMsgs}</div>}
+            {edgeValidationMsgs && <div>{edgeValidationMsgs}</div>}
+            {importMsgs && <div>{importMsgs}</div>}
           </div>
           <button
             className={`small ${importBtnDisabled ? '' : 'cat'}`}
