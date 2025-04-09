@@ -54,6 +54,7 @@ let TEMPLATE;
 let m_open_editors = []; // array of template, node, or edge editors
 /// formatting
 const BL = s => `\x1b[1;34m${s}\x1b[0m`;
+const RD = s => `\x1b[1;31m${s}\x1b[0m`;
 const YL = s => `\x1b[1;33m${s}\x1b[0m`;
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -387,8 +388,16 @@ function m_ValidateTemplate() {
       if (nodeDefs.info === undefined)
         throw 'Missing `nodeDefs.info` info=' + nodeDefs.info;
       // Version 1.5+ Fields
-      if (nodeDefs.provenance === undefined)
-        throw 'Missing `nodeDefs.provenance` provenance=' + nodeDefs.provenance;
+      // if (nodeDefs.provenance === undefined) // v2 provenance removed
+      //   throw 'Missing `nodeDefs.provenance` provenance=' + nodeDefs.provenance;
+      if (nodeDefs.provenance)
+        // v2 provenance removed
+        console.log(
+          RD(
+            'Template is using deprecated node definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
+          ),
+          JSON.stringify(nodeDefs.provenance, null, 2)
+        );
       if (nodeDefs.comments === undefined)
         throw 'Missing `nodeDefs.comments` comments=' + nodeDefs.comments;
 
@@ -408,8 +417,16 @@ function m_ValidateTemplate() {
       if (edgeDefs.info === undefined)
         throw 'Missing `edgeDefs.info` info=' + edgeDefs.info;
       // Version 1.5+ Fields
-      if (edgeDefs.provenance === undefined)
-        throw 'Missing `edgeDefs.provenance` provenance=' + edgeDefs.provenance;
+      // if (edgeDefs.provenance === undefined) // v2 provenance removed
+      //   throw 'Missing `edgeDefs.provenance` provenance=' + edgeDefs.provenance;
+      if (edgeDefs.provenance)
+        // v2 provenance removed
+        console.log(
+          RD(
+            'Template is using deprecated edge definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
+          ),
+          JSON.stringify(edgeDefs.provenance, null, 2)
+        );
       if (edgeDefs.comments === undefined)
         throw 'Missing `edgeDefs.comments` comments=' + edgeDefs.comments;
       // -- End 1.5+
@@ -574,9 +591,13 @@ DB.PKT_UpdateDatabase = function (pkt) {
 };
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: reset database from scratch */
+/** API: reset database from scratch
+ *  Used to clear the existing database and load new nodes and edges
+ *  The equivalent of loading a project -- used to faciliate loading
+ *  a project with Turbo360.
+ */
 DB.PKT_ReplaceDatabase = function (pkt) {
-  if (DBG) console.log(PR, `PKT_SetDatabase`);
+  if (DBG) console.log(PR, `PKT_ReplaceDatabase`);
   let { nodes = [], edges = [], comments = [], readby = [] } = pkt.Data();
   if (!nodes.length) console.log(PR, 'WARNING: empty nodes array');
   else console.log(PR, `setting ${nodes.length} nodes...`);
@@ -599,8 +620,7 @@ DB.PKT_ReplaceDatabase = function (pkt) {
   READBY.clear();
   READBY.insert(readby);
   m_db.saveDatabase();
-  // DB.InitializeDatabase();
-  LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
+  LOGGER.WriteRLog(pkt.InfoObj(), `replacedatabase`);
   return { OK: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
