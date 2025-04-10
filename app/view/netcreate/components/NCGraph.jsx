@@ -28,9 +28,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactStrap = require('reactstrap');
-const { Button } = ReactStrap;
 const NCGraphRenderer = require('./NCGraphRenderer');
 const UNISYS = require('unisys/client');
 const RENDERMGR = require('../render-mgr');
@@ -39,8 +36,6 @@ const RENDERMGR = require('../render-mgr');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCGraph';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA = null;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,7 +44,7 @@ class NCGraph extends UNISYS.Component {
   constructor(props) {
     super(props);
     this.state = {
-      ncGraphRenderer: {},
+      ncGraphRenderer: undefined,
       d3data: {},
       nodeTypes: [],
       edgeTypes: []
@@ -64,15 +59,12 @@ class NCGraph extends UNISYS.Component {
     this.onZoomOut = this.onZoomOut.bind(this);
     this.constructGraph = this.constructGraph.bind(this);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
-
-    UDATA.OnAppStateChange('VDATA', this.updateVData);
-    UDATA.OnAppStateChange('TEMPLATE', this.updateTemplate);
-    UDATA.OnAppStateChange('COLORMAP', this.updateColorMap);
-    UDATA.OnAppStateChange('SELECTION', this.updateSelection);
-    UDATA.OnAppStateChange('HILITE', this.updateSelection);
-    UDATA.HandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
+    this.OnAppStateChange('VDATA', this.updateVData);
+    this.OnAppStateChange('TEMPLATE', this.updateTemplate);
+    this.OnAppStateChange('COLORMAP', this.updateColorMap);
+    this.OnAppStateChange('SELECTION', this.updateSelection);
+    this.OnAppStateChange('HILITE', this.updateSelection);
+    this.HandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
   } // constructor
 
   /// CLASS PRIVATE METHODS /////////////////////////////////////////////////////
@@ -86,6 +78,7 @@ class NCGraph extends UNISYS.Component {
    */
   updateVData(data) {
     if (DBG) console.log(PR, 'got state D3DATA', data, RENDERMGR);
+    if (!this.state.ncGraphRenderer) return;
     const d3data = RENDERMGR.ProcessNCData(data);
     this.state.ncGraphRenderer.SetData(d3data);
   }
@@ -180,12 +173,12 @@ class NCGraph extends UNISYS.Component {
   /**
    */
   componentWillUnMount() {
-    UDATA.AppStateChangeOff('VDATA', this.updateVData);
-    UDATA.AppStateChangeOff('TEMPLATE', this.updateTemplate);
-    UDATA.AppStateChangeOff('COLORMAP', this.updateColorMap);
-    UDATA.AppStateChangeOff('SELECTION', this.updateSelection);
-    UDATA.AppStateChangeOff('HILITE', this.updateSelection);
-    UDATA.UnhandleMessage('CONSTRUCT_GRAPH', this.constructGraph);
+    this.AppStateChangeOff('VDATA', this.updateVData);
+    this.AppStateChangeOff('TEMPLATE', this.updateTemplate);
+    this.AppStateChangeOff('COLORMAP', this.updateColorMap);
+    this.AppStateChangeOff('SELECTION', this.updateSelection);
+    this.AppStateChangeOff('HILITE', this.updateSelection);
+    this.DropMessage('CONSTRUCT_GRAPH', this.constructGraph);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /**
@@ -203,81 +196,26 @@ class NCGraph extends UNISYS.Component {
   render() {
     const { nodeTypes, edgeTypes } = this.state;
     return (
-      <div
-        className="--NCGraph"
-        ref={dom => (this.dom = dom)}
-        style={{ height: '100%', position: 'relative' }}
-      >
-        <div style={{ margin: '10px 0 0 10px' }}>
-          <div className="tooltipAnchor">
-            <span style={{ fontSize: '9px' }}>
-              <div className="badge">?</div>
-              NETGRAPH for {this.AppState('TEMPLATE').name}
-            </span>
-            <span style={{ fontSize: '12px' }} className="tooltiptext">
-              {this.AppState('TEMPLATE').description}
-            </span>
-          </div>
-        </div>
-        <div
-          style={{ position: 'absolute', right: '10px', width: '50px', zIndex: 1001 }}
-        >
-          <Button
-            outline
-            onClick={this.onZoomIn}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            +
-          </Button>
+      <div className="NCGraph" ref={dom => (this.dom = dom)}>
+        <div className="zoom-buttons">
+          <button onClick={this.onZoomIn} role="button" aria-label="Zoom In">
+            <img src="/images/icn_plus.svg" alt="" />
+          </button>
           &nbsp;
-          <Button
-            outline
-            onClick={this.onZoomReset}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            &bull;
-          </Button>
+          <button onClick={this.onZoomReset} role="button" aria-label="Zoom Reset">
+            <img src="/images/icn_circle.svg" alt="" />
+          </button>
           &nbsp;
-          <Button
-            outline
-            onClick={this.onZoomOut}
-            style={{ width: '35px', backgroundColor: '#fff', opacity: '0.8' }}
-          >
-            -
-          </Button>
+          <button onClick={this.onZoomOut} role="button" aria-label="Zoom Out">
+            <img src="/images/icn_minus.svg" alt="" />
+          </button>
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '5px',
-            marginLeft: '10px',
-            marginBottom: '0px',
-            fontSize: '10px'
-          }}
-        >
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>KEY</div>
-          <br></br>
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>
-            {' '}
-            - Node Types:
-          </div>
+        <div className="legend">
+          <h1>Node Types:</h1>
           {nodeTypes.map((type, i) => (
             <div key={i} className="tooltipAnchor">
-              <div
-                style={{
-                  display: 'inline-block',
-                  paddingRight: '2em',
-                  lineHeight: '10px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    width: '10px',
-                    height: '8px',
-                    backgroundColor: type.color
-                  }}
-                ></div>
+              <div className="legend-item">
+                <div className="swatch" style={{ backgroundColor: type.color }}></div>
                 &nbsp;{type.label === '' ? 'No Type Selected' : type.label}
               </div>
               <span className="tooltiptextabove">
@@ -286,27 +224,11 @@ class NCGraph extends UNISYS.Component {
             </div>
           ))}
           <br></br>
-          <div style={{ display: 'inline-block', paddingRight: '2em' }}>
-            {' '}
-            - Edge Types:
-          </div>
+          <h1>Edge Types:</h1>
           {edgeTypes.map((type, i) => (
             <div key={i} className="tooltipAnchor">
-              <div
-                style={{
-                  display: 'inline-block',
-                  paddingRight: '2em',
-                  lineHeight: '10px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    width: '10px',
-                    height: '8px',
-                    backgroundColor: type.color
-                  }}
-                ></div>
+              <div className="legend-item">
+                <div className="swatch" style={{ backgroundColor: type.color }}></div>
                 &nbsp;{type.label === '' ? 'No Type Selected' : type.label}
               </div>
               <span className="tooltiptextabove">

@@ -41,14 +41,12 @@
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { EDGE_NOT_SET_LABEL } = require('system/util/constant');
+const { SEARCH_PLACEHOLDER } = require('system/util/constant');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCAutoSuggest';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,9 +59,11 @@ class NCAutoSuggest extends UNISYS.Component {
       matches: [], // {id, label}
       higlightedLine: -1,
       isValidNode: true,
-      uShowMatchlist: false
+      uShowMatchlist: false,
+      uNodeOrEdgeBeingEdited: false
     };
 
+    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.m_UIInputFocus = this.m_UIInputFocus.bind(this);
     this.m_UIInputClick = this.m_UIInputClick.bind(this);
     this.m_UIUpdate = this.m_UIUpdate.bind(this);
@@ -77,12 +77,16 @@ class NCAutoSuggest extends UNISYS.Component {
 
     document.addEventListener('click', this.m_UIClickOutside);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     document.removeEventListener('click', this.m_UIClickOutside);
+  }
+
+  urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({ uNodeOrEdgeBeingEdited: LOCKSTATE.nodeOrEdgeBeingEdited });
   }
 
   /**
@@ -121,7 +125,7 @@ class NCAutoSuggest extends UNISYS.Component {
     const inputEl = event.target;
 
     let isValidNode = false;
-    UDATA.LocalCall('FIND_MATCHING_NODES', { searchString: value }).then(data => {
+    this.AppCall('FIND_MATCHING_NODES', { searchString: value }).then(data => {
       const matches =
         data.nodes && data.nodes.length > 0
           ? data.nodes.map(d => {
@@ -196,7 +200,7 @@ class NCAutoSuggest extends UNISYS.Component {
    * @param {Object} event
    */
   m_UIKeyDown(event) {
-    const { matches, higlightedLine } = this.state;
+    const { matches, higlightedLine, uNodeOrEdgeBeingEdited } = this.state;
     const { parentKey, value, onSelect } = this.props;
     const keystroke = event.key;
     const lastLine = matches ? matches.length : -1;
@@ -208,14 +212,18 @@ class NCAutoSuggest extends UNISYS.Component {
         const id = matches[higlightedLine].id;
         this.m_UISelectById(event, parentKey, id); // user selects current highlight
       } else if (value !== '') {
-        // Create a new node -- see also NCSearch
-        this.m_UISelectByLabel(event, parentKey, value); // user selects current highlight
+        if (!uNodeOrEdgeBeingEdited) {
+          // Create a new node -- see also NCSearch
+          document.activeElement.blur(); // allow new node to receive focus
+          this.m_UISelectByLabel(event, parentKey, value); // user selects current highlight
+        }
       }
     }
-    if (keystroke === 'Escape' || keystroke === 'Tab') {
-      event.preventDefault(); // prevent tab key from going to the next field
+    if (keystroke === 'Escape') {
+      // close autosuggest
+      event.preventDefault();
       event.stopPropagation();
-      this.setState({ matches: [], higlightedLine: -1 }); // close autosuggest
+      this.setState({ matches: [], higlightedLine: -1 });
     }
     if (keystroke === 'ArrowUp') newHighlightedLine--;
     if (keystroke === 'ArrowDown') newHighlightedLine++;
@@ -244,7 +252,7 @@ class NCAutoSuggest extends UNISYS.Component {
     line = Math.min(lastLine - 1, Math.max(0, line));
     this.setState({ higlightedLine: line, uShowMatchlist: true });
     const highlightedNode = matches[line];
-    UDATA.LocalCall('AUTOSUGGEST_HILITE_NODE', { nodeId: highlightedNode.id });
+    this.AppCall('AUTOSUGGEST_HILITE_NODE', { nodeId: highlightedNode.id });
   }
 
   // Clicking outside of the matchlist should close the autosuggest
@@ -272,22 +280,24 @@ class NCAutoSuggest extends UNISYS.Component {
           ))
         : undefined;
     return (
-      <div style={{ position: 'relative', flexGrow: '1' }}>
-        <div className="helptop">Click on a node, or type a node name</div>
+      <div className="NCAutoSuggest">
+        <label className="helptop" htmlFor={parentKey}>
+          Click on a node, or type a node name
+        </label>
         <input
           id={parentKey}
           key={`${parentKey}input`}
           value={value}
           type="string"
+          autoFocus
           className={!isValidNode ? 'invalid' : ''}
           onChange={this.m_UIUpdate}
           onKeyDown={this.m_UIKeyDown}
           onFocus={this.m_UIInputFocus}
           onClick={this.m_UIInputClick}
-          placeholder={EDGE_NOT_SET_LABEL}
+          placeholder={SEARCH_PLACEHOLDER}
           autoComplete="off" // turn off Chrome's default autocomplete, which conflicts
         />
-        <br />
         {uShowMatchlist && matchList && (
           <div style={{ position: 'relative' }}>
             <div

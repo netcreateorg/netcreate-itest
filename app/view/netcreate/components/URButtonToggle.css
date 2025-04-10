@@ -1,0 +1,9 @@
+.URButtonToggle {
+  color: var(--clr-system);
+  background-color: var(--clr-cat-fg);
+  border-color: var(--clr-system);
+}
+.URButtonToggle.selected {
+  color: var(--clr-cat-fg);
+  background-color: var(--clr-system);
+}

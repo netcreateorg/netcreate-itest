@@ -55,19 +55,6 @@ const React = require('react');
 const PROMPTS = require('system/util/prompts');
 const SESSION = require('unisys/common-session');
 const PR = PROMPTS.Pad('SessionShell');
-const ReactStrap = require('reactstrap');
-const {
-  InputGroup,
-  InputGroupAddon,
-  Button,
-  Col,
-  Row,
-  Form,
-  FormGroup,
-  FormFeedback,
-  Input,
-  Label
-} = ReactStrap;
 const UNISYS = require('unisys/client');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -76,10 +63,14 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// these styles are copied from AutoComplete.css
 const INPUT_STYLE = {
-  border: '1px solid #aaa',
+  border: '1px solid #c35400',
+  borderLeft: '0',
+  borderRadius: '0 5px 5px 0',
+  padding: '4px 8px 3px 8px',
   fontFamily: 'Helvetica, sans-serif',
-  fontWeight: 300,
+  fontWeight: 400,
   fontSize: '10px',
+  lineHeight: '13px',
   textAlign: 'right',
   textTransform: 'uppercase'
 };
@@ -89,18 +80,43 @@ const GROUP_STYLE = {
   marginTop: '-10px'
 };
 const LABEL_STYLE = {
+  display: 'inline-block',
   verticalAlign: 'top',
   marginBottom: '0.15rem',
-  marginTop: '0.15rem'
+  marginTop: '0.15rem',
+  color: '#355869'
+};
+const LOGIN_BTN_STYLE = {
+  padding: '4px 8px 3px 8px',
+  fontSize: '10px',
+  lineHeight: '13px',
+  border: '1px solid #c35400',
+  borderRadius: '5px 0 0 5px',
+  color: 'white',
+  backgroundColor: '#c35400'
 };
 /// Move login to navbar
 const NAV_LOGIN_STYLE = {
-  margin: '8px 10px 0 20px',
+  fontSize: '0.8rem',
   zIndex: '2000'
 };
 const NAV_LOGIN_FEEDBACK_STYLE = {
-  position: 'absolute',
-  right: '210px'
+  paddingRight: '0.5rem'
+};
+const VALID = {
+  color: 'green',
+  borderColor: 'green',
+  outlineColor: 'green'
+};
+const VALIDBTN = {
+  backgroundColor: 'green',
+  borderColor: 'green',
+  outlineColor: 'green'
+};
+const INVALID = {
+  color: '#a20000',
+  borderColor: '#a20000',
+  outlineColor: '#a20000'
 };
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -148,14 +164,14 @@ class SessionShell extends UNISYS.Component {
       let subid = decoded.subId ? `USER\u00A0${decoded.subId}` : '';
       return (
         <div style={NAV_LOGIN_STYLE}>
-          <Label style={LABEL_STYLE} className="small">
+          <label style={LABEL_STYLE} className="small">
             GROUP{gid}:&nbsp;
             <br />
             {subid}
-          </Label>
-          <Label style={LABEL_STYLE} className="small">
+          </label>
+          <label style={LABEL_STYLE} className="small">
             {classproj}-<strong>{decoded.hashedId}</strong>
-          </Label>
+          </label>
         </div>
       );
 
@@ -190,7 +206,7 @@ class SessionShell extends UNISYS.Component {
   renderLogin() {
     let { token, classId, projId, groupId, subId, hashedId, isValid } = this.state;
     if (token) token = token.toUpperCase();
-    let formFeedback, tip, input;
+    let formFeedback, tip, loginbtn, input;
     tip = 'type your login token';
     if (classId) tip = 'token part [1/3]...';
     if (projId) tip = 'token part [2/3]...';
@@ -202,87 +218,103 @@ class SessionShell extends UNISYS.Component {
       //
       if (subId === 0) {
         tip = `...optional ID number`;
+        loginbtn = (
+          <button
+            style={LOGIN_BTN_STYLE}
+            disabled={!isValid}
+            onSubmit={this.onSubmit}
+            type="submit"
+          >
+            LOGIN
+          </button>
+        );
         input = (
-          <Input
-            invalid
+          <input
             name="sessionToken"
             id="sessionToken"
-            bsSize="sm"
-            style={INPUT_STYLE}
-            className="text-right"
+            style={{ ...INPUT_STYLE, ...INVALID }}
             placeholder="CLASSID-PROJID-CODE"
             onChange={this.handleChange}
           />
         );
         formFeedback = (
-          <FormFeedback style={NAV_LOGIN_FEEDBACK_STYLE} className="text-right">
+          <label
+            htmlFor="sessionToken"
+            style={{ ...NAV_LOGIN_FEEDBACK_STYLE, ...INVALID }}
+          >
             <small>{tip}</small>
-          </FormFeedback>
+          </label>
         );
       } /* if subId!==0 */ else {
         tip = 'CLICK LOGIN BUTTON';
+        loginbtn = (
+          <button
+            style={{ ...LOGIN_BTN_STYLE, ...VALIDBTN }}
+            disabled={!isValid}
+            onSubmit={this.onSubmit}
+            type="submit"
+          >
+            LOGIN
+          </button>
+        );
         input = (
-          <Input
-            valid
+          <input
             name="sessionToken"
             id="sessionToken"
-            bsSize="sm"
-            style={INPUT_STYLE}
-            className="text-right"
+            style={{ ...INPUT_STYLE, ...VALID }}
             placeholder="CLASSID-PROJID-CODE"
             onChange={this.handleChange}
           />
         );
         formFeedback = (
-          <FormFeedback valid style={NAV_LOGIN_FEEDBACK_STYLE} className="text-right">
+          <label
+            htmlFor="sessionToken"
+            style={{ ...NAV_LOGIN_FEEDBACK_STYLE, ...VALID }}
+          >
             <small>{tip}</small>
-          </FormFeedback>
+          </label>
         );
       }
     } /* if not groupId*/ else {
+      loginbtn = (
+        <button
+          style={LOGIN_BTN_STYLE}
+          disabled={!isValid}
+          onSubmit={this.onSubmit}
+          type="submit"
+        >
+          LOGIN
+        </button>
+      );
       input = (
-        <Input
-          invalid
+        <input
           name="sessionToken"
           id="sessionToken"
-          bsSize="sm"
-          style={INPUT_STYLE}
-          className="text-right"
+          style={{ ...INPUT_STYLE, ...INVALID }}
           placeholder="CLASSID-PROJID-CODE"
           onChange={this.handleChange}
         />
       );
       formFeedback = (
-        <FormFeedback style={NAV_LOGIN_FEEDBACK_STYLE} className="text-right">
+        <label
+          htmlFor="sessionToken"
+          style={{ ...NAV_LOGIN_FEEDBACK_STYLE, ...INVALID }}
+        >
           <small>{tip}</small>
-        </FormFeedback>
+        </label>
       );
     }
 
     return (
-      <Form
+      <form
         className="--SessionShell_Login"
         onSubmit={this.onSubmit}
         style={NAV_LOGIN_STYLE}
       >
-        <FormGroup row style={{ marginRight: '-5px' }}>
-          <InputGroup>
-            <InputGroupAddon addonType="prepend">
-              <Button
-                style={{ fontSize: '10px' }}
-                color="secondary"
-                size="sm"
-                disabled={!isValid}
-                onSubmit={this.onSubmit}
-              >
-                LOGIN
-              </Button>
-            </InputGroupAddon>
-            {input}
-            {formFeedback}
-          </InputGroup>
-        </FormGroup>
-      </Form>
+        {formFeedback}
+        {loginbtn}
+        {input}
+      </form>
     );
 
     // Old Form above NodeSelector
@@ -366,11 +398,7 @@ class SessionShell extends UNISYS.Component {
       const { prompt, timestamp } = window.NC_UNISYS.standalone;
       return (
         <div style={NAV_LOGIN_STYLE}>
-          <Col sm={16}>
-            <Label style={LABEL_STYLE} className="small">
-              {prompt}
-            </Label>
-          </Col>
+          <label style={LABEL_STYLE}>{prompt}</label>
         </div>
       );
     }

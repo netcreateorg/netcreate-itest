@@ -184,23 +184,33 @@ function m_UICancelInsertImageURL() {
 function RenderTabSelectors(TABS, state, onclick) {
   const { uSelectedTab, uViewMode, degrees } = state;
   const columnsDef = `repeat(${Object.keys(TABS).length}, 1fr)`;
+  const icn = {
+    ATTRIBUTES: 'icn_attributes.svg',
+    EDGES: 'icn_edges.svg',
+    PROVENANCE: 'icn_provenance.svg'
+  };
   return (
     <div
       className="tabselectors"
       style={{ color: 'red', gridTemplateColumns: columnsDef }}
+      role="tablist"
     >
       {Object.keys(TABS).map(k => {
         return (
           <button
             id={k}
             key={k}
-            type="button"
             className={uSelectedTab === TABS[k] ? 'selected' : ''}
             onClick={onclick}
             value={TABS[k]}
             disabled={uViewMode === VIEWMODE.EDIT}
+            role="tab"
+            type="button"
+            aria-selected={uSelectedTab === TABS[k]}
+            aria-controls={TABS[k]}
           >
             {TABS[k] === 'EDGES' ? `${TABS[k]} (${degrees})` : TABS[k]}
+            <img src={`images/${icn[k]}`} />
           </button>
         );
       })}

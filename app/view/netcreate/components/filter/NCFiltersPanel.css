@@ -1,0 +1,138 @@
+.NCFiltersPanel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  padding: 5px;
+  z-index: 1500;
+}
+.NCFiltersPanel.hidden {
+  /* Hide filters AND disable focus */
+  display: none;
+}
+
+.NCFiltersPanel .help {
+  padding-right: 0.5em;
+  margin-bottom: 0;
+}
+
+/* Tabs ------------------------------------------------------------------ */
+.NCFiltersPanel .tabselectors {
+  padding: 0 1rem;
+}
+.NCFiltersPanel .tabselectors button {
+  border: none;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  color: #0006;
+  background-color: var(--clr-fg);
+  height: 25px;
+  min-width: 6rem;
+  font-size: 10px;
+  overflow: hidden;
+  text-wrap: nowrap;
+}
+.NCFiltersPanel .tabselectors button:hover {
+  background-color: #fff2;
+}
+.NCFiltersPanel .tabselectors button.selected {
+  color: var(--clr-fg);
+  background-color: var(--clr-system-light);
+}
+
+.NCFiltersPanel .tabpanels {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 386px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  overflow-y: scroll;
+  background-color: var(--clr-fg);
+}
+.NCFiltersPanel .tabpanels > .help {
+  margin: 0.5rem 0;
+}
+.NCFiltersPanel .tabpanels > section {
+  display: flex;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+.NCFiltersPanel .controlbar {
+  display: flex;
+  justify-content: space-evenly;
+  padding: 5px;
+}
+
+/* Forms ------------------------------------------------------------------ */
+.NCFiltersPanel fieldset {
+  display: flex;
+  align-items: anchor-center;
+  margin-bottom: 0.125rem;
+  border: none;
+}
+.NCFiltersPanel fieldset label {
+  width: 8em;
+  margin-right: 0.5rem;
+  text-align: right;
+}
+.NCFiltersPanel fieldset select {
+  height: 1.25rem;
+  margin-right: 0.125rem;
+  padding: 0;
+  max-width: 12em;
+}
+.NCFiltersPanel fieldset input,
+.NCFiltersPanel .urdate > .filter > input {
+  border-style: solid;
+  padding: 0 0.25rem;
+  max-width: 12rem;
+}
+.NCFiltersPanel fieldset select,
+.NCFiltersPanel fieldset input,
+.NCFiltersPanel .urdate > .filter > input {
+  border-color: var(--clr-system-fadedmore);
+  border-radius: 4px;
+  border-width: 1px;
+}
+.NCFiltersPanel .urdate > .filter > input:disabled {
+  background-color: revert;
+}
+.NCFiltersPanel fieldset input:read-only {
+  border: none;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+.filter-group hr {
+  margin: 1rem 0 0.5rem 0;
+}
+.filter-group h1 {
+  color: var(--clr-system);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  margin: 0.5rem 0;
+}
+
+.filter-item.form-inline label {
+  font-size: 0.75em;
+  line-height: 1em;
+  width: 6em;
+  justify-content: flex-end;
+  text-align: right;
+  padding-right: 4px;
+}
+
+/* Focus Node Button -------------------------------------------------- */
+.NCFiltersPanel button.focusnode {
+  border-radius: 15px;
+  padding: 0 1rem;
+  font-size: var(--font-size-normal);
+  line-height: var(--font-size-normal);
+}

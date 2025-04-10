@@ -1,0 +1,81 @@
+#InfoPanel {
+  background-color: var(--clr-bg);
+  display: grid;
+  grid-template-rows: 38px 26px auto auto;
+  /* overflow: hidden; */
+}
+#InfoPanel .graphtitle {
+  color: var(--clr-system);
+  position: absolute;
+  right: 1rem;
+  top: 48px;
+  font-size: var(--font-size-sm);
+}
+/* tabpanel --------------------------------------------------------------- */
+#InfoPanel .tabs button {
+  font-weight: var(--font-weight-medium);
+  line-height: inherit; /* keeps selected cat visible */
+  padding: 8px 26px 6px 26px;
+  color: var(--clr-system-disabled) !important;
+  background-color: transparent !important;
+  border: none;
+  border-radius: 0;
+}
+#InfoPanel .tabs button:hover {
+  opacity: 100%;
+}
+#InfoPanel .tabs button.selected {
+  font-weight: var(--font-weight-);
+  opacity: 100%;
+  color: var(--clr-system);
+  border-bottom: 4px solid var(--clr-cat-bg);
+}
+#InfoPanel .tabs button img {
+  opacity: 50%;
+  width: 20px;
+  height: 20px;
+  padding-left: 0.5rem;
+  vertical-align: middle;
+}
+#InfoPanel .tabs button.selected img {
+  opacity: 1;
+}
+
+#InfoPanel .tabpanels {
+  overflow: hidden;
+}
+#InfoPanel .tabpanels > section {
+  display: flex;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+#InfoPanel .tabpanels > section.hidden {
+  display: none;
+}
+
+/* Filters Summary -------------------------------------------------------- */
+#filtersSummary {
+  padding: 5px 10px;
+  font-size: 0.8em;
+  color: #fff;
+  background-color: var(--clr-system-light);
+}
+#filtersSummary button {
+  border: none;
+  font-size: 0.8rem;
+  line-height: 0.8rem;
+  margin-left: 0.5rem;
+  padding: 3px 0.5rem 1px 0.5rem;
+}
+
+/* dragger ---------------------------------------------------------------- */
+#dragger {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: 10px;
+  background-color: var(--clr-cat-bg);
+  cursor: ns-resize;
+}

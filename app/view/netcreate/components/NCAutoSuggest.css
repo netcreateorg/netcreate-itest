@@ -1,3 +1,9 @@
+.NCAutoSuggest {
+  flex: 1; /* NCSearch */
+  display: flex;
+  flex-direction: column;
+}
+
 .matchlist {
   position: absolute;
   color: #3339;
@@ -31,9 +37,11 @@
   position: absolute;
   bottom: 120%;
   padding: 0 5px;
-  color: #666;
+  margin-bottom: 3px;
+  color: var(--clr-system);
   background-color: #ff0c;
   font-size: 12px;
+  font-weight: var(--font-weight-normal);
 }
 
 /* NC Node */

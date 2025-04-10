@@ -46,13 +46,9 @@ const PR = PROMPTS.Pad('ACD');
 /// LIBRARIES /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const React = require('react');
-const ReactStrap = require('reactstrap');
-const { Button } = ReactStrap;
 const NCSearch = require('./components/NCSearch');
 const NCNode = require('./components/NCNode');
 const NCGraph = require('./components/NCGraph');
-const InfoPanel = require('./components/InfoPanel');
-const FiltersPanel = require('./components/filter/FiltersPanel');
 const NCLOGIC = require('./nc-logic'); // require to bootstrap data loading
 const FILTERMGR = require('./filter-mgr'); // handles filtering functions
 const EDGEMGR = require('./edge-mgr'); // handles edge synthesis
@@ -60,6 +56,12 @@ const SELECTIONMGR = require('./selection-mgr'); // handles UI selection events
 const HILITEMGR = require('./hilite-mgr'); // handles UI hilite events
 const CMTMGR = require('./comment-mgr');
 const FILTER = require('./components/filter/FilterEnums');
+import PANELMGR from './panel-mgr';
+import NCInfoPanel from './components/NCInfoPanel';
+import NCHelpPanel from './components/NCHelpPanel';
+import NCAdvancedPanel from './components/NCAdvancedPanel';
+import NCFiltersPanel from './components/filter/NCFiltersPanel';
+import URButtonToggle from './components/URButtonToggle';
 import URCommentStatus from './components/URCommentStatus';
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -110,13 +112,14 @@ class NetCreate extends UNISYS.Component {
     });
 
     this.onStateChange_SESSION = this.onStateChange_SESSION.bind(this);
+    this.onStateChange_PANELSTATE = this.onStateChange_PANELSTATE.bind(this);
     this.onDisconnect = this.onDisconnect.bind(this);
     this.onFilterBtnClick = this.onFilterBtnClick.bind(this);
 
     this.OnAppStateChange('SESSION', this.onStateChange_SESSION);
+    this.OnAppStateChange('PANELSTATE', this.onStateChange_PANELSTATE);
 
-    const UDATA = UNISYS.NewDataLink(this);
-    UDATA.HandleMessage('DISCONNECT', this.onDisconnect);
+    this.HandleMessage('DISCONNECT', this.onDisconnect);
   }
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,6 +128,10 @@ class NetCreate extends UNISYS.Component {
    */
   onStateChange_SESSION(decoded) {
     this.setState({ isLoggedIn: decoded.isValid });
+  }
+
+  onStateChange_PANELSTATE(data) {
+    this.setState({ render: true }); // REVIEW: force render?
   }
 
   onDisconnect(e) {
@@ -176,143 +183,100 @@ class NetCreate extends UNISYS.Component {
     let hideGraph = 'visible';
     if (this.state.requireLogin && !isLoggedIn) hideGraph = 'hidden';
 
-    // note: the navbar is in init-appshell.jsx
-    return (
-      <div className="--NetCreate nc-base">
-        <div
-          className="--NetCreate_Fixed_Top_SaveAlert nc-savealert"
-          hidden={this.state.isConnected}
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    const DISCONNECTED_MSG = this.state.isConnected ? (
+      ''
+    ) : (
+      <div className="--NetCreate_Fixed_Top_SaveAlert nc-savealert">
+        <div>
+          <b>{disconnectMsg}!</b> Your changes will not be saved! Please report &quot;
+          {disconnectMsg}&quot; to your administrator to restart the graph.
+        </div>
+      </div>
+    );
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    const NAVBAR = (
+      <nav className="--NetCreate_Fixed_Top nc-navbar" role="navigation">
+        <div style={{ width: '3rem' }}></div>
+        <SessionShell />
+        <div style={{ flexGrow: 1 }}></div>
+        <URCommentStatus
+          message={commentStatusMessage}
+          handleMessageUpdate={handleMessageUpdate}
+        />
+        <div style={{ flexGrow: 1 }}></div>
+        <img src="images/netcreate-logo.svg" height="25px" alt="NetCreate Logo" />
+      </nav>
+    );
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// Force Help and Advanced to render AFTER main page
+    /// so that focus tab order comes AFTER the main content.
+    const NAVBTNS = (
+      <div className="nc-navbar-btns">
+        <URButtonToggle
+          title="Show/Hide Help"
+          selected={PANELMGR.HelpIsOpen()}
+          onClick={PANELMGR.ToggleHelp}
         >
-          <div>
-            <b>{disconnectMsg}!</b> Your changes will not be saved! Please report
-            &quot;
-            {disconnectMsg}&quot; to your administrator to restart the graph.
-          </div>
-        </div>
-        <div className="--NetCreate_Fixed_Top nc-navbar">
-          <SessionShell />
-          <div style={{ flexGrow: 1 }}></div>
-          <URCommentStatus
-            message={commentStatusMessage}
-            handleMessageUpdate={handleMessageUpdate}
-          />
-          <div style={{ flexGrow: 1 }}></div>
-        </div>
+          <img src="images/icn_help.svg" alt="Help" />
+        </URButtonToggle>
+        <URButtonToggle
+          title="Show/Hide Advanced"
+          selected={PANELMGR.AdvancedIsOpen()}
+          onClick={PANELMGR.ToggleAdvanced}
+        >
+          <img src="images/icn_advanced.svg" alt="Advanced" />
+        </URButtonToggle>
+      </div>
+    );
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-        <div
-          className="--NetCreate_Rows"
-          style={{
-            display: 'flex',
-            flexFlow: 'row nowrap',
-            backgroundColor: '#EEE',
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            visibility: hideGraph
-          }}
-        >
-          <div
-            className="--NetCreate_Columns"
-            id="left"
-            style={{
-              backgroundColor: '#EEE',
-              flex: '1 1 25%',
-              maxWidth: '400px',
-              padding: '10px',
-              overflowY: 'scroll',
-              overflowX: 'auto',
-              marginTop: '38px'
-            }}
-          >
-            {/*** LEFT EDITOR COLUMN ***************/}
-            <div
-              className="--NetCreate_Column_Left"
-              style={{ display: 'flex', flexFlow: 'column nowrap' }}
-            >
-              <NCSearch />
-              <NCNode />
-              {/* <Search /> */}
-              {/* <NodeSelector /> */}
-            </div>
+    return (
+      <main className="--NetCreate nc-base" role="main">
+        {DISCONNECTED_MSG}
+        {NAVBAR}
+
+        <div className="--NetCreate_Rows nc-rows" style={{ visibility: hideGraph }}>
+          {/*** LEFT EDITOR COLUMN ***************/}
+          <div className="--NetCreate_Columns nc-col-left" id="left">
+            <NCSearch />
+            <NCNode />
           </div>
           {/*** CENTER NETVIEW COLUMN***************/}
-          <div
-            className="--NetCreate_Column_NetView"
-            id="middle"
-            style={{
-              backgroundColor: '#fcfcfc',
-              flex: '3 0 60%',
-              marginTop: '38px',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            <InfoPanel />
+          <div className="--NetCreate_Column_NetView nc-col-middle">
+            <NCInfoPanel />
             <NCGraph />
           </div>
           {/*** RIGHT VIEW COLUMN ***************/}
-          <div
-            className="--NetCreate_Column_Filters_Open"
-            id="right"
-            style={{
-              marginTop: '38px',
-              padding: '0 5px',
-              backgroundColor: '#6c757d',
-              borderTopLeftRadius: layoutFiltersOpen ? '10px' : '0',
-              paddingBottom: '25px' // avoid footer
-            }}
-          >
+          <div className="--NetCreate_Column_Filters_Open nc-col-right" id="right">
             <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'end',
-                width: layoutFiltersOpen ? '100%' : '0',
-                height: layoutFiltersOpen ? '100%' : 'inherit',
-                overflow: 'hidden'
-              }}
+              id="filterpanel"
+              className={layoutFiltersOpen ? 'filterpanelOpen' : ''}
             >
-              <Button
+              <button
+                className="cat"
+                id="filterpanel-btn"
+                type="button"
+                aria-label={
+                  layoutFiltersOpen
+                    ? `Close ${FILTER.PANEL_LABEL}`
+                    : `Open ${FILTER.PANEL_LABEL}`
+                }
                 onClick={this.onFilterBtnClick}
-                style={{
-                  width: '90px',
-                  borderTopLeftRadius: '10px',
-                  paddingBottom: '10px',
-                  backgroundColor: '#6c757d',
-                  border: 'none',
-                  boxShadow: 'none',
-                  position: layoutFiltersOpen ? 'inherit' : 'absolute'
-                }}
               >
-                {!layoutFiltersOpen && `< `}
                 {FILTER.PANEL_LABEL}
-                {layoutFiltersOpen && ` >`}
-              </Button>
-              <FiltersPanel hidden={!layoutFiltersOpen} />
+              </button>
+              <NCFiltersPanel hidden={!layoutFiltersOpen} />
             </div>
           </div>
+
+          {NAVBTNS}
         </div>
-        <div
-          className="--NetCreate_Column_Break_Info"
-          style={{
-            fontSize: '10px',
-            // position: 'fixed',
-            left: '0px',
-            bottom: '0px',
-            right: '0px',
-            zIndex: '1500',
-            color: '#aaa',
-            backgroundColor: '#eee',
-            padding: '5px 10px'
-          }}
-        >
-          Please contact Professor Kalani Craig, Institute for Digital Arts &
-          Humanities at (812) 856-5721 (BH) or craigkl@indiana.edu with questions or
-          concerns and/or to request information contained on this website in an
-          accessible format.
-        </div>
+        {/*** DIALOGS ***************/}
         <div id="dialog-container"></div>
-      </div>
+        <NCHelpPanel />
+        <NCAdvancedPanel />
+      </main>
     ); // end return
   } // end render()
 } // end class NetCreate
