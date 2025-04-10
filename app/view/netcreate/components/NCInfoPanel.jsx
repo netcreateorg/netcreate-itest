@@ -32,7 +32,7 @@ const TABS = {
   NODESTABLE: { label: 'Nodes Table', icon: 'images/icn_attributes.svg' },
   EDGESTABLE: { label: 'Edges Table', icon: 'images/icn_edges.svg' }
 };
-const defaultClosedTabPanelHeight = 72; // show only tab buttons, no gap
+const defaultClosedTabPanelHeight = 65; // show only tab buttons, no gap, max 2 lines
 const defaultOpenTabPanelHeight = 350; // show tab buttons and table
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
@@ -178,7 +178,11 @@ function NCInfoPanel() {
     <div
       id="InfoPanel"
       ref={ref_InfoPanel}
-      style={{ height: `${state.tabpanelHeight}px` }}
+      style={
+        state.activeTab === TABS.GRAPH.label
+          ? {}
+          : { height: `${state.tabpanelHeight}px` }
+      }
     >
       <div className="graphtitle">
         <div className="tooltipAnchor">
@@ -208,7 +212,7 @@ function NCInfoPanel() {
         ))}
       </div>
 
-      <div id="filtersSummary">
+      <div id="filters-summary">
         {!state.filtersSummary && state.graphStats}
         {state.filtersSummary}
         {state.filtersSummary && (

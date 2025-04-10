@@ -1,7 +1,7 @@
 #InfoPanel {
   background-color: var(--clr-bg);
   display: grid;
-  grid-template-rows: 38px 26px auto auto;
+  grid-template-rows: 38px auto auto auto;
   /* overflow: hidden; */
 }
 #InfoPanel .graphtitle {
@@ -55,13 +55,14 @@
 }
 
 /* Filters Summary -------------------------------------------------------- */
-#filtersSummary {
+#filters-summary {
+  display: flex;
   padding: 5px 10px;
-  font-size: 0.8em;
+  font-size: var(--font-size-sm);
   color: #fff;
   background-color: var(--clr-system-light);
 }
-#filtersSummary button {
+#filters-summary button {
   border: none;
   font-size: 0.8rem;
   line-height: 0.8rem;
