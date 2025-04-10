@@ -113,6 +113,13 @@ function NCHDateFilter({
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function BroadcastChange() {
+    // if no data has changed, skip update
+    if (
+      operator === state.operator &&
+      (state.value.value === undefined || value === state.value.value)
+    )
+      return;
+
     const filterDef = {
       id,
       type,

@@ -64,7 +64,7 @@ function NCSelectFilter({
   const [state, setState] = useState({
     operator: FILTER.OPERATORS.NO_OP.key, // Used locally to define result
     inputval: '', // Used to maintain input caret position
-    value: 0 // Autoselect the first item
+    value: '' // Autoselect the first item
   });
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,6 +84,9 @@ function NCSelectFilter({
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function BroadcastChange() {
+    // if no data has changed, skip update
+    if (operator === state.operator && value === state.value) return;
+
     const filterDef = {
       id,
       type,
