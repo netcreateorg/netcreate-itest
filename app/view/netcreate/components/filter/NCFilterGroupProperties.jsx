@@ -54,9 +54,14 @@ function NCFilterGroupProperties({ group, transparency }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeValue(event) {
+    // React pools synthetic events for performance. Once the event callback
+    // finishes running, React recycles the event object by clearing its
+    // properties (setting them to null). So if you try to use event.target
+    // asynchronously (e.g. in a setTimeout, or after an await), it will be null.
+    const inputval = event.target.value;
     setState(prevState => ({
       ...prevState,
-      inputval: event.target.value,
+      inputval,
       transparency
     }));
   }

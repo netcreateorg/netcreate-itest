@@ -29,7 +29,8 @@
   font-size: 0.8rem;
   z-index: 2000;
 }
-#comment-bar .comment-summary-item label {
+#comment-summary label,
+#comment-panel label {
   display: none;
   color: var(--comment-status-font-color);
   margin: 3px 0 5px 0;
@@ -40,8 +41,8 @@
   overflow: hidden;
   transition: all 0.1s ease-in;
 }
-#comment-bar:hover .comment-summary-item label,
-#comment-bar:focus .comment-summary-item label,
+#comment-summary:hover label,
+#comment-summary:focus label,
 #comment-panel.expanded .comment-summary-item label {
   display: inline-block;
   width: auto;

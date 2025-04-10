@@ -404,15 +404,24 @@ function RenderProvenanceTabView(state, defs, BUILTIN_FIELDS) {
       <div className="category">PROVENANCE</div>
       {RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
-      {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
-      {!defs.created.hidden &&
+      {defs.created &&
+        !defs.created.hidden &&
+        RenderLabel('createdlabel', defs.created.displayLabel)}
+      {defs.created &&
+        !defs.created.hidden &&
         RenderProvenanceByline(created, createdBy, defs.createdBy)}
-      {!defs.updated.hidden && RenderLabel('updatedlabel', defs.updated.displayLabel)}
-      {!defs.updated.hidden &&
+      {defs.updated &&
+        !defs.updated.hidden &&
+        RenderLabel('updatedlabel', defs.updated.displayLabel)}
+      {defs.updated &&
+        !defs.updated.hidden &&
         RenderProvenanceByline(updated, updatedBy, defs.updatedBy)}
-      {!defs.revision.hidden &&
+      {defs.revision &&
+        !defs.revision.hidden &&
         RenderLabel('revisionlabel', defs.revision.displayLabel)}
-      {!defs.revision.hidden && RenderStringValue('revisionlabel', revision)}
+      {defs.revision &&
+        !defs.revision.hidden &&
+        RenderStringValue('revisionlabel', revision)}
     </div>
   );
 }
@@ -425,15 +434,24 @@ function RenderProvenanceTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
       <div className="category">PROVENANCE</div>
       {RenderProvenanceItemsEdit(state, defs, onchange, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
-      {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
-      {!defs.created.hidden &&
+      {defs.created &&
+        !defs.created.hidden &&
+        RenderLabel('createdlabel', defs.created.displayLabel)}
+      {defs.created &&
+        !defs.created.hidden &&
         RenderProvenanceByline(created, createdBy, defs.createdBy)}
-      {!defs.updated.hidden && RenderLabel('updatedlabel', defs.updated.displayLabel)}
-      {!defs.updated.hidden &&
+      {defs.updated &&
+        !defs.updated.hidden &&
+        RenderLabel('updatedlabel', defs.updated.displayLabel)}
+      {defs.updated &&
+        !defs.updated.hidden &&
         RenderProvenanceByline(updated, updatedBy, defs.updatedBy)}
-      {!defs.revision.hidden &&
+      {defs.revision &&
+        !defs.revision.hidden &&
         RenderLabel('revisionlabel', defs.revision.displayLabel)}
-      {!defs.revision.hidden && RenderStringValue('revisionlabel', revision)}
+      {defs.revision &&
+        !defs.revision.hidden &&
+        RenderStringValue('revisionlabel', revision)}
     </div>
   );
 }

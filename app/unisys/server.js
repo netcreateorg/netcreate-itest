@@ -83,6 +83,12 @@ UNISYS.RegisterHandlers = () => {
     return UDB.PKT_MergeDatabase(pkt);
   });
 
+  // Emulate a project load for Turbo360
+  UNET.HandleMessage('SRV_DBREPLACE', function (pkt) {
+    if (DBG) console.log(PR, sprint_message(pkt));
+    return UDB.PKT_ReplaceDatabase(pkt);
+  });
+
   /** TEMPLATE / IMPORT / NODE / EDGE EDITOR LOCKING **/
 
   /** Reports on whether template, import, or node/edge are being edited
