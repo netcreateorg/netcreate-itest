@@ -8,9 +8,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import React, { useState, useEffect } from 'react';
+import SETTINGS from 'settings';
 import UNISYS from 'unisys/client';
 import NCImportExport from './NCImportExport';
 import NCTemplate from './NCTemplate';
+import NCUserTokens from './NCUserTokens';
 import MURSettingEditor from './MURSettingsEditor';
 import URPopover from './URPopover';
 
@@ -24,6 +26,7 @@ const DBG = false;
 const VIEWS = {
   template: 'Template',
   importexport: 'Import/Export',
+  usertokens: 'User Tokens',
   settings: 'Settings'
 };
 
@@ -58,6 +61,15 @@ function NCAdvancedPanel() {
 
   // COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  const ISADMIN = SETTINGS.IsAdmin();
+
+  const TABS = ISADMIN
+    ? VIEWS
+    : {
+        template: VIEWS.template,
+        importexport: VIEWS.importexport,
+        settings: VIEWS.settings
+      };
 
   let jsx;
   switch (openTab) {
@@ -66,6 +78,9 @@ function NCAdvancedPanel() {
       break;
     case 'importexport':
       jsx = <NCImportExport />;
+      break;
+    case 'usertokens':
+      jsx = <NCUserTokens />;
       break;
     case 'settings':
       jsx = <MURSettingEditor />;
@@ -77,9 +92,9 @@ function NCAdvancedPanel() {
   if (!isOpen) return null;
   return (
     <URPopover title="Advanced" onClose={ui_CloseAdvanced}>
-      <div id="NCTabPanel">
+      <div id="NCTabPanel" className="NCAdvancedPanel">
         <div className="tabs" role="tablist">
-          {Object.keys(VIEWS).map(k => (
+          {Object.keys(TABS).map(k => (
             <button
               key={k}
               role="tab"

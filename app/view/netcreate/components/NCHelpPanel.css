@@ -17,6 +17,9 @@
   border: none;
   border-radius: 0;
 }
+#NCTabPanel.NCAdvancedPanel .tabs button {
+  padding: 8px 8px 2px 8px;
+}
 #NCTabPanel .tabs button:hover {
   opacity: 100%;
 }
