@@ -97,7 +97,7 @@ function NCNodeTable({ isOpen }) {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
     const isLocked = !decoded.isValid;
-    if (isLocked === this.state.isLocked) {
+    if (isLocked === state.isLocked) {
       return;
     }
     setState(prevState => ({ ...prevState, isLocked }));
