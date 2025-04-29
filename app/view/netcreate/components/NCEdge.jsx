@@ -46,7 +46,7 @@ import URCommentVBtn from './URCommentVBtn';
 const DBG = false;
 const PR = 'NCEdge';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const isAdmin = SETTINGS.IsAdmin();
+// const isAdmin = SETTINGS.IsAdmin();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const TABS = {
   // Also used as labels
@@ -63,6 +63,7 @@ class NCEdge extends UNISYS.Component {
 
     this.state = {
       isLoggedIn: false,
+      isAdmin: false,
       animateHeight: 0
     }; // initialized on componentDidMount and clearSelection
 
@@ -71,6 +72,7 @@ class NCEdge extends UNISYS.Component {
     this.urstate_SESSION = this.urstate_SESSION.bind(this);
     this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.urstate_NCDATA = this.urstate_NCDATA.bind(this);
+    this.urstate_PERMISSIONS = this.urstate_PERMISSIONS.bind(this);
     this.IsLoggedIn = this.IsLoggedIn.bind(this);
     this.DerivePermissions = this.DerivePermissions.bind(this);
 
@@ -128,6 +130,7 @@ class NCEdge extends UNISYS.Component {
     this.OnAppStateChange('NCDATA', this.urstate_NCDATA);
     this.OnAppStateChange('SELECTION', this.urstate_SELECTION);
     this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('PERMISSIONS', this.urstate_PERMISSIONS);
     this.HandleMessage('EDGE_OPEN', this.ReqLoadEdge);
     this.HandleMessage('EDGE_DESELECT', this.ClearSelection);
     this.HandleMessage('EDGE_EDIT', this.EditEdge); // EdgeTable request
@@ -149,6 +152,7 @@ class NCEdge extends UNISYS.Component {
     this.AppStateChangeOff('NCDATA', this.urstate_NCDATA);
     this.AppStateChangeOff('SELECTION', this.urstate_SELECTION);
     this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('PERMISSIONS', this.urstate_PERMISSIONS);
     this.DropMessage('EDGE_OPEN', this.ReqLoadEdge);
     this.DropMessage('EDGE_DESELECT', this.ClearSelection);
     this.DropMessage('EDGE_EDIT', this.EditEdge);
@@ -179,6 +183,7 @@ class NCEdge extends UNISYS.Component {
 
       // SYSTEM STATE
       // isLoggedIn: false, // don't clear session state!
+      isAdmin: false,
       // previousState: {},
 
       // UI State 'u'
@@ -235,6 +240,9 @@ class NCEdge extends UNISYS.Component {
   urstate_LOCKSTATE() {
     const permissionsState = this.DerivePermissions(this.state.id);
     this.setState({ ...permissionsState });
+  }
+  urstate_PERMISSIONS(PERMISSIONS) {
+    this.setState({ isAdmin: PERMISSIONS.isAdmin });
   }
 
   /*
@@ -898,7 +906,8 @@ class NCEdge extends UNISYS.Component {
       id,
       dSourceNode = { label: undefined },
       dTargetNode = { label: undefined },
-      type
+      type,
+      isAdmin
     } = this.state;
     const bgcolor = uBackgroundColor + '66'; // hack opacity
     const TEMPLATE = this.AppState('TEMPLATE');
