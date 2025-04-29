@@ -1,14 +1,44 @@
 /* eslint-disable react/no-unescaped-entities */
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ## OVERVIEW
+  # NCAdvancedPanel
 
-    Vocabulary displays a list of common terms
+  NCAdvancedPanel handles:
+  - Template Import/Export
+  - Node/Edge Import/Export
+  - User Tokens
+  - Admin Password
+
+  By default, only Export nodes/edges is enabled for normal users.
+  (The "Import/Export" tab will display "Export" only).
+  The other functions are admin-only.
+
+
+  ### PERMISSIONS App State
+
+  The `PERMISSIONS` app state is used to track the admin permissions.
+  This app state is used by NCNode, NCEdge, NCImportExport to
+  enable/disable admin-only features.
+
+  REVIEW: This probably should be moved to a permissions manager.
+
+
+  ### Admin Password
+
+  Only administrators (teachers) can manage templates, import data, and manage
+  user tokens.
+
+  The admin password is defined in the project template with the `adminPassword`
+  property and is not visible to students.
+
+  Admin features will be enabled as soon as you enter the correct password.
+  (You don't need to hit return).  When the password is validated, the input
+  form will turn into a "Reset Password"
+
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import React, { useState, useEffect } from 'react';
-import SETTINGS from 'settings';
 import UNISYS from 'unisys/client';
 import NCImportExport from './NCImportExport';
 import NCTemplate from './NCTemplate';
@@ -36,17 +66,40 @@ const VIEWS = {
 function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [openTab, setOpenTab] = useState('importexport');
+  const [password, setPassword] = useState('');
+  const [hasAdminPermissions, setHasAdminPermissions] = useState(false);
 
   useEffect(() => {
+    const PERMISSIONS = UDATA.AppState('PERMISSIONS');
+    UDATA.SetAppState('PERMISSIONS', {
+      ...PERMISSIONS,
+      isAdmin: hasAdminPermissions
+    });
+
     UDATA.OnAppStateChange('PANELSTATE', evt_ToggleAdvanced);
+    assessAdminPrivileges();
     return () => {
       UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleAdvanced);
     };
   }, []);
 
+  useEffect(() => {
+    assessAdminPrivileges();
+  }, [password]);
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function evt_ToggleAdvanced(PANELSTATE) {
     setIsOpen(PANELSTATE.advancedIsOpen);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function assessAdminPrivileges() {
+    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    const isAdmin =
+      TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
+    setHasAdminPermissions(isAdmin);
+
+    const PERMISSIONS = UDATA.AppState('PERMISSIONS');
+    UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_CloseAdvanced() {
@@ -55,21 +108,23 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_SelectTab(tab) {
-    console.log('setting tab to', tab);
     setOpenTab(tab);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_PasswordChange(e) {
+    const password = e.target.value;
+    setPassword(password);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_PasswordClear() {
+    setPassword('');
   }
 
   // COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  const ISADMIN = SETTINGS.IsAdmin();
-
-  const TABS = ISADMIN
-    ? VIEWS
-    : {
-        template: VIEWS.template,
-        importexport: VIEWS.importexport,
-        settings: VIEWS.settings
-      };
+  const TABS = hasAdminPermissions
+    ? VIEWS // show all tabs to admin
+    : { export: 'Export' }; // show "Export" only
 
   let jsx;
   switch (openTab) {
@@ -77,7 +132,8 @@ function NCAdvancedPanel() {
       jsx = <NCTemplate />;
       break;
     case 'importexport':
-      jsx = <NCImportExport />;
+    case 'export':
+      jsx = <NCImportExport isAdmin={hasAdminPermissions} />;
       break;
     case 'usertokens':
       jsx = <NCUserTokens />;
@@ -104,12 +160,22 @@ function NCAdvancedPanel() {
               tabIndex={openTab === k ? '0' : '-1'}
               onClick={() => ui_SelectTab(k)}
             >
-              {VIEWS[k]}
+              {TABS[k]}
             </button>
           ))}
         </div>
 
         <div className="tabpanels">{jsx}</div>
+
+        <div className="footer">
+          {!hasAdminPermissions ? (
+            <input type="password" id="password" onChange={ui_PasswordChange} />
+          ) : (
+            <button type="button" onClick={ui_PasswordClear}>
+              Admin Logout
+            </button>
+          )}
+        </div>
       </div>
     </URPopover>
   );
