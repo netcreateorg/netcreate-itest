@@ -346,7 +346,9 @@ class SessionShell extends UNISYS.Component {
 
     const { routeProps } = SETTINGS.GetRouteInfoFromURL();
     let { token } = routeProps;
-    let decoded = SESSION.DecodeToken(token, window.NC_CONFIG.dataset) || {};
+    const TEMPLATE = this.AppState('TEMPLATE');
+    const templateSalt = TEMPLATE.salt;
+    const decoded = SESSION.DecodeToken(token, templateSalt) || {};
     this.SetAppState('SESSION', decoded);
     this.previousIsValid = decoded.isValid;
   }

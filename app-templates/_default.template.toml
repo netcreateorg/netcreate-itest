@@ -1,6 +1,7 @@
 version = 2
 name = "Untitled Project"
 description = "No Description"
+salt = "exp626"
 requireLogin = false
 hideDeleteNodeButton = false
 allowLoggedInUserToImport = false

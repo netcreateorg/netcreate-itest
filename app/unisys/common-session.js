@@ -32,7 +32,7 @@ var m_current_groupid = null;
 
     `dataset` is not currently being used, but is retained for future use.
  */
-SESUTIL.DecodeToken = function (token, dataset) {
+SESUTIL.DecodeToken = function (token, templateSalt) {
   const DELIMITER = '-';
   if (token === undefined) return {};
   // 2024/08 Allow optional `dataset` so tokens can be shared across graphs
@@ -58,7 +58,7 @@ SESUTIL.DecodeToken = function (token, dataset) {
 
   // Allow shareable tokens by setting `dataset` to undefined
   let salt;
-  if (dataset !== undefined) salt = `${classId}${projId}${dataset}`;
+  if (templateSalt !== undefined) salt = `${classId}${projId}${templateSalt}`;
   else salt = `${classId}${projId}`; // skips `dataset`
 
   if (DBG)
@@ -112,8 +112,8 @@ SESUTIL.DecodeToken = function (token, dataset) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Return TRUE if the token decodes into an expected range of values
  */
-SESUTIL.IsValidToken = function (token, dataset) {
-  let decoded = SESUTIL.DecodeToken(token, dataset);
+SESUTIL.IsValidToken = function (token, templateSalt) {
+  let decoded = SESUTIL.DecodeToken(token, templateSalt);
   return decoded && Number.isInteger(decoded.groupId);
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,7 +123,7 @@ SESUTIL.IsValidToken = function (token, dataset) {
 
     `dataset` is not currently being used, but is retained for future use.
 */
-SESUTIL.MakeToken = function (classId, projId, groupId, dataset) {
+SESUTIL.MakeToken = function (classId, projId, groupId, templateSalt) {
   // type checking
   if (typeof classId !== 'string')
     throw Error(`classId arg1 '${classId}' must be string`);
@@ -142,7 +142,7 @@ SESUTIL.MakeToken = function (classId, projId, groupId, dataset) {
 
   // Allow shareable tokens by setting `dataset` to undefined
   let salt;
-  if (dataset !== undefined) salt = `${classId}${projId}${dataset}`;
+  if (templateSalt !== undefined) salt = `${classId}${projId}${templateSalt}`;
   else salt = `${classId}${projId}`; // skips `dataset`
 
   if (DBG)
