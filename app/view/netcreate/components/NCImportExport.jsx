@@ -10,6 +10,28 @@
 
   This displays a subpanel on the "More..." tab.
 
+
+  ## PRIVILEGES
+
+  There are two levels of privileges for this panel:
+  - Admins
+  - Logged in users with "allowLoggedInUserToImport" set to true
+
+  Only admins are allowed to
+  - import data (nodes/edges)
+  - export templates
+  - import templates
+  This is set via an `isAdmin` prop.
+
+  Logged in users with "allowLoggedInUserToImport" set to true are allowed to
+  - import data (nodes/edges)
+
+
+  ## USAGE
+
+    <NCImportExport isAdmin={isAdmin} />
+
+
   `importexport-mgr.js` (IMPORTEXPORT) handles all of the business logic for
   importing and exporting.  See that file for details.
 
@@ -40,7 +62,7 @@ const IMPORTTYPE = {
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
-class ImportExport extends UNISYS.Component {
+class NCImportExport extends UNISYS.Component {
   constructor(props) {
     super(props);
     const TEMPLATE = this.AppState('TEMPLATE');
@@ -48,11 +70,9 @@ class ImportExport extends UNISYS.Component {
       isExpanded: true,
       preventImport: false, // an external source has disabled import for us
       importIsActive: false, // internal source: keeps track of whether THIS panel has valid import files selected
-      nodefile: undefined,
       nodefileStatus: NODEFILESTATUS_DEFAULT,
       nodeValidationMsgs: undefined,
       nodeOkToImport: false,
-      edgefile: undefined,
       edgefileStatus: EDGEFILESTATUS_DEFAULT,
       edgeValidationMsgs: undefined,
       edgeOkToImport: false,
@@ -240,7 +260,11 @@ class ImportExport extends UNISYS.Component {
         okToImport: false, // imported, so hide "Import" button
         nodeOkToImport: false,
         edgeOkToImport: false,
-        importMsgs: result.messageJsx
+        importMsgs: result.messageJsx || 'OK',
+        nodeValidationMsgs: '',
+        edgeValidationMsgs: '',
+        nodefileStatus: NODEFILESTATUS_DEFAULT,
+        edgefileStatus: EDGEFILESTATUS_DEFAULT
       });
       document.getElementById('nodefileInput').value = '';
       document.getElementById('edgefileInput').value = '';
@@ -258,9 +282,7 @@ class ImportExport extends UNISYS.Component {
     const {
       preventImport,
       importIsActive,
-      nodefile,
       nodefileStatus,
-      edgefile,
       edgefileStatus,
       importMsgs,
       allowLoggedInUserToImport,
@@ -270,14 +292,13 @@ class ImportExport extends UNISYS.Component {
       edgeValidationMsgs,
       okToImport
     } = this.state;
+    const { isAdmin } = this.props;
 
     // Set Import Permissions
     // -- Admins can always import
     // -- If allowLoggedInUserToImport, logged in users can also import
-    const ISADMIN = SETTINGS.IsAdmin();
     const isLoggedIn = NetMessage.GlobalGroupID();
-    const importDisabled = !(ISADMIN || (allowLoggedInUserToImport && isLoggedIn));
-
+    const importDisabled = !(isAdmin || (allowLoggedInUserToImport && isLoggedIn));
     const importBtnDisabled = !okToImport;
 
     const exportjsx = (
@@ -407,34 +428,39 @@ class ImportExport extends UNISYS.Component {
               {edgefileStatus}
             </label>
           </div>
-          <label>
-            <button
-              className="small outline"
-              type="button"
-              onClick={this.clearFileSelect}
-            >
-              Clear File Selections
-            </button>
-          </label>
-          <div>
+          {okToImport && (
+            <div className="buttonbar importbuttons">
+              <button
+                className={`small ${importBtnDisabled ? '' : 'cat'}`}
+                type="button"
+                disabled={importBtnDisabled}
+                onClick={this.onDoImport}
+              >
+                Import
+              </button>
+              <label>
+                <button
+                  className="small"
+                  type="button"
+                  onClick={this.clearFileSelect}
+                >
+                  Clear File Selections
+                </button>
+              </label>
+            </div>
+          )}
+          <fieldset className="validationMessages">
+            <legend>Import Status</legend>
             {nodeValidationMsgs && <div>{nodeValidationMsgs}</div>}
             {edgeValidationMsgs && <div>{edgeValidationMsgs}</div>}
             {importMsgs && <div>{importMsgs}</div>}
-          </div>
-          <button
-            className={`small ${importBtnDisabled ? '' : 'cat'}`}
-            type="button"
-            disabled={importBtnDisabled}
-            onClick={this.onDoImport}
-          >
-            Import
-          </button>
+          </fieldset>
         </div>
       );
     }
 
     let unlockAlljsx;
-    if (ISADMIN) {
+    if (isAdmin) {
       unlockAlljsx = (
         <div className="panel">
           <h1>Admin Tools</h1>
@@ -474,4 +500,4 @@ class ImportExport extends UNISYS.Component {
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = ImportExport;
+module.exports = NCImportExport;

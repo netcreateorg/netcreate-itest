@@ -7,7 +7,6 @@
   * Filters
   * Nodes Table
   * Edges Table
-  * More -- Export/Import, Vocabulary, Help
 
   The panel itself can be resized vertically.
 
