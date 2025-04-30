@@ -16,20 +16,6 @@ const PR = ConsoleStyler('SettingClient', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const MOD = UNISYS.NewModule(module.id);
-const UDATA = UNISYS.NewDataLink(MOD);
-
-/// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let m_key_dict = {};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Hacky way to generate a React key prop, which is required for rendering
- *  lists of components in an array. Shouldn't use this except for throwaway
- *  lists for debugging */
-function ReactListKey(prefix) {
-  if (typeof prefix !== 'string') prefix = Math.random().toString(36).substring(2, 5);
-  if (m_key_dict[prefix] === undefined) m_key_dict[prefix] = 100;
-  return `${prefix}${m_key_dict[prefix]++}`;
-}
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,23 +62,6 @@ async function UpdateGroup(groupName, propObj) {
   const opResult = await Settings.UpdateGroup(groupName, propObj);
   if (opResult.status === 'ok') return opResult;
   throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
-}
-
-/// VALUE CHANGES /////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const VALUE_LISTENERS = new Set();
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Notify that a value has changed */
-function ValueChanged() {
-  VALUE_LISTENERS.forEach(listener => listener());
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function OnValueChanged(listener) {
-  VALUE_LISTENERS.add(listener);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function OffValueChanged(listener) {
-  VALUE_LISTENERS.delete(listener);
 }
 
 /// DECODERS //////////////////////////////////////////////////////////////////
@@ -193,7 +162,7 @@ function EventTargetOffsetStyle(event) {
  *  implementation is in mur-settings-context */
 function useSettings(initialSettings = {}) {
   //
-  const [updateCount, triggerUpdate] = React.useState(0);
+  const [lastSettingsUpdate, _updateSettings] = React.useState({});
 
   /** universal get settings */
   const get = dotProp => Settings.Get(dotProp);
@@ -206,7 +175,7 @@ function useSettings(initialSettings = {}) {
       console.error(`updateProperty: ${error}`);
       return false; // indicate failure
     }
-    triggerUpdate(opResult); // trigger a rerender
+    _updateSettings(opResult); // trigger a rerender
     return true;
   };
 
@@ -218,14 +187,13 @@ function useSettings(initialSettings = {}) {
       console.error(`updateGroup: ${error}`);
       return false;
     }
-    triggerUpdate(opResult); // trigger a rerender
+    _updateSettings(opResult); // trigger a rerender
     return true;
   };
 
   return {
     // to trigger rerender
-    updateCount,
-    forceUpdate: () => triggerUpdate(prev => prev + 1),
+    lastSettingsUpdate,
     // api
     get,
     updateProperty,
@@ -236,12 +204,6 @@ function useSettings(initialSettings = {}) {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
-  ReactListKey,
-  RLK: ReactListKey,
-  ValueChanged,
-  OnValueChanged,
-  OffValueChanged,
-  //
   GetPropertyDefs,
   GetMetaDefs,
   //

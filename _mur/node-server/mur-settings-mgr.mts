@@ -112,7 +112,7 @@ function UpdateProperty(dotProp, value) {
   return { status: 'ok' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function UpdateSettings(settingsObj) {
+function _updateSettings(settingsObj) {
   assert_HasPermission();
   assert_ValidateData();
   Object.assign(SETTINGS, settingsObj);

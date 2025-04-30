@@ -50,7 +50,16 @@ function TextInput(props) {
       );
   }
 
-  /// HANDLERS ///
+  /// UI-SETTINGS INTEROP EVENT UPDATES ///
+
+  // send data to settings object, which will trigger rerender
+  const submitToSettings = async value => {
+    LOG('would check data', propDef);
+    LOG('would call RSB.UpdateProperty(args)');
+    // api.forceUpdate();
+  };
+
+  /// LOCAL EVENT UPDATES ///
 
   // input changes will update the current inputValue
   const handleTyping = event => {
@@ -59,15 +68,8 @@ function TextInput(props) {
   };
 
   // input key return will submit the value to settings object
-  const handleEnterSubmit = async event => {
-    if (event.key === 'Enter') handleSubmit(event);
-  };
-
-  // input blur will submit the value to settings object
-  const handleSubmit = async event => {
-    propDef.value = event.target.value;
-    LOG('handleSubmit API updateCount (old)', api.updateCount);
-    api.forceUpdate();
+  const handleEnterKey = async event => {
+    if (event.key === 'Enter') submitToSettings(event.target.value);
   };
 
   // hovering over label will show tooltip
@@ -134,8 +136,8 @@ function TextInput(props) {
           paddingRight: pad
         }}
         defaultValue={inputValue}
-        onKeyDown={handleEnterSubmit}
-        onBlur={handleSubmit}
+        onKeyDown={handleEnterKey}
+        onBlur={submitToSettings}
         onInput={handleTyping}
         onMouseOver={showOldValue}
         onMouseOut={showOldValue}

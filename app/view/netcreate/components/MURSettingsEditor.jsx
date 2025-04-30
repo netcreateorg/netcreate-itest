@@ -9,18 +9,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const UNISYS = require('unisys/client');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const {
-  GetPropertyDefs,
-  FlattenPropertyDefs,
-  GetMetaDefs,
-  GetStyles,
-  OnValueChanged,
-  OffValueChanged,
-  useSettings,
-  GetSettingsContext
-} = require('./react-settings-bridge');
+const { ConsoleStyler } = require('ursys-min');
+const RSB = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 const { diff } = require('deep-object-diff');
 
@@ -32,32 +22,33 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a react context object, providing access to the values prop of the
  *  SettingsProvider. It has to be defined within the React App root */
-const SettingsContext = GetSettingsContext(); // get the settings context
+const SettingsContext = RSB.GetSettingsContext(); // get the settings context
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
-  const api = useSettings();
-  const [oldCount, setOldCount] = React.useState(api.updateCount);
+  const api = RSB.useSettings();
+  const [oldState, saveOldState] = React.useState(api.lastSettingsUpdate);
 
   function saveChanges() {
-    setOldCount(api.updateCount);
+    saveOldState(api.lastSettingsUpdate);
     LOG(...PR('would save changes'));
   }
+
   function revertChanges() {
     LOG(...PR('would revert changes'));
   }
 
-  const propDefs = GetPropertyDefs();
-  const metaDefs = GetMetaDefs();
-  const { opBtnStyle, modColor } = GetStyles();
+  const propDefs = RSB.GetPropertyDefs();
+  const metaDefs = RSB.GetMetaDefs();
+  const { opBtnStyle, modColor } = RSB.GetStyles();
 
-  const mod = api.updateCount !== oldCount;
+  const mod = api.lastSettingsUpdate !== oldState;
   const backgroundColor = mod ? modColor : 'white';
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
   return (
-    <SettingsContext.Provider value={api} updateCount={api.updateCount}>
+    <SettingsContext.Provider value={api} modified={mod}>
       <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
         Save Changes
       </button>

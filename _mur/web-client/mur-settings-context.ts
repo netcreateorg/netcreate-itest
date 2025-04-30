@@ -28,7 +28,7 @@ function GetSettingsContext() {
  *  have to duplicate it over there somewhere to match both instance
  *  and potentailly the version */
 function useSettings() {
-  const [updateCount, triggerUpdate] = React.useState({});
+  const [lastSettingsUpdate, updateSettings] = React.useState({});
 
   /** universal get settings */
   const get = dotProp => Get(dotProp);
@@ -41,7 +41,7 @@ function useSettings() {
       console.error(`updateProperty: ${error}`);
       return false; // indicate failure
     }
-    triggerUpdate(opResult); // trigger a rerender
+    updateSettings(opResult); // trigger a rerender
     return true;
   };
 
@@ -53,14 +53,14 @@ function useSettings() {
       console.error(`updateGroup: ${error}`);
       return false;
     }
-    triggerUpdate(opResult); // trigger a rerender
+    updateSettings(opResult); // trigger a rerender
     return true;
   };
 
   return {
     // to trigger rerender
-    updateCount,
-    forceUpdate: () => triggerUpdate({ timestamp: new Date().toISOString() }),
+    lastSettingsUpdate,
+    forceUpdate: () => updateSettings({ timestamp: new Date().toISOString() }),
     // api
     get,
     updateProperty,
