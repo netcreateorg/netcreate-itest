@@ -67,7 +67,7 @@ function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [openTab, setOpenTab] = useState('importexport');
   const [password, setPassword] = useState('');
-  const [hasAdminPermissions, setHasAdminPermissions] = useState(false);
+  const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
   useEffect(() => {
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
@@ -94,6 +94,10 @@ function NCAdvancedPanel() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function assessAdminPrivileges() {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
+    if (TEMPLATE && TEMPLATE.adminPassword === undefined)
+      console.warn(
+        'No admin password defined!  Please set it if you need admin access'
+      );
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
     setHasAdminPermissions(isAdmin);
@@ -146,6 +150,20 @@ function NCAdvancedPanel() {
   }
 
   if (!isOpen) return null;
+
+  let adminStatus;
+  if (hasAdminPermissions === undefined) adminStatus = <span>❄︎</span>;
+  else if (hasAdminPermissions === false)
+    adminStatus = (
+      <input type="password" id="password" onChange={ui_PasswordChange} />
+    );
+  else if (hasAdminPermissions === true)
+    adminStatus = (
+      <button type="button" onClick={ui_PasswordClear}>
+        Admin Logout
+      </button>
+    );
+
   return (
     <URPopover title="Advanced" onClose={ui_CloseAdvanced}>
       <div id="NCTabPanel" className="NCAdvancedPanel">
@@ -167,15 +185,7 @@ function NCAdvancedPanel() {
 
         <div className="tabpanels">{jsx}</div>
 
-        <div className="footer">
-          {!hasAdminPermissions ? (
-            <input type="password" id="password" onChange={ui_PasswordChange} />
-          ) : (
-            <button type="button" onClick={ui_PasswordClear}>
-              Admin Logout
-            </button>
-          )}
-        </div>
+        <div className="footer">{adminStatus}</div>
       </div>
     </URPopover>
   );
