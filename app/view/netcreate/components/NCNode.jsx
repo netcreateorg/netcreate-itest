@@ -272,7 +272,8 @@ class NCNode extends UNISYS.Component {
     const isLoggedIn = this.IsLoggedIn();
 
     const LOCKSTATE = this.AppState('LOCKSTATE');
-    const uIsLockedByDB = LOCKSTATE.lockedNodes.includes(nodeId);
+    const uIsLockedByDB =
+      LOCKSTATE.lockedNodes && LOCKSTATE.lockedNodes.includes(nodeId);
     const uIsLockedByTemplate = LOCKSTATE.templateBeingEdited;
     const uIsLockedByImport = LOCKSTATE.importActive;
     // NOT IMPLEMENTED
