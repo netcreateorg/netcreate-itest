@@ -41,7 +41,7 @@ function PropertyGroup(props) {
   const { groupName, properties } = gdata;
   const propList = Object.keys(properties); // list of property names
   const meta = metaDef[groupName];
-  const { title, description } = metaDef[groupName]._groupMeta || {};
+  const { title, description } = meta._groupMeta || {};
   const key = `pg-${groupName}`;
   return (
     <div key={key} style={{ margin: '1rem' }}>
@@ -52,17 +52,13 @@ function PropertyGroup(props) {
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
-        <ui-groupDef groupDef={groupName}>
-          {propList.map(p => {
-            if (properties[p].type) {
-              const key = `in-${groupName}.${p}`;
-              return (
-                <TextInput propDef={properties[p]} metaDef={meta[p]} key={key} />
-              );
-            }
-            return null;
-          })}
-        </ui-groupDef>
+        {propList.map(p => {
+          if (properties[p].type) {
+            const key = `in-${groupName}.${p}`;
+            return <TextInput propDef={properties[p]} metaDef={meta[p]} key={key} />;
+          }
+          return null;
+        })}
       </details>
     </div>
   );
