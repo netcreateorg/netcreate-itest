@@ -58,8 +58,12 @@ SESUTIL.DecodeToken = function (token, templateSalt) {
 
   // Allow shareable tokens by setting `dataset` to undefined
   let salt;
-  if (templateSalt !== undefined) salt = `${classId}${projId}${templateSalt}`;
-  else salt = `${classId}${projId}`; // skips `dataset`
+  if (templateSalt !== undefined) {
+    salt = `${classId}${projId}${templateSalt}`;
+  } else {
+    salt = `${classId}${projId}`; // skips `dataset`
+    console.warn('"salt" is not defined.  Using only classId and projId.');
+  }
 
   if (DBG)
     console.warn(

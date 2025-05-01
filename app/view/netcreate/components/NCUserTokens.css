@@ -14,6 +14,12 @@
   color: var(--clr-system);
   user-select: none;
 }
+#NCUserTokens fieldset {
+  display: grid;
+  grid-template-columns: 25px auto;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
 #NCUserTokens textarea {
   width: 100%;
 }

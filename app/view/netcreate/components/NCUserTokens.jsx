@@ -6,10 +6,15 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import UNISYS from 'unisys/client';
 import SESSION from 'unisys/common-session';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// Initialize UNISYS DATA LINK for react component
+const UDATAOwner = { name: 'NCUserTokens' };
+const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 
@@ -22,12 +27,22 @@ function NCUserTokens() {
     tokens: '',
     isShareable: false,
     classId: '',
-    projId: ''
+    projId: '',
+    hasSalt: false
   });
 
   const ref_classId = useRef(null);
   const ref_projId = useRef(null);
   const ref_count = useRef(null);
+
+  useEffect(() => {
+    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    if (TEMPLATE && TEMPLATE.salt !== undefined)
+      setState(prevState => ({
+        ...prevState,
+        hasSalt: true
+      }));
+  }, []);
 
   /// UTILITY FUNCTIONS /////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,24 +138,11 @@ function NCUserTokens() {
         enter a class id, a project id, and number of tokens to generate. Then click
         &ldquo;Generate Tokens&rdquo;.
       </p>
-      <ul>
-        <li>&ldquo;Shareable&rdquo; tokens can be used for ANY graph.</li>
-        <li>
-          &ldquo;Class ID&rdquo; and &ldquo;Project ID&rdquo; can be any short
-          alphanumeric (no spaces or punctuation) string less than 12 characters.
-        </li>
-      </ul>
+      <p>
+        &ldquo;Class ID&rdquo; and &ldquo;Project ID&rdquo; can be any short
+        alphanumeric (no spaces or punctuation) string less than 12 characters.
+      </p>
       <div className="form">
-        <label htmlFor="shareable">Shareable</label>
-        <span>
-          <input
-            id="shareable"
-            type="checkbox"
-            checked={state.isShareable}
-            onChange={evt_SetShareable}
-          />
-          Make tokens usable for ANY graph
-        </span>
         {!state.isShareable && <label htmlFor="dataset">Graph</label>}
         {!state.isShareable && (
           <input
@@ -180,6 +182,25 @@ function NCUserTokens() {
         <button onClick={evt_MakeTokens} className="cat" role="button">
           Generate Tokens
         </button>
+        <div></div>
+        <fieldset>
+          <legend>Advanced Options</legend>
+          {!state.hasSalt && (
+            <span style={{ color: 'red', gridColumn: 'span 2' }}>
+              WARNING: Project template salt not defined. Tokens will be shareable.
+            </span>
+          )}
+          <input
+            id="shareable"
+            type="checkbox"
+            checked={state.isShareable || !state.hasSalt}
+            onChange={evt_SetShareable}
+            disabled={!state.hasSalt}
+          />
+          <label htmlFor="shareable">
+            Shareable -- Make tokens usable for ANY graph
+          </label>
+        </fieldset>
       </div>
       <br />
       <label htmlFor="tokenDisplay">Copy and share these tokens.</label>
