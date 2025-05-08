@@ -417,6 +417,18 @@ function NCNodeTable({ isOpen }) {
   if (state.nodes === undefined) return `loading...waiting for nodes ${state.nodes}`;
   if (state.nodeDefs === undefined)
     return `loading...waiting for nodeDefs ${state.nodeDefs}`;
+
+  // HACK Optimization: if the table is not open, don't render it
+  // REVIEW: Search input triggers a FILTEREDNCDATA update, which causes the table to
+  //         re-render. This is a hack to prevent that.  The proper fix is
+  //         probably only to update the `nodess` data if the data has changed.
+  if (!isOpen)
+    return (
+      <div id="NCNodeTable">
+        <div className="URTable"></div>
+      </div>
+    );
+
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ nodeDefs: state.nodeDefs, nodes: state.nodes });
   return (
