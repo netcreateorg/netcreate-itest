@@ -166,8 +166,8 @@ function NCInfoPanel() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_MouseUp() {
     ref_Dragger.current = null;
-    document.mouseup = null;
-    document.mousemove = null;
+    document.onmouseup = null;
+    document.onmousemove = null;
   }
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
