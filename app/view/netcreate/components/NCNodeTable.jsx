@@ -22,7 +22,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import UNISYS from 'unisys/client';
 import NCUI from '../nc-ui';
 import UTILS from '../nc-utils';
@@ -46,6 +46,7 @@ const DBG = false;
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NCNodeTable({ isOpen }) {
+  const isOpenRef = useRef(isOpen);
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -53,9 +54,10 @@ function NCNodeTable({ isOpen }) {
   useEffect(() => {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
     const SESSION = UDATA.AppState('SESSION');
+    const NCDATA = UDATA.AppState('NCDATA');
     setState({
       nodeDefs: TEMPLATE.nodeDefs,
-      nodes: [],
+      nodes: NCDATA.nodes,
       disableEdit: false,
       isLocked: !SESSION.isValid
     });
@@ -70,10 +72,17 @@ function NCNodeTable({ isOpen }) {
     };
   }, []);
 
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// FILTEREDNCDATA is the reduced list of nodes, not ALL nodes
   function urstate_FILTEREDNCDATA(data) {
+    // skip update if not open
+    if (!isOpenRef.current) return;
+
     if (data.nodes) {
       // If we're transitioning from "COLLAPSE" or "FOCUS" to "HILIGHT/FADE", then we
       // also need to add back in nodes that are not in filteredNodes
@@ -82,17 +91,11 @@ function NCNodeTable({ isOpen }) {
       if (FILTERDEFS.filterAction === FILTER.ACTION.FADE) {
         // show ALL nodes
         const NCDATA = UDATA.AppState('NCDATA');
-        m_updateNodeFilterState(NCDATA.nodes);
+        setState(prevState => ({ ...prevState, nodes: NCDATA.nodes }));
       } else {
-        // show only filtered nodes from the filter update
-        m_updateNodeFilterState(data.nodes);
+        setState(prevState => ({ ...prevState, nodes: data.nodes }));
       }
     }
-  }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function m_updateNodeFilterState(nodes) {
-    setState(prevState => ({ ...prevState, nodes }));
-    return;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
@@ -314,6 +317,7 @@ function NCNodeTable({ isOpen }) {
     // Only include built in fields
     // Only include non-hidden fields
     // Only include non-provenance fields
+
     const attributeDefs = Object.keys(nodeDefs).filter(
       k =>
         !BUILTIN_FIELDS_NODE.includes(k) &&
@@ -418,22 +422,11 @@ function NCNodeTable({ isOpen }) {
   if (state.nodeDefs === undefined)
     return `loading...waiting for nodeDefs ${state.nodeDefs}`;
 
-  // HACK Optimization: if the table is not open, don't render it
-  // REVIEW: Search input triggers a FILTEREDNCDATA update, which causes the table to
-  //         re-render. This is a hack to prevent that.  The proper fix is
-  //         probably only to update the `nodess` data if the data has changed.
-  if (!isOpen)
-    return (
-      <div id="NCNodeTable">
-        <div className="URTable"></div>
-      </div>
-    );
-
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ nodeDefs: state.nodeDefs, nodes: state.nodes });
   return (
     <div id="NCNodeTable">
-      <URTable isOpen={isOpen} data={TABLEDATA} columns={COLUMNDEFS} />
+      <URTable isOpen={isOpenRef.current} data={TABLEDATA} columns={COLUMNDEFS} />
     </div>
   );
 }
