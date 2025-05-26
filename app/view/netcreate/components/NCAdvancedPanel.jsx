@@ -159,7 +159,9 @@ function NCAdvancedPanel() {
     );
   } else if (hasAdminPermissions === false)
     adminStatus = (
-      <input type="password" id="password" onChange={ui_PasswordChange} />
+      <label>
+        admin: <input type="password" id="password" onChange={ui_PasswordChange} />
+      </label>
     );
   else if (hasAdminPermissions === true)
     adminStatus = (
