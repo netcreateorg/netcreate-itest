@@ -152,8 +152,12 @@ function NCAdvancedPanel() {
   if (!isOpen) return null;
 
   let adminStatus;
-  if (hasAdminPermissions === undefined) adminStatus = <span>❄︎</span>;
-  else if (hasAdminPermissions === false)
+  if (hasAdminPermissions === undefined) {
+    adminStatus = <span>Admin Mode Disabled</span>;
+    console.error(
+      '"adminPassword" has not been defined in template!  You will not be able to access admin features.  Add a "adminPassword" property to the template to enable admin features.'
+    );
+  } else if (hasAdminPermissions === false)
     adminStatus = (
       <input type="password" id="password" onChange={ui_PasswordChange} />
     );
