@@ -1,8 +1,7 @@
 #InfoPanel {
   background-color: var(--clr-bg);
   display: grid;
-  grid-template-rows: 38px auto auto auto;
-  /* overflow: hidden; */
+  grid-template-rows: 38px min-content auto min-content;
 }
 #InfoPanel .graphtitle {
   color: var(--clr-system);

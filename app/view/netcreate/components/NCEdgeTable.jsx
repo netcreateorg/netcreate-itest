@@ -21,7 +21,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import UNISYS from 'unisys/client';
 import NCUI from '../nc-ui';
 import UTILS from '../nc-utils';
@@ -45,6 +45,7 @@ const DBG = false;
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NCEdgeTable({ isOpen }) {
+  const isOpenRef = useRef(isOpen);
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -52,9 +53,10 @@ function NCEdgeTable({ isOpen }) {
   useEffect(() => {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
     const SESSION = UDATA.AppState('SESSION');
+    const NCDATA = UDATA.AppState('NCDATA');
     setState({
       edgeDefs: TEMPLATE.edgeDefs,
-      edges: [],
+      edges: NCDATA.edges,
       nodes: [], // needed for dereferencing source/target
       disableEdit: false,
       isLocked: !SESSION.isValid
@@ -70,10 +72,17 @@ function NCEdgeTable({ isOpen }) {
     };
   }, []);
 
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
   /// UR HANDLERS /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// FILTEREDNCDATA is the reduced list of nodes, not ALL edges
   function urstate_FILTEREDNCDATA(data) {
+    // skip update if not open
+    if (!isOpenRef.current) return;
+
     if (data.edges) {
       // If we're transitioning from "COLLAPSE" or "FOCUS" to "HILIGHT/FADE", then we
       // also need to add back in edges that are not in filteredEdges
@@ -81,16 +90,11 @@ function NCEdgeTable({ isOpen }) {
       const FILTERDEFS = UDATA.AppState('FILTERDEFS');
       if (FILTERDEFS.filterAction === FILTER.ACTION.FADE) {
         const NCDATA = UDATA.AppState('NCDATA');
-        m_updateEdgeFilterState(NCDATA.edges);
+        setState(prevState => ({ ...prevState, edges: NCDATA.edges }));
       } else {
-        m_updateEdgeFilterState(data.edges);
+        setState(prevState => ({ ...prevState, edges: data.edges }));
       }
     }
-  }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function m_updateEdgeFilterState(edges) {
-    setState(prevState => ({ ...prevState, edges }));
-    return;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
@@ -473,11 +477,12 @@ function NCEdgeTable({ isOpen }) {
   if (state.edges === undefined) return `loading...waiting for edges ${state.edges}`;
   if (state.edgeDefs === undefined)
     return `loading...waiting for nodeDefs ${state.edgeDefs}`;
+
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ edgeDefs: state.edgeDefs, edges: state.edges });
   return (
     <div id="NCEdgeTable">
-      <URTable isOpen={isOpen} data={TABLEDATA} columns={COLUMNDEFS} />
+      <URTable isOpen={isOpenRef.current} data={TABLEDATA} columns={COLUMNDEFS} />
     </div>
   );
 }

@@ -135,6 +135,9 @@ SORTORDER.set(0, '▲▼');
 SORTORDER.set(1, '▲');
 SORTORDER.set(-1, '▼');
 
+const HumanDateCache = new Map();
+const HumanDateShortCache = new Map();
+
 /// FUNCTIONAL COMPONENT DECLARATION //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function URTable({ isOpen, data, columns }) {
@@ -191,6 +194,10 @@ function URTable({ isOpen, data, columns }) {
   /// e.g. Jan 7 10:05:29 AM
   function u_HumanDate(timestamp) {
     if (timestamp === undefined || timestamp === '') return '<no date>';
+
+    // Check cache first
+    if (HumanDateCache.has(timestamp)) return HumanDateCache.get(timestamp);
+
     const date = new Date(timestamp);
     const timestring = date.toLocaleTimeString('en-Us', {
       hour: '2-digit',
@@ -202,12 +209,22 @@ function URTable({ isOpen, data, columns }) {
       day: 'numeric',
       year: 'numeric'
     });
+
+    // Cache the result
+    // - Clear cache if it gets too large
+    if (HumanDateCache.size > 2048) HumanDateCache.clear();
+    HumanDateCache.set(timestamp, `${datestring} ${timestring}`);
+
     return `${datestring} ${timestring}`;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// e.g. 1/7/25 10:05a
   function u_HumanDateShort(timestamp) {
     if (timestamp === undefined || timestamp === '') return '<no date>';
+
+    // Check cache first
+    if (HumanDateShortCache.has(timestamp)) return HumanDateShortCache.get(timestamp);
+
     const date = new Date(timestamp);
     const timestring = date.toLocaleTimeString('en-Us', {
       hour: '2-digit',
@@ -218,6 +235,12 @@ function URTable({ isOpen, data, columns }) {
       day: '2-digit',
       year: '2-digit'
     });
+
+    // Cache the result
+    // - Clear cache if it gets too large
+    if (HumanDateShortCache.size > 2048) HumanDateShortCache.clear();
+    HumanDateShortCache.set(timestamp, `${datestring} ${timestring}`);
+
     return `${datestring} ${timestring}`;
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

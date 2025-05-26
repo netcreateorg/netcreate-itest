@@ -40,6 +40,23 @@
         }
     }
 
+
+    FILTEREDNCDATA = {
+        nodes: [ ... ],
+        edges: [ ... ],
+        stats: {
+            nodeCount: 0,
+            edgeCount: 0,
+            filteredNodeCount: 0,
+            filteredEdgeCount: 0,
+            statsSummary: '',     // NCFiltersPanel count of nodes/edges if filters are applied
+                                  // (displayed at bottom of NCFiltersPanel)
+
+            graphStats: ''        // NCInfoPanel count of nodes/edges if no filters
+            filtersSummary: '',   // NCInfoPanel summary of active filters
+        }
+    }
+
   FEATURES
 
   * See Whimiscal [diagram](https://whimsical.com/d3-data-flow-B2tTGnQYPSNviUhsPL64Dz)
@@ -111,7 +128,7 @@ MOD.Hook('INITIALIZE', () => {
   UDATA.OnAppStateChange('FILTERDEFS', data => {
     if (DBG) console.log(PR + 'OnAppStateChange: FILTERDEFS', data);
     // The filter defs have been updated, so apply the filters.
-    m_UpdateFilters();
+    m_FiltersApply();
   });
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -160,7 +177,7 @@ MOD.Hook('INITIALIZE', () => {
    */
   UDATA.OnAppStateChange('NCDATA', data => {
     if (DBG) console.log(PR + 'OnAppStateChange: NCDATA', data);
-    m_UpdateFilters();
+    m_FiltersApply();
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** Listen for TEMPLATE updates so we know to trigger change?
@@ -405,11 +422,13 @@ function m_FiltersApply() {
     FILTERDEFS.filterAction
   );
 
+  // Update Filter Summary
+  const filterSummary = m_UpdateFilterSummary(FILTEREDNCDATA.stats.statsSummary);
+  FILTEREDNCDATA.stats = { ...FILTEREDNCDATA.stats, ...filterSummary };
+
   // Update FILTEREDNCDATA
   UDATA.SetAppState('FILTEREDNCDATA', FILTEREDNCDATA);
   // edge-mgr handles this call and updates VDATA, which is rendered by d3-simplenetgraph
-
-  return FILTEREDNCDATA.stats.statsSummary;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_ClearFilters() {
@@ -448,12 +467,6 @@ function m_UpdateFilterSummary(statsSummary) {
   const FILTERDEFS = UDATA.AppState('FILTERDEFS');
   const FILTEREDNCDATA = UDATA.AppState('FILTEREDNCDATA');
 
-  // skip if FILTERDEFS has not been defined yet
-  if (Object.keys(FILTERDEFS).length < 1) {
-    UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { graphStats });
-    return;
-  }
-
   const graphStats = `${FILTEREDNCDATA.nodes && FILTEREDNCDATA.nodes.length} nodes, ${
     FILTEREDNCDATA.edges && FILTEREDNCDATA.edges.length
   } edges`;
@@ -461,19 +474,14 @@ function m_UpdateFilterSummary(statsSummary) {
   const typeSummary = FILTERDEFS.filterAction; // text for filter action is the label, e.g. 'HIGHLIGHT'
   const nodeSummary = m_FiltersToString(FILTERDEFS.nodes.filters);
   const edgeSummary = m_FiltersToString(FILTERDEFS.edges.filters);
-  let summary = '';
+  let filtersSummary = '';
   if (nodeSummary || edgeSummary)
-    summary = `${typeSummary} ${nodeSummary ? 'NODES: ' : ''}${nodeSummary} ${
+    filtersSummary = `${typeSummary} ${nodeSummary ? 'NODES: ' : ''}${nodeSummary} ${
       edgeSummary ? 'EDGES: ' : ''
     }${edgeSummary}`;
-  if (summary) summary += ' ' + statsSummary;
+  if (filtersSummary) filtersSummary += ' ' + statsSummary;
 
-  UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { filtersSummary: summary, graphStats });
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_UpdateFilters() {
-  const statsSummary = m_FiltersApply();
-  m_UpdateFilterSummary(statsSummary);
+  return { filtersSummary, graphStats };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_FiltersToString(filters) {

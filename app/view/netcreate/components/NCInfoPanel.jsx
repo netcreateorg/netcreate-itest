@@ -15,6 +15,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import UNISYS from 'unisys/client';
+import NCFiltersSummary from './NCFiltersSummary';
 import NCNodeTable from './NCNodeTable';
 import NCEdgeTable from './NCEdgeTable';
 
@@ -43,8 +44,6 @@ function NCInfoPanel() {
     tabpanelHeight: defaultClosedTabPanelHeight,
     prevNodeTableHeight: 0,
     prevEdgeTableHeight: 0,
-    filtersSummary: '',
-    graphStats: '',
     draggerIsHidden: true
   });
   const ref_InfoPanel = useRef(null);
@@ -57,20 +56,8 @@ function NCInfoPanel() {
         infoPanelTop: ref_InfoPanel.current.offsetTop
       }));
     }
-    const urmsg_UpdateFilterSummary = data => {
-      if (
-        (data.filtersSummary && data.filtersSummary !== state.filtersSummary) ||
-        (data.graphStats && data.graphStats !== state.graphStats)
-      ) {
-        setState(prevState => ({
-          ...prevState,
-          filtersSummary: data.filtersSummary,
-          graphStats: data.graphStats
-        }));
-      }
-    };
-    UDATA.HandleMessage('FILTER_SUMMARY_UPDATE', urmsg_UpdateFilterSummary);
   }, []);
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function evt_SelectTab(tabkey) {
     let tabpanelHeight = defaultClosedTabPanelHeight;
@@ -93,10 +80,7 @@ function NCInfoPanel() {
       draggerIsHidden
     }));
   }
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function evt_ClearFilters() {
-    UDATA.LocalCall('FILTER_CLEAR');
-  }
+
   /// DRAGGER HANDLERS ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Update max table height whenever the active tab changes
@@ -165,8 +149,8 @@ function NCInfoPanel() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_MouseUp() {
     ref_Dragger.current = null;
-    document.mouseup = null;
-    document.mousemove = null;
+    document.onmouseup = null;
+    document.onmousemove = null;
   }
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
@@ -211,15 +195,7 @@ function NCInfoPanel() {
         ))}
       </div>
 
-      <div id="filters-summary">
-        {!state.filtersSummary && state.graphStats}
-        {state.filtersSummary}
-        {state.filtersSummary && (
-          <button className="cat" onClick={evt_ClearFilters}>
-            Clear Filters
-          </button>
-        )}
-      </div>
+      <NCFiltersSummary />
 
       <div className="tabpanels">
         <section id={TABS.GRAPH.label} className="hidden" role="tabpanel" />
