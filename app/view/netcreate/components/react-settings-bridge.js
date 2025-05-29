@@ -131,7 +131,7 @@ const popupStyle = {
   backgroundColor: 'gray',
   color: 'white',
   padding,
-  zIndex: 1000,
+  zIndex: 10000,
   maxWidth: '20rem',
   display: 'none'
 };
@@ -150,8 +150,12 @@ function GetStyles() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EventTargetOffsetStyle(event) {
   const rect = event.target.getBoundingClientRect();
+  const advPanel = document.querySelector('#popover');
+  const advRect = advPanel
+    ? advPanel.getBoundingClientRect()
+    : { left: '0px', top: '0px' };
   return {
-    left: `${rect.left + window.scrollX}px`,
+    left: `${rect.left - advRect.left}px`,
     top: `${rect.top + window.scrollY + rect.height + 2}px`
   };
 }
