@@ -91,7 +91,7 @@ function PSOP_Persist(pkt) {
   return { status: 'ok' }; // required by UNISYS network protocol
 }
 
-/// SETTINGS UPDATE METHODS ///////////////////////////////////////////////////
+/// SERVER-SIDE SETTINGS UPDATE METHODS ///////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function UpdateGroup(groupName, propObj) {
   assert_HasPermission();
@@ -112,7 +112,7 @@ function UpdateProperty(dotProp, value) {
   return { status: 'ok' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function _updateSettings(settingsObj) {
+function UpdateSettings(settingsObj) {
   assert_HasPermission();
   assert_ValidateData();
   Object.assign(SETTINGS, settingsObj);

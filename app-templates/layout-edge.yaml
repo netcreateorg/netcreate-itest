@@ -50,8 +50,8 @@ EdgeDef:
     help: 'Type of edge connection'
 
   notes:
-    <<: *SharedControls
     control: 'in-text'
+    <<: *SharedControls
     label: 'Notes'
     help: 'Significance of the connection'
 

@@ -9,7 +9,6 @@
 import * as NCI from './nc-client-interop.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { EventMachine } from '../common/class-event-machine.ts';
-import { GetSettingsContext, useSettings } from './mur-settings-context.ts'; // for React context
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,12 +85,12 @@ function m_ReceiveServerChanges(data: DataObj) {
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: return either the entire settings object, or a subkey */
-function Get(subkey?: string): OpResult {
+/** API: return either the entire settings object, or a groupKey */
+function Get(groupName?: string): OpResult {
   const fn = 'Get:';
-  if (typeof subkey === 'string' && subkey.length > 0) {
-    if (SETTINGS[subkey] !== undefined) return SETTINGS[subkey];
-    return { error: `subkey '${subkey}' not found in settings` };
+  if (typeof groupName === 'string' && groupName.length > 0) {
+    if (SETTINGS[groupName] !== undefined) return SETTINGS[groupName];
+    return { error: `groupName '${groupName}' not found in settings` };
   }
   return SETTINGS;
 }
@@ -136,8 +135,6 @@ export {
   UpdateGroup,
   //
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
-  Unsubscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
-  //
-  GetSettingsContext, // for React context usage
-  useSettings // for React hook usage (may not work in legacy js)
+  Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void
 };
+export { GetSettingsContext, useSettings } from './mur-settings-context.ts';
