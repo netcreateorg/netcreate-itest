@@ -1,4 +1,3 @@
-/* eslint-disable no-alert */
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Property Editor Panel
@@ -10,77 +9,135 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const UNISYS = require('unisys/client');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const {
-  ReactListKey: KH,
-  GetPropertyDefs,
-  GetLayoutDefs
-} = require('./react-settings-client');
+const { ConsoleStyler } = require('ursys-min');
+const RSB = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
+const { diff } = require('deep-object-diff');
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const PR = ConsoleStyler('SetEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-
-/// FUNCTIONAL COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return a settings ui for rendering inside a React component */
-function GeneratePropList() {
-  const props = GetPropertyDefs();
-  const layouts = GetLayoutDefs();
-  const groupUI = [];
-  Object.keys(props).forEach(gn => {
-    groupUI.push(
-      <PropertyGroup
-        groupName={gn}
-        properties={props[gn]}
-        layout={layouts[gn]}
-        key={KH('GRP')}
-      />
-    );
-  });
-  return groupUI;
-}
+/** a react context object, providing access to the values prop of the
+ *  SettingsProvider. It has to be defined within the React App root */
+const SettingsContext = RSB.GetSettingsContext(); // get the settings context
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class MURSettingEditor extends UNISYS.Component {
-  constructor(props) {
-    super(props);
-    // UNISYS.Component already has UDATA and exposes these handlers
-    // see client-react-component.jsx for more info
-    this.handleSettingsUpdate = this.handleSettingsUpdate.bind(this);
+function MURSettingsEditor() {
+  const api = RSB.useSettings();
+  const [oldState, saveOldState] = React.useState(api.lastSettingsUpdate);
+  const [showToDo, setShowToDo] = React.useState(true);
+
+  function saveChanges() {
+    saveOldState(api.lastSettingsUpdate);
+    LOG(...PR('would save changes'));
   }
 
-  /// REACT LIFECYCLE ///
-
-  async componentDidMount() {
-    Settings.Subscribe('*', this.handleSettingsUpdate);
-    // props are sorted in order they are merged in mur-settings-mgr.mts
+  function revertChanges() {
+    LOG(...PR('would revert changes'));
   }
 
-  componentWillUnmount() {
-    Settings.Unsubscribe('*', this.handleSettingsUpdate);
-  }
+  const propDefs = RSB.GetPropertyDefs();
+  const metaDefs = RSB.GetMetaDefs();
+  const { opBtnStyle, modColor } = RSB.GetStyles();
 
-  /// DATA EVENT HANDLERS ///
+  const mod = api.lastSettingsUpdate !== oldState;
+  const backgroundColor = mod ? modColor : 'white';
+  const color = mod ? 'black' : 'gray';
+  const btnStyle = { ...opBtnStyle, backgroundColor, color };
+  const toDoList = (
+    <div>
+      <ul>
+        <li>graph name</li>
+        <li>graph description</li>
+        <li>secret key (for tokens)</li>
+        <li>admin password</li>
+        <li>
+          Node Definitions
+          <ul>
+            <li>
+              Node Type
+              <ul>
+                <li>1: [label, color]</li>
+                <li>2: [label, color]</li>
+                <li>...7</li>
+              </ul>
+            </li>
+            <li>Notes -- label, type, hide</li>
+            <li>Info -- label, type, hide</li>
+            <li>InfoSource -- label, type, hide</li>
+          </ul>
+        </li>
+        <li>
+          Edge Definitions
+          <ul>
+            <li>
+              Edge Type
+              <ul>
+                <li>1: [label, color]</li>
+                <li>2: [label, color]</li>
+                <li>...7</li>
+              </ul>
+            </li>
+            <li>Notes -- label, type, hide</li>
+            <li>InfoOrigin -- label, type, hide</li>
+            <li>Citation -- label, type, hide</li>
+            <li>Category -- label, type, hide</li>
+          </ul>
+        </li>
+        <li>
+          Comment Types
+          <ul>
+            <li>slug</li>
+            <li>label</li>
+            <li>
+              prompts
+              <ul>
+                <li>1: [format, prompt, help, feedback]</li>
+                <li>2: [format, prompt, help, feedback]</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p>NOTES: </p>
+      <ul>
+        <li>
+          `isProvenance` will place a field in the Proveannce tab. But we do not
+          expect teachers to need to change that.
+        </li>
+      </ul>
+    </div>
+  );
 
-  /** called after subscribing via Settings.Subscribe() */
-  handleSettingsUpdate(data) {
-    const { settings, group, prop } = data;
-  }
-
-  /// RENDERED OUTPUT ///
-
-  render() {
-    const propsUI = GeneratePropList();
-    return <div>{propsUI}</div>;
-  }
+  return (
+    <SettingsContext.Provider value={api} modified={mod}>
+      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
+        Save Changes
+      </button>
+      &nbsp;
+      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
+        Revert Changes
+      </button>
+      <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
+        {showToDo ? 'ShowWIP' : 'ShowToDo'}
+      </button>
+      {!showToDo &&
+        Object.keys(propDefs).map(gn => (
+          <PropertyGroup
+            groupDef={{ [gn]: propDefs[gn] }}
+            metaDef={{ [gn]: metaDefs[gn] }}
+            key={gn}
+          />
+        ))}
+      {showToDo && toDoList}
+    </SettingsContext.Provider>
+  );
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = MURSettingEditor;
+module.exports = MURSettingsEditor;

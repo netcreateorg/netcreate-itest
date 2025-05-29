@@ -16,7 +16,6 @@ const STAT = true;
 ///	LOAD LIBRARIES ////////////////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var WSS = require('ws').Server;
-var FSE = require('fs-extra');
 var NetMessage = require('./common-netmessage-class');
 const LOGGER = require('./server-logger');
 var DB = require('./server-database');
@@ -26,14 +25,9 @@ var DEFS = require('./common-defs');
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const PROMPTS = require('../system/util/prompts');
 const PR = PROMPTS.Pad('SRV_NET');
-const ERR = PROMPTS.Pad('!!!');
 const ERR_SS_EXISTS = 'socket server already created';
-const ERR_NULL_SOCKET = 'require valid socket';
 const DBG_SOCK_BADCLOSE = 'closing socket is not in mu_sockets';
-const ERR_INVALID_DEST = "couldn't find socket with provided address";
-const ERR_UNKNOWN_PKT = 'unrecognized netmessage packet type';
 const DEFAULT_NET_PORT = 2929;
-const DEFAULT_NET_ADDR = '127.0.0.1';
 
 /// MODULE-WIDE VARS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -56,8 +50,7 @@ var UNET = {};
 const SERVER_UADDR = NetMessage.DefaultServerUADDR(); // is 'SVR_01'
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Initialize() is called by brunch-server.js to define the default UNISYS
-    network values, so it can embed them in the index.ejs file for webapps
- */
+ *  network values, so it can embed them in the index.ejs file for webapps */
 UNET.InitializeNetwork = options => {
   options = options || {};
   options.port = options.port || DEFAULT_NET_PORT;
@@ -66,11 +59,10 @@ UNET.InitializeNetwork = options => {
   NetMessage.GlobalSetup({ uaddr: options.uaddr });
   mu_options = options;
   return mu_options;
-}; // end InitializeNetwork()
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**	CreateNetwork() is called by brunch-server after the Express webserver
-    has started listening, initializing the UNISYS NETWORK socket listener.
- */
+ *  has started listening, initializing the UNISYS NETWORK socket listener. */
 UNET.StartNetwork = () => {
   // create listener
   mu_wss = new WSS(mu_options);
@@ -78,13 +70,12 @@ UNET.StartNetwork = () => {
     if (STAT) console.log(PR, `unisys network is active on port ${mu_options.port}`);
     mu_wss.on('connection', m_NewSocketConnected);
   });
-}; // end CreateNetwork()
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HandleMessage() registers a server-implemented handler.
-    The handlerFunc receives a NetMessage and should return one as well.
-    It can also return a non-object if there is an error.
-    Logic is similar to client-datalink-class.js equivalent
- */
+/** HandleMessage() registers a server-implemented handler. The handlerFunc
+ *  receives a NetMessage and should return one as well. It can also return a
+ *  non-object if there is an error. Logic is similar to
+ *  client-datalink-class.js equivalent */
 UNET.HandleMessage = function (mesgName, handlerFunc) {
   if (typeof handlerFunc !== 'function') {
     throw 'arg2 must be a function';
@@ -96,12 +87,11 @@ UNET.HandleMessage = function (mesgName, handlerFunc) {
   }
   handlers.add(handlerFunc);
   return this;
-}; // end HandleMessage()
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** UnhandleMessage() de-registers a server-implemented handler, in case you
-    ever want to do that.
-    Logic is similar to client-datalink-class.js equivalent
- */
+ *  ever want to do that. Logic is similar to client-datalink-class.js
+ *  equivalent */
 UNET.UnhandleMessage = function (mesgName, handlerFunc) {
   if (!arguments.length) {
     m_server_handlers.clear();
@@ -114,10 +104,9 @@ UNET.UnhandleMessage = function (mesgName, handlerFunc) {
     }
   }
   return this;
-}; // end UnhandleMessage()
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Call remote handler, with possible return value
- */
+/** Call remote handler, with possible return value */
 UNET.NetCall = async function (mesgName, data) {
   let pkt = new NetMessage(mesgName, data);
   let promises = m_PromiseRemoteHandlers(pkt);
@@ -126,15 +115,14 @@ UNET.NetCall = async function (mesgName, data) {
       PR,
       `${pkt.Info()} NETCALL ${pkt.Message()} to ${promises.length} remotes`
     );
-  /// MAGICAL ASYNC/AWAIT BLOCK ///////
+  /// MAGICAL ASYNC/AWAIT BLOCK ///
   let resArray = await Promise.all(promises);
   /// END MAGICAL ASYNC/AWAIT BLOCK ///
   let resObj = Object.assign({}, ...resArray);
   return resObj;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Send data to remote handler, no expected return value
- */
+/** Send data to remote handler, no expected return value */
 UNET.NetSend = function (mesgName, data) {
   let pkt = new NetMessage(mesgName, data);
   let promises = m_PromiseRemoteHandlers(pkt);
@@ -146,8 +134,7 @@ UNET.NetSend = function (mesgName, data) {
     );
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Send signal to remote handler, no expected return value
- */
+/** Send signal to remote handler, no expected return value */
 UNET.NetSignal = function (mesgName, data) {
   console.warn(
     PR,
@@ -157,8 +144,7 @@ UNET.NetSignal = function (mesgName, data) {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** RegisterRemoteHandlers() accepts a RegistrationPacket with data = { messages }
-    and writes to the two main maps for handling incoming messages
- */
+ *  and writes to the two main maps for handling incoming messages */
 UNET.RegisterRemoteHandlers = function (pkt) {
   if (pkt.Message() !== 'SRV_REG_HANDLERS') throw Error('not a registration packet');
   let uaddr = pkt.SourceAddress();
@@ -182,13 +168,11 @@ UNET.RegisterRemoteHandlers = function (pkt) {
   return { registered: regd };
 };
 
-/// MODULE HELPER FUNCTIONS ///////////////////////////////////////////////////
+/// SOCKET HELPER FUNCTIONS ///////////////////////////////////////////////////
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** The socket has connected, so let's save this to our connection list
- */
+/** The socket has connected, so let's save this to our connection list */
 function m_NewSocketConnected(socket) {
   if (DBG) console.log(PR, 'socket connected');
-
   m_SocketAdd(socket);
   m_SocketClientAck(socket);
   // subscribe socket to handlers
@@ -202,15 +186,13 @@ function m_NewSocketConnected(socket) {
     // The socket will close eventually after about 4 minutes.
     m_SocketDelete(socket);
   });
-
   // start heartbeat
   m_StartHeartbeat();
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** When a new socket is connected, we send a periodic heartbeat to let them
-    know we're still here, and so client can detect when network is lost.
-    This will keep sending a heartbeat to the socket so long as it is open.
- */
+ *  know we're still here, and so client can detect when network is lost.
+ *  This will keep sending a heartbeat to the socket so long as it is open. */
 function m_StartHeartbeat() {
   if (DBG) console.log(PR, 'starting heartbeat');
   if (m_heartbeat_interval) return; // already started
@@ -232,18 +214,13 @@ function m_StartHeartbeat() {
     });
   }, DEFS.SERVER_HEARTBEAT_INTERVAL);
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** If a 'pong' message is not received from the client 5 seconds
-    after we send the client a ping message, we assume the network connection
-    has gone down.
-
-    The socket close handler is only triggered when the server closes the
-    connection.  In order to detect the internet connection going down
-    (e.g. loss of wifi) we need to check to see if we are peridically receiving
-    a heartbeat message from the client.
- */
-
+/** If a 'pong' message is not received from the client 5 seconds after we send
+ *  the client a ping message, we assume the network connection has gone down.
+ *  The socket close handler is only triggered when the server closes the
+ *  connection.  In order to detect the internet connection going down
+ *  (e.g. loss of wifi) we need to check to see if we are peridically receiving
+ *  a heartbeat message from the client. */
 function m_ResetPongTimer(uaddr) {
   clearTimeout(m_pong_timer[uaddr]);
   m_pong_timer[uaddr] = setTimeout(function pongTimedOut() {
@@ -261,11 +238,9 @@ function m_ResetPongTimer(uaddr) {
     DB.RequestUnlock(uaddr);
   }, DEFS.SERVER_HEARTBEAT_INTERVAL * 2);
 }
-
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** When a new socket connection happens, send back the special registration
-    packet (WIP)
- */
+ * packet (WIP) */
 function m_SocketClientAck(socket) {
   let data = {
     HELLO: 'Welcome to UNISYS',
@@ -274,8 +249,7 @@ function m_SocketClientAck(socket) {
   socket.send(JSON.stringify(data));
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Handle all incoming socket messages asynchronously through Promises
- */
+/** Handle all incoming socket messages asynchronously through Promises */
 function m_SocketMessage(socket, json) {
   // Check Heartbeat
   if (json === 'pong') {
@@ -293,6 +267,7 @@ function m_SocketMessage(socket, json) {
   }
   try {
     let pkt = new NetMessage(json);
+    // todo: check authentication
     // figure out what to do
     switch (pkt.Type()) {
       case 'state':
@@ -309,16 +284,9 @@ function m_SocketMessage(socket, json) {
   } catch (err) {
     console.error(PR, 'm_SocketMessage try:', err);
   }
-} // end m_SocketMessage()
-///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handle global state and rebroadcast
- */
-function m_HandleState(socket, pkt) {
-  //
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handle messages that are a Send(), Signal(), or Call()
- */
+/** handle messages that are a Send(), Signal(), or Call() */
 async function m_HandleMessage(socket, pkt) {
   // is this a returning packet that was forwarded?
   if (pkt.IsOwnResponse()) {
@@ -376,12 +344,11 @@ async function m_HandleMessage(socket, pkt) {
   // if (notsrv) console.log(PR,`'${pkt.Message()}' returning transaction data ${json}`);
   pkt.SetData(data);
   pkt.ReturnTransaction(socket);
-} // m_HandleMessage()
+}
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** m_PromiseServerHandlers() returns an array of promises, which should be used
-     by Promises.all() inside an async/await function (m_SocketMessage above)
-    Logic is similar to client-datalink-class.js Call()
- */
+ *  by Promises.all() inside an async/await function (m_SocketMessage above)
+ *  Logic is similar to client-datalink-class.js Call() */
 function m_PromiseServerHandlers(pkt) {
   let mesgName = pkt.Message();
   const handlers = m_server_handlers.get(mesgName);
@@ -396,7 +363,7 @@ function m_PromiseServerHandlers(pkt) {
   /// return all queued promises
   return promises;
 
-  /// inline utility function /////////////////////////////////////////////
+  /// inline utility function ///
   function f_make_resolver_func(srcPkt, handlerFunc) {
     return new Promise((resolve, reject) => {
       let retval = handlerFunc(srcPkt);
@@ -409,8 +376,7 @@ function m_PromiseServerHandlers(pkt) {
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** If a handler is registered elsewhere on UNET, then dispatch to them for
-    eventual reflection back through server aggregation of data.
- */
+ *  eventual reflection back through server aggregation of data. */
 function m_PromiseRemoteHandlers(pkt) {
   // debugging values
   let s_uaddr = pkt.SourceAddress();
@@ -471,8 +437,8 @@ function m_PromiseRemoteHandlers(pkt) {
   }
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- */
+/** invoked when web socket server gets a new connection. See m_SocketDelete()
+ *  for the mirror function */
 function m_SocketAdd(socket) {
   // save socket by socket_id
   let sid = m_GetNewUADDR();
@@ -485,16 +451,15 @@ function m_SocketAdd(socket) {
   if (DBG) m_ListSockets(`add ${sid}`);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- */
+/** generate a new UADDR when a new soecket is created, used by m_SocketAdd */
 function m_GetNewUADDR(prefix = 'UADDR') {
   ++mu_sid_counter;
   let cstr = mu_sid_counter.toString(10).padStart(2, '0');
   return `${prefix}_${cstr}`;
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- */
+/** invoked when a client socket is disconnected. It has to do additional
+ *  cleanup to remove any messages related to the socket address */
 function m_SocketDelete(socket) {
   let uaddr = socket.UADDR;
   if (!mu_sockets.has(uaddr)) throw Error(DBG_SOCK_BADCLOSE);
@@ -519,8 +484,7 @@ function m_SocketDelete(socket) {
   if (DBG) m_ListSockets(`del ${socket.UADDR}`);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- */
+/** utility to list the current socket connections to the terminal window */
 function m_ListSockets(change) {
   console.log(PR, '...SocketList change:', change);
   // let's use iterators! for..of

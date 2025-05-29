@@ -11,41 +11,116 @@
 
 import * as FILE from './file.mts';
 import * as PATH from 'node:path';
+import * as TEXT from '../common/util-text.ts';
 import { parse, stringify, Document } from 'yaml';
 import * as NCI from './nc-server-interop.mts';
+import { TerminalLog } from '../common/util-prompts.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = 'mur-setting';
+const LOG = TerminalLog('SetMgr', 'TagPink');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SETTINGS = {
   _schemaVersion: '' // will be loaded
 };
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let TROOT = '';
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// RUNTIME_DIR INITIALIZATION ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** either set or retrieve the reference root directory */
-const u_root = (absPath?) => {
-  if (typeof absPath === 'string') {
-    if (!FILE.IsDir(absPath)) throw Error(`u_root: not a directory: ${absPath}`);
-    TROOT = absPath;
-    return;
-  }
-  if (TROOT === undefined) throw Error('u_root: TROOT not initialized');
-  return TROOT;
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** remove TROOT prefix to return shortname */
-const u_short = p => {
-  if (TROOT === undefined) throw Error('u_short: TROOT not initialized');
-  if (p.startsWith(TROOT)) return p.slice(TROOT.length + 1); // +1 for the slash
-  return p; // return path as is if not in TROOT
-};
+/** this will register the message handler 'SRV_PSOP' for client-sourced
+ *   operations */
+NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
+  const { data } = pkt;
+  const accessToken = pkt.accessToken;
+  // todo: validate accessToken
 
-/// API METHODS ///////////////////////////////////////////////////////////////
+  const { op } = data;
+  if (op === 'get') return PSOP_Get(pkt);
+  if (op === 'update') return PSOP_Update(pkt);
+  if (op === 'persist') return PSOP_Persist(pkt);
+  return { error: `unknown operation: ${op}` }; // required by UNISYS network protocol
+});
+
+/// PERMISSIONS AND ACCESS CONTROL PLACEHOLDERS ///////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_AccessToken(pkt): string {
+  const { accessToken } = pkt;
+  if (accessToken === undefined) return 'missing accessToken';
+  if (typeof accessToken !== 'string') return 'invalid accessToken';
+  if (accessToken.length === 0) return 'empty accessToken';
+  return '';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_HasPermission(): string {
+  return '';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a string value if there is an error, otherwise return false-ish */
+function assert_ValidateData(): string {
+  return '';
+}
+
+/// SRV_PSOP HANDLERS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function PSOP_Get(pkt) {
+  return { settings: SETTINGS }; // required by UNISYS network protocol
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** the 'update' operation expects either groupName+propObj or dotProp+value
+ *  to determine what to update */
+function PSOP_Update(pkt) {
+  // validate accessToken globally
+  assert_AccessToken(pkt);
+  // decode packaet operation
+  const { groupName, propObj } = pkt.data; // update group
+  const { dotProp, value } = pkt.data; // update property
+  // case 1 - update a group with a an object of props
+  if (groupName && propObj) UpdateGroup(groupName, propObj);
+  // case 2 - update a property with a value
+  else if (dotProp && value !== undefined) return UpdateProperty(dotProp, value);
+  // if got this far, there
+  return { error: 'missing groupName/propObj or dotProp/value' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function PSOP_Persist(pkt) {
+  const filename = pkt.Data('filename');
+  if (typeof filename !== 'string') return { error: `filename should be string` };
+  WriteDefaultSettings(filename);
+  return { status: 'ok' }; // required by UNISYS network protocol
+}
+
+/// SERVER-SIDE SETTINGS UPDATE METHODS ///////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateGroup(groupName, propObj) {
+  assert_HasPermission();
+  assert_ValidateData();
+  Object.assign(SETTINGS[groupName], propObj);
+  NCI.NetSend('CLI_PSDATA', { groupName, propObj });
+  return { status: 'ok' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateProperty(dotProp, value) {
+  assert_HasPermission();
+  if (TEXT.IsDottedProperty(dotProp) === false)
+    return { error: `invalid dotProp: ${dotProp}` };
+  const [groupName, propName] = dotProp.split('.');
+  assert_ValidateData();
+  // SETTINGS[groupName][propName] = value;
+  NCI.NetSend('CLI_PSDATA', { dotProp, value });
+  return { status: 'ok' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateSettings(settingsObj) {
+  assert_HasPermission();
+  assert_ValidateData();
+  Object.assign(SETTINGS, settingsObj);
+  NCI.NetSend('CLI_PSDATA', { settings: SETTINGS });
+  return { status: 'ok' };
+}
+
+/// API YAML METHODS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** loads all the matching .yaml files in order to create a composite settings
  *  object that is stored in its SETTINGS object */
@@ -66,29 +141,32 @@ function LoadSettings(dir) {
     'layout-proj',
     'values-comment-prompts'
   ];
-  // set the template root
-  u_root(dir);
   // process files
   let detectedSchema = '';
+  const u_short = NCI.ShortPath;
   files.forEach(f => {
     const p = PATH.join(dir, `${f}.yaml`);
     if (!FILE.FileExists(p)) {
       throw Error(`specified schema file not found: ${u_short(p)}`);
     }
     const yaml: string = FILE.ReadFile(p).toString();
-    const { _key, _schemaVersion: _sch, ...obj } = parse(yaml, { merge: true });
+    const {
+      _schemaLayer,
+      _schemaVersion: _sch,
+      ...obj
+    } = parse(yaml, { merge: true });
     // detect schema version mismatch for this file
     if (!detectedSchema) detectedSchema = _sch;
     if (detectedSchema !== _sch) {
       const pfile = `'${files[0]}.yaml'`;
       const cfile = `'${u_short(p)}'`;
-      console.log(`schema mismatch: ${cfile}: ${_sch} nomatch ${pfile}`);
+      LOG(`schema mismatch: ${cfile}: ${_sch} nomatch ${pfile}`);
       process.exit(1);
     }
-    // check for _key and handle differently
-    if (typeof _key === 'string' && _key.length > 0) {
-      if (SETTINGS[_key] === undefined) SETTINGS[_key] = {};
-      Object.assign(SETTINGS[_key], obj);
+    // check for _schemaLayer and handle differently
+    if (typeof _schemaLayer === 'string' && _schemaLayer.length > 0) {
+      if (SETTINGS[_schemaLayer] === undefined) SETTINGS[_schemaLayer] = {};
+      Object.assign(SETTINGS[_schemaLayer], obj);
     } else Object.assign(SETTINGS, obj);
   });
   // after processing all files, update the schema version
@@ -96,21 +174,33 @@ function LoadSettings(dir) {
   return SETTINGS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** write a file to the template root */
-function PersistSettings(fileName?) {
-  const fn = 'PersistSettings:';
-  if (TROOT === undefined) throw Error(`${fn} TROOT not initialized`);
+/** write the current SETTINGS object as a YAML file to the template root */
+function WriteDefaultSettings(fileName?) {
+  const fn = 'WriteDefaultSettings:';
+  const { templateDir } = NCI.GetPaths();
   fileName = fileName || '_default.template.yaml';
-  const p = PATH.join(TROOT, fileName);
   const doc = new Document(SETTINGS);
   const cmt = [
-    '## GENERATED BY SETTING MANAGGER FROM MULTIPLE FILES',
-    '## DO NOT EDIT THIS FILE DIRECTLY'
+    '## DO NOT EDIT THIS FILE DIRECTLY ##',
+    '## Instead, edit the individual template files in the app-templates directory',
+    '## to set the property declarations',
+    '## Note that this is the data SCHEMA, not the data VALUES allowed by the schema.',
+    '## Look in the runtime directory for the values file.'
   ];
   doc.commentBefore = cmt.join('\n');
   const yaml = stringify(doc);
-  FILE.WriteFile(p, yaml);
+  FILE.WriteFile(PATH.join(templateDir, fileName), yaml);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** write the incoming SETTINGS object values as a YAML file in the runtime
+ *  root directory */
+function WriteSettingsValues(settingsObj) {
+  const fn = 'WriteSettingsValues:';
+  const { runtimeDir, dataset } = NCI.GetPaths();
+  LOG(`${fn} would write 'values-${dataset}.yaml' to '${runtimeDir}'`);
+}
+
+/// API GETTERS ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** retrieve the settings object */
 function Get() {
@@ -118,39 +208,25 @@ function Get() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return layout metadata for a given groupName or all */
-function GetLayoutDefs(groupName) {
-  const layoutDefs = SETTINGS['LayoutDefs'];
-  if (layoutDefs === undefined) return { error: `no LayoutDefs` };
-  if (groupName === undefined) return { ...layoutDefs };
+function GetMetaDefs(groupName) {
+  const metaDefs = SETTINGS['MetaDefs'];
+  if (metaDefs === undefined) return { error: `no MetaDefs` };
+  if (groupName === undefined) return { ...metaDefs };
   if (typeof groupName !== 'string') return { error: `groupName must be string` };
-  const found = layoutDefs[groupName];
-  if (layoutDefs[groupName] === undefined && found)
+  const found = metaDefs[groupName];
+  if (metaDefs[groupName] === undefined && found)
     return {
-      error: `make sure LayoutDefs follow PropertyDefs for ${groupName}`
+      error: `make sure MetaDefs follow PropertyDefs for ${groupName}`
     };
   return found || { error: `no LayoutDef for ${groupName}` };
 }
-
-/// RUNTIME INITIALIZATION //////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NCI.QueueMessageRegistration('SRV_PSOP', pkt => {
-  const { data } = pkt;
-  switch (data.op) {
-    case 'get':
-      return { settings: SETTINGS };
-    case 'persist':
-      PersistSettings(data.filename);
-      return { status: 'ok' }; // required by UNISYS network protocol
-    default:
-      return { error: `unknown operation: ${data.op}` }; // required by UNISYS network protocol
-  }
-});
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   LoadSettings, // (dir_yaml_settings_files) => obj
-  PersistSettings, // (filename?) => void
+  WriteDefaultSettings, // (filename?) => void
+  WriteSettingsValues, // (settings, filename?) => void
   Get, // () => obj
-  GetLayoutDefs // (groupName?) => obj
+  GetMetaDefs // (groupName?) => obj
 };

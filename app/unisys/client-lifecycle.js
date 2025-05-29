@@ -65,6 +65,12 @@ function m_ExecuteScopedPhase(phase, o) {
   return undefined;
 }
 
+/// STATUS REPORTING //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MOD.CurrentPhase = () => {
+  return PHASE;
+};
+
 /// LIFECYCLE METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a Phase Handler which is invoked by MOD.Execute()

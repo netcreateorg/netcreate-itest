@@ -42,16 +42,14 @@ var UDATA = new UniData(UNISYS);
 
 /// UNISYS MODULE MAKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Make new module with UNISYS convenience methods
- */
+/** API: Make new module with UNISYS convenience methods */
 UNISYS.NewModule = uniqueName => {
   return new UniModule(uniqueName);
 };
 
 /// UNISYS CONNECTOR //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Make new module with UNISYS convenience methods
- */
+/** API: Make new module with UNISYS convenience methods */
 UNISYS.NewDataLink = (module, optName) => {
   return new UniData(module, optName);
 };
@@ -81,16 +79,19 @@ UNISYS.RegisterMessagesPromise = (messages = []) => {
 
 /// LIFECYCLE METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: LIFECYCLE Hook() functions
- */
+/** API: LIFECYCLE Hook() functions */
 UNISYS.Hook = (phase, f) => {
   if (typeof phase !== 'string') throw Error('arg1 is phase as string');
   if (typeof f !== 'function') throw Error('arg2 is function callback');
   LIFECYCLE.Hook(phase, f, UNISYS.ModuleID()); // pass phase and hook function
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: System Initialize
- */
+/** API: return the current phase (useful for debugging internals) */
+UNISYS.CurrentPhase = () => {
+  return LIFECYCLE.CurrentPhase();
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: System Initialize */
 UNISYS.SystemInitialize = module_id => {
   UNISYS.SetScope(module_id);
   SETTINGS.ForceReloadSingleApp();
@@ -185,7 +186,7 @@ UNISYS.SetupRun = async () => {
       'SetupRun() Lifecycle Error. Check phase execution order effect on data validity.\n',
       e
     );
-    debugger;
+    // debugger;
   }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

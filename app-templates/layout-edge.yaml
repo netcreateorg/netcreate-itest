@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: LayoutDefs
+_schemaLayer: MetaDefs
 
 # shared elements type setting
 
@@ -50,8 +50,8 @@ EdgeDef:
     help: 'Type of edge connection'
 
   notes:
-    <<: *SharedControls
     control: 'in-text'
+    <<: *SharedControls
     label: 'Notes'
     help: 'Significance of the connection'
 

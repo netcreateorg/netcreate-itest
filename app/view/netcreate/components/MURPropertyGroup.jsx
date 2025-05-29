@@ -6,17 +6,21 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const { ReactListKey: RLK } = require('./react-settings-client');
+const RSB = require('./react-settings-bridge');
+const { DerefGroupDef } = RSB;
 import TextInput from './MURTextInput';
+
+/// CONSTANTS /////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = true;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GroupHeader(props) {
-  const { groupName, title, description } = props;
+  const { label } = props;
   return (
-    <span key={RLK('GN')}>
-      <b>{title || groupName}</b>
+    <span>
+      <b>{label}</b>
     </span>
   );
 }
@@ -24,31 +28,37 @@ function GroupHeader(props) {
 /// COMPONENTS ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function PropertyGroup(props) {
-  // properties and layout are scoped to the groupname
-  const { groupName, properties, layout } = props;
-  if (typeof groupName !== 'string') return <p>getPropertyGroup bad groupName</p>;
-  if (!properties) return <p>getPropertyGroup no groupProps</p>;
-  const propsUI = [];
-  Object.entries(properties).forEach(([name, def]) => {
-    const metadata = { ...def, ...layout[name] };
-    if (def.type)
-      propsUI.push(<TextInput name={name} metadata={metadata} key={RLK('TI')} />);
-  });
-  const { title, description } = layout._groupMeta || {};
+  const {
+    groupDef, // { groupname: { propname: { type, default }, {}... }
+    metaDef // { groupname:{ propname: { _groupMeta, propname: metaDef, {}... } }
+  } = props;
+  if (DBG) {
+    if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
+    if (typeof metaDef !== 'object') return <p>PropertyGroup bad metaDef</p>;
+  }
+  const gdata = DerefGroupDef(groupDef);
+  if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
+  const { groupName, properties } = gdata;
+  const propList = Object.keys(properties); // list of property names
+  const meta = metaDef[groupName];
+  const { title, description } = meta._groupMeta || {};
+  const key = `pg-${groupName}`;
   return (
-    <div key={RLK('PG')} style={{ margin: '1rem' }}>
+    <div key={key} style={{ margin: '1rem' }}>
       <details open>
         <summary>
-          <GroupHeader
-            groupName={groupName}
-            description={description}
-            title={title}
-          />
+          <GroupHeader label={title || groupName} />
         </summary>
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
-        <ui-group group={groupName}>{propsUI}</ui-group>
+        {propList.map(p => {
+          if (properties[p].type) {
+            const key = `in-${groupName}.${p}`;
+            return <TextInput propDef={properties[p]} metaDef={meta[p]} key={key} />;
+          }
+          return null;
+        })}
       </details>
     </div>
   );
