@@ -106,10 +106,8 @@ module.exports = {
   npm: {
     styles: {
       /// also include these css files in the stylesheets joinTo
-      bootstrap: ['dist/css/bootstrap.min.css']
     },
     globals: {
-      jquery: 'jquery'
     }
   },
   hooks: {

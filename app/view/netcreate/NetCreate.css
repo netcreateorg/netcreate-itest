@@ -1,5 +1,7 @@
 /* Z-Index
 
+      6000  top layer
+            ToolTip .modal, .tooltiptextabove, .tooltiptext
       5000  NCDialog
       3000  nc-savelert      
       2500  nc-navbar > comment-status
@@ -8,7 +10,6 @@
       2001  NCDialog .screen ==========
       2000  comment-bar
       1500  FiltersPanel
-      1030  bootstrap .fixed-top
        101  URTable tabletip
        100  Node/EdgeTable thead
         15  NCAutoSuggest .matchlist
@@ -16,21 +17,97 @@
         10  NCNode .nccomponent
          9  NCNode .screen ============
          1  URTable th
-         1  ToolTip .modal, .tooltiptextabove, .tooltiptext
          0  NetCreate
 */
 
-/* override bootstrap */
-nav.fixed-top {
-  z-index: inherit;
+:root {
+  --clr-fg: #fff;
+  --clr-bg: #dae9f2;
+  --clr-cat-fg: #fff; /* call to action */
+  --clr-cat-bg: #c35400; /* call to action */
+  --clr-warning: #a20000;
+  --clr-cat-light: #f7f3f2;
+  --clr-secondary: #6a8899; /* navy */
+  --clr-system: #355869; /* dark navy for UI/system labels */
+  --clr-system-light: #4b7c94; /* UI/system bg usable w FFF for contrast */
+  --clr-system-disabled: #526b78; /* dark navy for UI/system labels */
+  --clr-system-faded: #35586999; /* transparent UI/system labels */
+  --clr-system-fadedmore: #35586966; /* transparent UI/system labels */
+  --clr-base-font: #161616;
+  --font-size-xs: 0.625rem; /* 10px */
+  --font-size-sm: 0.75rem; /* 12px */
+  --font-size-reduced: 0.875rem; /* 14px */
+  --font-size-normal: 1rem; /* 16px */
+  --font-size-md: 1.125rem; /* 18px */
+  --font-size-lg: 1.25rem; /* 20px */
+  --font-weight-normal: 300;
+  --font-weight-medium: 400;
+  --font-weight-bold: 600;
+  --z-top: 6000;
+  --z-popover: 5000;
+  --z-navbar: 2500;
 }
+
+html {
+  overflow: hidden;
+}
+body {
+  color: var(--clr-base-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    sans-serif;
+  font-weight: var(--font-weight-normal);
+}
+
+.system {
+  color: var(--clr-system);
+  font-size: var(--font-size-xs);
+}
+.help {
+  color: var(--clr-system-faded);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+}
+/* NC Base ----------------------------------------------------------------- */
 
 /* Base App: NetCrate.jsx */
 .nc-base {
   display: flex;
   flex-flow: column;
   height: 100%;
+  background-color: var(--clr-bg);
 }
+.nc-base .nc-rows {
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.nc-base .nc-col-left {
+  flex-basis: 33%;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+.nc-base .nc-col-middle {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* flex: 1 0 60%; */
+}
+.nc-base .nc-col-right {
+  margin-top: 38px;
+  padding: 0;
+  border-left: 1px solid var(--clr-cat-bg);
+  border-right: 1px solid var(--clr-cat-bg);
+  border-bottom: 1px solid var(--clr-cat-bg);
+}
+
 .nc-savealert {
   position: fixed;
   top: 0px;
@@ -47,14 +124,25 @@ nav.fixed-top {
   width: 100%;
   text-align: center;
 }
+
+/* NC Navbar -------------------------------------------------------------- */
 .nc-navbar {
-  position: fixed;
   top: 0;
-  width: 100%;
   height: 38px;
+  padding: 10px;
+  box-sizing: border-box;
   display: flex;
   flex-flow: row-reverse;
-  z-index: 2500; /* sets comment-status and comment threads */
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--clr-bg);
+  z-index: var(--z-navbar);
+}
+.nc-navbar-btns {
+  position: absolute;
+  top: 3px;
+  right: 0;
+  z-index: var(--z-navbar);
 }
 /* Bootstrap override */
 .nav-item {
@@ -65,6 +153,7 @@ nav.fixed-top {
 svg#netgraph {
   flex-basis: 100%;
   min-width: 200px;
+  background: #fff;
 }
 svg#netgraph {
   cursor: move;
@@ -96,8 +185,65 @@ svg#netgraph .nodes text {
   user-select: none;
 }
 
+/* NC Utils ---------------------------------------------------------------- */
+.tabselectors button {
+  line-height: 10px;
+}
+.tabselectors button > img {
+  opacity: 0.5;
+  width: 16px;
+  height: 16px;
+  padding-left: 0.25rem;
+  vertical-align: middle;
+}
+.tabselectors button.selected > img {
+  opacity: 1;
+}
+/* Buttons ----------------------------------------------------------------- */
+button {
+  color: var(--clr-system);
+  background: var(--clr-fg);
+  border-color: var(--clr-system);
+  border-width: 1px;
+  border-radius: 8px;
+  line-height: 1.5rem;
+  cursor: pointer;
+}
+button:disabled,
+button:disabled:hover {
+  /* from Chrome user stylesheet */
+  color: light-dark(
+    rgba(16, 16, 16, 0.3),
+    rgba(255, 255, 255, 0.3)
+  ); /* !important; */
+  background-color: rgba(239, 239, 239, 0.3); /* !important; */
+  border-color: rgba(118, 188, 118, 0.3); /* !important; */
+  cursor: not-allowed;
+}
+button:hover {
+  color: var(--clr-fg); /* !important; */
+  background-color: var(--clr-system); /* !important; */
+}
 /* Button Icons ------------------------------------------------------------ */
-button.outline {
+button.cat:not(:hover) {
+  color: var(--clr-cat-fg);
+  background-color: var(--clr-cat-bg);
+}
+button.icon {
+  border: none;
+  background-color: transparent;
+  padding: 0.5rem;
+  line-height: 0.5rem;
+}
+button.icon:hover {
+  background-color: #35586922; /* !important; */
+}
+button.warning:not(:hover) {
+  border: none;
+  color: var(--clr-fg);
+  background-color: var(--clr-warning);
+}
+button.outline:not(:hover) {
   border: none;
   color: inherit;
   background-color: transparent;
@@ -109,10 +255,14 @@ button svg {
   width: 16px;
   height: 16px;
 }
+button img,
+button svg {
+  pointer-events: none; /* prevent click events from grabbing event */
+}
 
 /* NC Tables --------------------------------------------------------------- */
-.NCNodeTable,
-.NCEdgeTable {
+#NCNodeTable,
+#NCEdgeTable {
   overflow: auto;
   position: relative;
   display: block;
@@ -120,4 +270,47 @@ button svg {
   right: 10px;
   background-color: #eafcff;
   font-size: 0.75em;
+}
+
+/* NC Filters ------------------------------------------------------------- */
+#filterpanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  box-sizing: border-box;
+  padding: 0;
+  background-color: var(--clr-cat-light);
+  overflow: hidden;
+  /* filterpanelClosed */
+  width: 0;
+  height: inherit;
+}
+#filterpanel.filterpanelOpen {
+  width: 100%;
+  height: 100%;
+}
+#filterpanel-btn {
+  padding: 2px 0 0 8px;
+  border: none;
+  border-radius: 0px;
+  box-shadow: none;
+  /* filterpanelClosed */
+  width: 95px;
+  position: absolute;
+}
+#filterpanel.filterpanelOpen #filterpanel-btn {
+  width: 100%;
+  position: inherit;
+}
+#filterpanel #filterpanel-btn:before {
+  content: '< ';
+}
+#filterpanel.filterpanelOpen #filterpanel-btn:before {
+  content: '';
+}
+#filterpanel.filterpanelOpen #filterpanel-btn:after {
+  content: ' >';
+}
+#filterpanel-btn:hover {
+  background-color: var(--clr-cat-bg); /* !important; */
 }

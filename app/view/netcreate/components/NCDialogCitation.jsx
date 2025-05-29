@@ -49,7 +49,11 @@ class NCDialogCitation extends React.Component {
       copymessage = 'Copy to Clipboard',
       onClose
     } = this.props;
-    const CopyBtn = <button onClick={this.m_UIOnCopy}>{copymessage}</button>;
+    const CopyBtn = (
+      <button onClick={this.m_UIOnCopy} autoFocus>
+        {copymessage}
+      </button>
+    );
     return (
       <div className="dialog">
         <div className="screen"></div>

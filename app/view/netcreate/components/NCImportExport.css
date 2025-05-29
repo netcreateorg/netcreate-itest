@@ -1,0 +1,34 @@
+.NCImportExport fieldset {
+  display: grid;
+  grid-template-columns: 70px auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  border: none;
+  padding: 0.5rem 0;
+}
+.NCImportExport fieldset div p:first-of-type {
+  margin: 0 0 0.25rem 0;
+}
+
+.NCImportExport .panel {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background-color: rgba(226, 150, 68, 0.2);
+  font-size: var(--font-size-sm);
+}
+
+.NCImportExport .panel .buttonbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.NCImportExport .panel div.file-import {
+  display: grid;
+  grid-template-columns: 180px auto;
+  align-items: baseline;
+  padding: 0.5rem 0;
+}
+.NCImportExport .panel h2,
+.NCImportExport .panel div.file-import input {
+  font-size: var(--font-size-xs);
+}

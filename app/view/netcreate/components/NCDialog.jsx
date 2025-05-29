@@ -36,9 +36,15 @@ class NCDialog extends React.Component {
       onOK,
       onCancel
     } = this.props;
-    const OKBtn = <button onClick={onOK}>{okmessage}</button>;
+    const OKBtn = (
+      <button onClick={onOK} autoFocus>
+        {okmessage}
+      </button>
+    );
     const CancelBtn = onCancel ? (
-      <button onClick={onCancel}>{cancelmessage}</button>
+      <button onClick={onCancel} type="button">
+        {cancelmessage}
+      </button>
     ) : (
       ''
     );

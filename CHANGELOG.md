@@ -31,9 +31,15 @@ v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data f
   - Templates now have a version designation.
   - The version should match the github Release version. Hopefully this will be less confusing than having separate version numbers. The one caveat is that it's harder to track interim development/alpha versions prior to a release.
   - When opening projects, the template version (or lack of a template version) will allow the system to decide how to migrate or ignore data fields. e.g. previously built-in fields like comments will continue to be displayed and will not break in table views.
+- ReactStrap and Bootstrap have been deprecated #362
+- JSONEditor has been deprecated #362
+  - Conversion of JSON templates to TOML/YAML has been deprecated
 
 **Significant Features**
-- User Interface has been restyled
+- All user interface widgets should be accessible #362
+  - keyboard control is supported
+  - voice control is supported
+- User Interface has been restyled #362
 - Add Comment System  #133 -- including support for:
 	- floating draggable comment windows
 	- displays of comment counts
@@ -63,6 +69,8 @@ v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data f
 - "Type" is now a built-in field and displayed above the Attributes tab. #272
 - Edge "Weight" is now a built-in field and displayd "weight (sum)" #292
 - Add ability to deploy Net.Create to Turbo360 #305
+- "More" panel is now split into a "Help" and "Advanced" panels. #362
+- Focus filter now supports both directly clicking on node or using search to select a node.
 
 **Changes (Minor)**
 - AutoSuggest now has a placeholder text and scrolls #123

@@ -36,9 +36,15 @@ function URDialog({ info }) {
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  const BTN_OK = <button onClick={onOK}>{okmessage}</button>;
+  const BTN_OK = (
+    <button onClick={onOK} autoFocus>
+      {okmessage}
+    </button>
+  );
   const BTN_CANCEL = onCancel ? (
-    <button onClick={onCancel}>{cancelmessage}</button>
+    <button onClick={onCancel} type="button">
+      {cancelmessage}
+    </button>
   ) : (
     ''
   );

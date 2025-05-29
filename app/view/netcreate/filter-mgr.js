@@ -348,7 +348,15 @@ function m_FilterDefine(data) {
       FILTERDEFS.edges.filters = edgeFilters;
     }
   } else if (data.group === 'focus') {
-    FILTERDEFS.focus.range = data.filter.value;
+    if (data.filter.deselectNode) {
+      // clear out sourceLabel to allow focus filter to select a new node
+      FILTERDEFS.focus.source = undefined;
+      FILTERDEFS.focus.sourceLabel = '';
+    }
+    if (data.filter.sourceLabel)
+      FILTERDEFS.focus.sourceLabel = data.filter.sourceLabel;
+    if (data.filter.source) FILTERDEFS.focus.source = data.filter.source;
+    if (data.filter.range) FILTERDEFS.focus.range = data.filter.range;
   } else {
     throw `FILTER_DEFINE called with unknown group: ${data.group}`;
   }
@@ -438,12 +446,17 @@ function m_UpdateFilterStats(NCDATA, FILTEREDNCDATA, filterAction) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateFilterSummary(statsSummary) {
   const FILTERDEFS = UDATA.AppState('FILTERDEFS');
+  const FILTEREDNCDATA = UDATA.AppState('FILTEREDNCDATA');
 
   // skip if FILTERDEFS has not been defined yet
-  if (Object.keys(FILTERDEFS).length < 1) return;
+  if (Object.keys(FILTERDEFS).length < 1) {
+    UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { graphStats });
+    return;
+  }
 
-  const nodeFilters = FILTERDEFS.nodes.filters;
-  const edgeFilters = FILTERDEFS.edges.filters;
+  const graphStats = `${FILTEREDNCDATA.nodes && FILTEREDNCDATA.nodes.length} nodes, ${
+    FILTEREDNCDATA.edges && FILTEREDNCDATA.edges.length
+  } edges`;
 
   const typeSummary = FILTERDEFS.filterAction; // text for filter action is the label, e.g. 'HIGHLIGHT'
   const nodeSummary = m_FiltersToString(FILTERDEFS.nodes.filters);
@@ -455,7 +468,7 @@ function m_UpdateFilterSummary(statsSummary) {
     }${edgeSummary}`;
   if (summary) summary += ' ' + statsSummary;
 
-  UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { filtersSummary: summary });
+  UDATA.LocalCall('FILTER_SUMMARY_UPDATE', { filtersSummary: summary, graphStats });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateFilters() {
@@ -469,12 +482,18 @@ function m_FiltersToString(filters) {
     if (
       filter.operator === undefined ||
       filter.value === undefined ||
-      filter.value === ''
+      filter.value === '' ||
+      (typeof filter.value === 'object' && filter.value.value === '') // hdate values are objects
     )
       return;
     summary += filter.keylabel + ' ';
     summary += m_OperatorToString(filter.operator) + ' ';
-    summary += '"' + filter.value + '"; ';
+    if (typeof filter.value === 'object') {
+      // hdate value
+      summary += '"' + filter.value.value + '"; ';
+    } else {
+      summary += '"' + filter.value + '"; ';
+    }
   });
   return summary;
 }
@@ -638,7 +657,9 @@ function m_MatchHDate(operator, filterVal, objVal) {
  * @returns
  */
 function m_MatchTimestamp(operator, filterVal, objVal) {
-  const hdateValue = HDATE.Parse(filterVal); // deconstruct the HDate filter into a timestamp
+  const { value, format, formattedString } = filterVal;
+  const hdateValue = HDATE.Parse(value); // deconstruct the HDate filter into a timestamp
+
   if (hdateValue.length < 1) return false;
 
   const knownValues = hdateValue[0].start.knownValues;

@@ -11,9 +11,9 @@
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
+  padding: 5px;
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-top);
   top: 150%;
   left: 65%;
   margin-left: -40px;
@@ -43,7 +43,7 @@
   border-radius: 6px;
   padding: 5px 0;
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-top);
   bottom: 150%;
   left: 50%;
   margin-left: -60px;
@@ -68,7 +68,7 @@
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
+  z-index: var(--z-top);
   padding-top: 100px; /* Location of the box */
   left: 0;
   top: 0;
@@ -107,8 +107,13 @@
 
 /* (?) Badge overrides bootstrap .badge */
 .tooltipAnchor .badge {
-  color: rgba(256, 256, 256, 0.6);
-  background-color: rgba(108, 117, 125, 0.4); /* bootstrap `text-muted` */
+  color: var(--clr-fg);
+  background-color: var(--clr-system);
   vertical-align: text-top;
+  padding: 0 0.25rem;
   margin-right: 2pt;
+  display: inline-block;
+  border-radius: 1rem;
+  text-align: center;
+  font-weight: var(--font-weight-bold);
 }

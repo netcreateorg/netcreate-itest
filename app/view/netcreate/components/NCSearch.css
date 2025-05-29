@@ -1,27 +1,21 @@
 .ncsearch {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 0.5rem;
   margin-top: 1em;
   margin-bottom: 20px;
 }
-.ncsearch button {
-  background-color: #fff6;
+.ncsearch button:not(:disabled) {
+  color: var(--clr-cat-fg);
+  background-color: var(--clr-cat-bg);
   border-radius: 5px;
-  border-color: #0006;
-  border-width: 1px;
-  border-style: solid;
-  color: #333;
-  margin-left: 0.5em;
-}
-.ncsearch button:disabled {
-  background-color: #fff3;
-  border-color: #0003;
-  color: #3333;
-  cursor: not-allowed;
+  border: none;
+  height: 1.5rem;
+  align-self: flex-end;
+  text-wrap-mode: nowrap;
 }
 .ncsearch input {
-  width: 100%;
+  height: 1.5rem;
   padding: 0 5px;
   font-size: 16px;
   border: 1px solid #aaa;
@@ -30,6 +24,9 @@
 
 /* override help */
 .ncsearch .helptop {
+  font-size: 11px; /* fit help text */
+  font-style: italic;
   position: unset;
+  padding: 0;
   background-color: transparent;
 }

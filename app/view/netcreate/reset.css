@@ -1,0 +1,38 @@
+*,
+::after,
+::before {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+input {
+  font-family: unset;
+}
+button {
+  /* chrome user stylesheet */
+  padding-block: 0;
+  text-wrap-mode: nowrap;
+}
+textarea {
+  font-family: unset;
+}
+fieldset {
+  /* chrome user stylesheet */
+  margin-inline: 0;
+  padding-block: 0;
+  padding-inline: 0;
+}
+svg {
+  vertical-align: middle; /* align svg with text */
+}

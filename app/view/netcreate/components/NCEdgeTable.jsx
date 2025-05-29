@@ -44,7 +44,7 @@ const DBG = false;
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function NCEdgeTable({ tableHeight, isOpen }) {
+function NCEdgeTable({ isOpen }) {
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -162,6 +162,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
           {!disableEdit && (
             <button
               className="outline"
+              type="button"
+              aria-label="View Edge"
               onClick={event => ui_ClickViewEdge(event, value)}
             >
               {ICON_VIEW}
@@ -170,6 +172,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
           {!disableEdit && !isLocked && (
             <button
               className="outline"
+              type="button"
+              aria-label="Edge Edge"
               onClick={event => ui_ClickEditEdge(event, value)}
             >
               {ICON_PENCIL}
@@ -193,6 +197,8 @@ function NCEdgeTable({ tableHeight, isOpen }) {
       return (
         <button
           className="outline"
+          type="button"
+          aria-label="View Edge"
           onClick={event => ui_ClickViewNode(event, value.id)}
         >
           <span>{value.label}</span>
@@ -470,7 +476,7 @@ function NCEdgeTable({ tableHeight, isOpen }) {
   const COLUMNDEFS = DeriveColumnDefs();
   const TABLEDATA = DeriveTableData({ edgeDefs: state.edgeDefs, edges: state.edges });
   return (
-    <div className="NCEdgeTable" style={{ height: tableHeight }}>
+    <div id="NCEdgeTable">
       <URTable isOpen={isOpen} data={TABLEDATA} columns={COLUMNDEFS} />
     </div>
   );

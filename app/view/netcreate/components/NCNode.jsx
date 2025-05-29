@@ -64,8 +64,6 @@ const TABS = {
   EDGES: 'EDGES',
   PROVENANCE: 'PROVENANCE'
 };
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -126,19 +124,16 @@ class NCNode extends UNISYS.Component {
     // RENDER HELPERS
     this.RenderEdgesTab = this.RenderEdgesTab.bind(this);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = this; // UNISYS.NewDataLink(this);
-
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
-    UDATA.OnAppStateChange('SESSION', this.urstate_SESSION);
-    UDATA.OnAppStateChange('NCDATA', this.urstate_NCDATA);
-    UDATA.OnAppStateChange('SELECTION', this.urstate_SELECTION);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
-    UDATA.HandleMessage('NODE_EDIT', this.UIRequestEditNode); // Node Table request
-    UDATA.HandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
-    UDATA.HandleMessage('EDGE_SELECT', this.SelectEdge);
-    UDATA.HandleMessage('EDGE_DESELECT', this.DeselectEdge);
+    this.OnAppStateChange('SESSION', this.urstate_SESSION);
+    this.OnAppStateChange('NCDATA', this.urstate_NCDATA);
+    this.OnAppStateChange('SELECTION', this.urstate_SELECTION);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.HandleMessage('NODE_EDIT', this.UIRequestEditNode); // Node Table request
+    this.HandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
+    this.HandleMessage('EDGE_SELECT', this.SelectEdge);
+    this.HandleMessage('EDGE_DESELECT', this.DeselectEdge);
   }
 
   componentDidMount() {
@@ -147,14 +142,14 @@ class NCNode extends UNISYS.Component {
     window.addEventListener('unload', this.DoUnload);
   }
   componentWillUnmount() {
-    UDATA.AppStateChangeOff('SESSION', this.urstate_SESSION);
-    UDATA.AppStateChangeOff('NCDATA', this.urstate_NCDATA);
-    UDATA.AppStateChangeOff('SELECTION', this.urstate_SELECTION);
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
-    UDATA.UnhandleMessage('NODE_EDIT', this.UIRequestEditNode);
-    UDATA.UnhandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
-    UDATA.UnhandleMessage('EDGE_SELECT', this.SelectEdge);
-    UDATA.UnhandleMessage('EDGE_DESELECT', this.DeselectEdge);
+    this.AppStateChangeOff('SESSION', this.urstate_SESSION);
+    this.AppStateChangeOff('NCDATA', this.urstate_NCDATA);
+    this.AppStateChangeOff('SELECTION', this.urstate_SELECTION);
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.DropMessage('NODE_EDIT', this.UIRequestEditNode);
+    this.DropMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
+    this.DropMessage('EDGE_SELECT', this.SelectEdge);
+    this.DropMessage('EDGE_DESELECT', this.DeselectEdge);
     window.removeEventListener('beforeunload', this.CheckUnload);
     window.removeEventListener('unload', this.DoUnload);
   }
@@ -256,7 +251,7 @@ class NCNode extends UNISYS.Component {
    * @returns {boolean} True if user is logged in
    */
   IsLoggedIn() {
-    const SESSION = UDATA.AppState('SESSION');
+    const SESSION = this.AppState('SESSION');
     const isLoggedIn = SESSION.isValid;
     return isLoggedIn;
   }
@@ -267,7 +262,7 @@ class NCNode extends UNISYS.Component {
   DerivePermissions(nodeId) {
     const isLoggedIn = this.IsLoggedIn();
 
-    const LOCKSTATE = UDATA.AppState('LOCKSTATE');
+    const LOCKSTATE = this.AppState('LOCKSTATE');
     const uIsLockedByDB = LOCKSTATE.lockedNodes.includes(nodeId);
     const uIsLockedByTemplate = LOCKSTATE.templateBeingEdited;
     const uIsLockedByImport = LOCKSTATE.importActive;
@@ -285,7 +280,7 @@ class NCNode extends UNISYS.Component {
     let uEditLockMessage = '';
     let uEditBtnDisable = false;
     let uEditBtnHide = true;
-    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    const TEMPLATE = this.AppState('TEMPLATE');
     if (isLoggedIn) uEditBtnHide = false;
     if (uIsLockedByDB) {
       uEditBtnDisable = true;
@@ -343,8 +338,8 @@ class NCNode extends UNISYS.Component {
       const { edges } = this.state;
       const edge = edges.find(e => e.id === Number(edgeId));
       this.setState({ selectedEdgeId: edgeId });
-      UDATA.AppCall('EDGE_OPEN', { edge }).then(() => {
-        UDATA.AppCall('EDGE_EDIT', { edgeId });
+      this.AppCall('EDGE_OPEN', { edge }).then(() => {
+        this.AppCall('EDGE_EDIT', { edgeId });
       });
     });
   }
@@ -354,7 +349,7 @@ class NCNode extends UNISYS.Component {
       const { edges } = this.state;
       const edge = edges.find(e => e.id === Number(edgeId));
       this.setState({ selectedEdgeId: edgeId });
-      UDATA.AppCall('EDGE_OPEN', { edge });
+      this.AppCall('EDGE_OPEN', { edge });
     });
   }
   DeselectEdge() {
@@ -377,14 +372,14 @@ class NCNode extends UNISYS.Component {
     }
 
     // if we're loading a new node, close any open edges
-    if (node.id !== id) UDATA.AppCall('EDGE_DESELECT');
+    if (node.id !== id) this.AppCall('EDGE_DESELECT');
 
     // Load the node
     const edges = this.FindLinkedEdges(node.id);
     const attributes = this.LoadAttributes(node);
     const provenance = this.LoadProvenance(node);
     const uBackgroundColor = this.LookupBackgroundColor(node.type);
-    const matchingNodes = this.FindMatchingList(node.label);
+    const matchingNodes = this.FindMatchingList(node.label, node.id);
     const permissionsState = this.DerivePermissions(node.id);
     this.setState({
       // node parameters
@@ -408,7 +403,7 @@ class NCNode extends UNISYS.Component {
   }
   FindLinkedEdges(id) {
     // -- First, sort edges by source, then target
-    const NCDATA = UDATA.AppState('NCDATA');
+    const NCDATA = this.AppState('NCDATA');
     const linkedEdges = NCDATA.edges.filter(e => e.source === id || e.target === id);
     linkedEdges.sort((a, b) => {
       // same source label, sort on target
@@ -436,7 +431,7 @@ class NCNode extends UNISYS.Component {
    * @returns {Object} { ...attr-key: attr-value }
    */
   LoadAttributes(node) {
-    const NODEDEFS = UDATA.AppState('TEMPLATE').nodeDefs;
+    const NODEDEFS = this.AppState('TEMPLATE').nodeDefs;
     const attributes = {};
     Object.keys(NODEDEFS).forEach(k => {
       if (BUILTIN_FIELDS_NODE.includes(k)) return; // skip built-in fields
@@ -457,7 +452,7 @@ class NCNode extends UNISYS.Component {
    * @returns {Object} { ...attr-key: attr-value }
    */
   LoadProvenance(node) {
-    const NODEDEFS = UDATA.AppState('TEMPLATE').nodeDefs;
+    const NODEDEFS = this.AppState('TEMPLATE').nodeDefs;
     const provenance = {};
     Object.keys(NODEDEFS).forEach(k => {
       if (BUILTIN_FIELDS_NODE.includes(k)) return; // skip built-in fields
@@ -532,13 +527,18 @@ class NCNode extends UNISYS.Component {
    * color mapping.  This will eventually be replaced with a color manager.
    */
   LookupBackgroundColor(type) {
-    const COLORMAP = UDATA.AppState('COLORMAP');
+    const COLORMAP = this.AppState('COLORMAP');
     const uBackgroundColor = COLORMAP.nodeColorMap[type] || '#555555';
     return uBackgroundColor;
   }
 
-  FindMatchingList(label) {
-    const { id } = this.state;
+  /**
+   * Create list of nodes that match the label
+   * @param {*} label
+   * @param {*} id optional id -- needed by LoadNode because id may not be defined yet
+   * @returns
+   */
+  FindMatchingList(label, id = this.state.id) {
     const foundNodes = NCLOGIC.FindMatchingNodesByLabel(label);
     const matchingNodes = foundNodes.filter(n => n.id !== id); // don't include self
     return matchingNodes;
@@ -551,7 +551,7 @@ class NCNode extends UNISYS.Component {
     const { id, label } = this.state;
     const uSelectedTab = event.target.value;
     this.setState({ uSelectedTab });
-    if (event.target.value !== TABS.EDGES) UDATA.AppCall('EDGE_DESELECT');
+    if (event.target.value !== TABS.EDGES) this.AppCall('EDGE_DESELECT');
     UNISYS.Log('select node tab', id, label, uSelectedTab);
   }
 
@@ -563,9 +563,8 @@ class NCNode extends UNISYS.Component {
     const { isLoggedIn } = this.state;
     if (!isLoggedIn) return;
     LOCKMGR.RequestLockNode(this.state.id, lockSuccess => {
-      this.setState({ uIsLockedByDB: !lockSuccess }, () => {
-        if (lockSuccess) this.UIEnableEditMode();
-      });
+      if (!lockSuccess) this.setState({ uIsLockedByDB: !lockSuccess });
+      else this.UIEnableEditMode();
     });
   }
 
@@ -575,7 +574,7 @@ class NCNode extends UNISYS.Component {
     // Allow `` because we use a a blank field to indicate delete node without relinking edges.
     if (
       event.target.value === '' ||
-      UDATA.AppState('NCDATA').nodes.find(node => {
+      this.AppState('NCDATA').nodes.find(node => {
         return node.id === replacementNodeId;
       })
     ) {
@@ -589,7 +588,7 @@ class NCNode extends UNISYS.Component {
 
   UIAddEdge(event) {
     event.preventDefault();
-    UDATA.AppCall('EDGE_CREATE', { nodeId: this.state.id }).then(edge => {
+    this.AppCall('EDGE_CREATE', { nodeId: this.state.id }).then(edge => {
       // enable editing right away
       this.UIEditEdge(edge.id);
     });
@@ -609,6 +608,7 @@ class NCNode extends UNISYS.Component {
     this.setState({
       uViewMode: NCUI.VIEWMODE.EDIT,
       uSelectedTab: editableTab,
+      uIsLockedByDB: false,
       previousState
     });
 
@@ -655,19 +655,24 @@ class NCNode extends UNISYS.Component {
     });
   }
   UIInputUpdate(key, value) {
+    let state = {};
     if (BUILTIN_FIELDS_NODE.includes(key)) {
       const data = {};
       data[key] = value;
-      this.setState(data);
+      state = data;
     } else {
       const { attributes } = this.state;
       attributes[key] = value;
-
-      // special handling to update the background color immediately if `type` is changed
-      const type = key === `type` ? value : this.state.type;
-      const uBackgroundColor = this.LookupBackgroundColor(type);
-      this.setState({ attributes, uBackgroundColor });
+      state = attributes;
     }
+
+    // HACK Allow any field to be used to specify color
+    //      Eventually this needs to be built into the template.
+    const COLORFIELDS = ['type'];
+    // special handling to update the background color immediately if `type` is changed
+    const type = COLORFIELDS.includes(key) ? value : this.state.type;
+    const uBackgroundColor = this.LookupBackgroundColor(type);
+    this.setState({ ...state, uBackgroundColor });
   }
   UIProvenanceInputUpdate(key, value) {
     if (BUILTIN_FIELDS_NODE.includes(key)) {
@@ -691,15 +696,15 @@ class NCNode extends UNISYS.Component {
     const { edges } = this.state;
     const edge = edges.find(e => e.id === Number(edgeId));
     this.setState({ selectedEdgeId: edgeId });
-    UDATA.AppCall('EDGE_OPEN', { edge });
+    this.AppCall('EDGE_OPEN', { edge });
   }
 
   UIEditEdge(edgeId) {
     const { edges } = this.state;
     const edge = edges.find(e => e.id === Number(edgeId));
     this.setState({ selectedEdgeId: edgeId });
-    UDATA.AppCall('EDGE_OPEN', { edge }).then(() =>
-      UDATA.AppCall('EDGE_EDIT', { edge })
+    this.AppCall('EDGE_OPEN', { edge }).then(() =>
+      this.AppCall('EDGE_EDIT', { edge })
     );
   }
 
@@ -727,7 +732,7 @@ class NCNode extends UNISYS.Component {
       label,
       type
     } = this.state;
-    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    const TEMPLATE = this.AppState('TEMPLATE');
     const defs = TEMPLATE.nodeDefs;
     const uShowCitationButton = TEMPLATE.citation && !TEMPLATE.citation.hidden;
     const bgcolor = uBackgroundColor + '44'; // hack opacity
@@ -774,7 +779,11 @@ class NCNode extends UNISYS.Component {
               <p hidden={!isAdmin}>
                 <b>ADMINISTRATOR ONLY</b>: If you are absolutely sure this is an
                 error, you can force the unlock.
-                <button onClick={this.UIDisableEditMode} style={{ marginLeft: 0 }}>
+                <button
+                  onClick={this.UIDisableEditMode}
+                  style={{ marginLeft: 0 }}
+                  type="button"
+                >
                   Force Unlock
                 </button>
               </p>
@@ -786,6 +795,7 @@ class NCNode extends UNISYS.Component {
                 id="citationbtn"
                 className="citationbutton"
                 onClick={this.UICitationShow}
+                type="button"
               >
                 Cite Node
               </button>
@@ -796,6 +806,7 @@ class NCNode extends UNISYS.Component {
                 id="editbtn"
                 onClick={this.UIRequestEditNode}
                 disabled={uEditBtnDisable}
+                type="button"
               >
                 Edit
               </button>
@@ -820,7 +831,9 @@ class NCNode extends UNISYS.Component {
                   <div className="message warning">Invalid Node ID!</div>
                 )}
               </div>
-              <button onClick={this.DeleteNode}>Delete</button>
+              <button onClick={this.DeleteNode} type="button">
+                Delete
+              </button>
             </div>
           )}
         </div>
@@ -841,7 +854,7 @@ class NCNode extends UNISYS.Component {
       label,
       type
     } = this.state;
-    const defs = UDATA.AppState('TEMPLATE').nodeDefs;
+    const defs = this.AppState('TEMPLATE').nodeDefs;
     const bgcolor = uBackgroundColor + '66'; // hack opacity
     const matchList = matchingNodes
       ? matchingNodes.map(n => (
@@ -851,7 +864,7 @@ class NCNode extends UNISYS.Component {
         ))
       : undefined;
     const isDuplicate = matchingNodes && matchingNodes.find(n => n.label === label);
-    const duplicateWarning = UDATA.AppState('TEMPLATE').duplicateWarning;
+    const duplicateWarning = this.AppState('TEMPLATE').duplicateWarning;
     return (
       <div className="--NCNode_Edit">
         <div className="screen"></div>
@@ -875,11 +888,21 @@ class NCNode extends UNISYS.Component {
               )}
               {uShowMatchlist && matchList && (
                 <div className="matchlist">
-                  {isDuplicate && <div className="warning">{duplicateWarning}</div>}
+                  {isDuplicate && (
+                    <div className="warning">
+                      <img src={`images/icn_caution.svg`} />
+                      <span>{duplicateWarning}</span>
+                    </div>
+                  )}
                   {matchList}
                 </div>
               )}
-              {isDuplicate && <div className="message">{duplicateWarning}</div>}
+              {isDuplicate && (
+                <div className="message warning">
+                  <img src={`images/icn_caution.svg`} />
+                  <span>{duplicateWarning}</span>
+                </div>
+              )}
             </div>
             {/* Special handling for `type` field */}
             {defs['type'] && !defs['type'].hidden && (
@@ -921,10 +944,16 @@ class NCNode extends UNISYS.Component {
             </div>
             {/* CONTROL BAR - - - - - - - - - - - - - - - - */}
             <div className="controlbar">
-              <button className="cancelbtn" onClick={this.UICancelEditMode}>
+              <button
+                className="cancelbtn"
+                onClick={this.UICancelEditMode}
+                type="button"
+              >
                 Cancel
               </button>
-              <button onClick={this.SaveNode}>Save</button>
+              <button onClick={this.SaveNode} type="button">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -945,10 +974,12 @@ class NCNode extends UNISYS.Component {
       label,
       edges
     } = this.state;
-    const NCDATA = UDATA.AppState('NCDATA');
-    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    const NCDATA = this.AppState('NCDATA');
+    const TEMPLATE = this.AppState('TEMPLATE');
     const me = (
-      <span style={{ color: 'rgba(0,0,0,0.2)', fontStyle: 'italic' }}>this node</span>
+      <span style={{ color: '#888', fontStyle: 'italic', fontWeight: 'normal' }}>
+        this node
+      </span>
     );
     return (
       <div className="edges">
@@ -970,6 +1001,7 @@ class NCNode extends UNISYS.Component {
                   className="edgebutton"
                   onClick={() => this.UIViewEdge(e.id)}
                   style={{ backgroundColor: bgcolor }}
+                  type="button"
                 >
                   {id === e.source ? me : sourceNode.label}
                   &nbsp;<span title={e.type}>{ARROW_RIGHT}</span>&nbsp;
@@ -984,6 +1016,7 @@ class NCNode extends UNISYS.Component {
             className="addedgebutton"
             onClick={this.UIAddEdge}
             disabled={uEditBtnDisable}
+            type="button"
           >
             New Edge
           </button>

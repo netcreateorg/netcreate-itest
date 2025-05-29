@@ -20,12 +20,10 @@
 .nccomponent button {
   background-color: #fff6;
   border-radius: 5px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   color: #333;
-  margin-left: 15px;
-  text-transform: uppercase;
   font-size: 0.9em;
 }
 .nccomponent button:hover,
@@ -43,8 +41,9 @@
 }
 .nccomponent input {
   width: 100%;
+  box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
@@ -58,14 +57,16 @@
 }
 .nccomponent textarea {
   width: 100%;
+  box-sizing: border-box; /* needed for full width */
   border-radius: 2px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
   margin-bottom: 5px;
   padding: 0 5px;
   resize: none;
+  line-height: var(--font-size-lg);
 }
 .nccomponent textarea.long {
   padding: 0 5px;
@@ -74,7 +75,7 @@
 .nccomponent select {
   width: 100%;
   border-radius: 5px;
-  border-color: #0006;
+  border-color: #666;
   border-width: 1px;
   border-style: solid;
   background-color: #fff8;
@@ -84,7 +85,7 @@
 .nccomponent button.cancelbtn {
   background-color: transparent;
   border-color: #0004;
-  color: #0006;
+  color: #666;
 }
 .nccomponent button.sourcetargetbtn {
   border-radius: 15px;
@@ -114,6 +115,7 @@
   width: 100%;
   margin: 0 0 3px 0;
   text-align: left;
+  font-weight: bold;
   overflow: hidden;
 }
 .nccomponent button.addedgebutton {
@@ -123,17 +125,24 @@
 /* Text Style */
 .nccomponent .message {
   font-size: 12px;
+  padding-bottom: 0.5rem;
 }
 .nccomponent .nodelabel .message {
   font-size: 10px;
   font-style: italic;
   font-weight: normal;
   line-height: 12px;
-  margin-top: -6px;
+  margin-top: -4px;
   opacity: 0.7;
 }
 .nccomponent .warning {
   color: red;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0.5rem;
+}
+.nccomponent .warning {
+  padding-left: 2px;
 }
 .nccomponent .help {
   font-size: 10px;
@@ -201,18 +210,18 @@
   row-gap: 10px;
 }
 .nccomponent .formview label {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: var(--font-size-xs);
+  line-height: var(--font-size-normal);
   opacity: 0.7;
   text-align: right;
   margin-bottom: 0; /* override bootstrap */
 }
 .nccomponent .formview.typeview {
   /* match .formview with column gap*/
-  grid-template-columns: 40px auto;
+  grid-template-columns: 50px auto;
 }
 .nccomponent .formview.typeview label {
-  color: #0004;
+  color: #666;
   opacity: 1;
 }
 .nccomponent .formview .edgetypeRow {
@@ -225,7 +234,8 @@
   margin-bottom: 0;
 }
 .nccomponent .formview .viewvalue {
-  padding-left: 10px;
+  font-size: var(--font-size-sm);
+  line-height: var(--font-size-normal);
   text-align: left;
   opacity: 1;
   overflow: hidden;
@@ -255,6 +265,7 @@
   height: 25px;
   font-size: 10px;
   overflow: hidden;
+  text-wrap: nowrap;
 }
 .nccomponent .tabcontainer .tabselectors button:hover {
   background-color: #fff2;
@@ -267,8 +278,14 @@
   color: #666;
   background-color: #fff8;
 }
-.nccomponent .tabcontainer .tabselectors button.selected:focus {
-  outline: none;
+/* hide tab icon on small screen */
+.nccomponent .tabcontainer .tabselectors button img {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .nccomponent .tabcontainer .tabselectors button img {
+    display: inline;
+  }
 }
 .nccomponent .tabcontainer .tabview {
   padding: 10px 5px 5px 5px;
@@ -298,7 +315,7 @@
 
 .nccomponent .titlebar {
   display: grid;
-  grid-template-columns: 60px auto 30px;
+  grid-template-columns: 60px auto 34px;
   align-items: center;
   /* display: flex;
   justify-content: space-between;
@@ -307,7 +324,7 @@
 .nccomponent .titlebar .nodenumber {
   font-size: 10px;
   line-height: 26px; /* match CommmentBtn */
-  color: #0004;
+  color: #666;
   padding-right: 0.4em;
 }
 .nccomponent .titlebar .nodelabel label {
@@ -315,6 +332,7 @@
 }
 .nccomponent .controlbar {
   display: flex;
+  gap: 0.5rem;
   justify-content: flex-end;
   align-items: baseline;
   padding: 10px 0 0 0;
@@ -346,6 +364,6 @@
   align-self: flex-start;
   margin-left: 0;
   border-color: #0002;
-  color: #0006;
+  color: #666;
   background-color: transparent;
 }

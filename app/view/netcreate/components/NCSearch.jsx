@@ -9,6 +9,9 @@
   * "Add New Node" button
   * Autosuggest highlighter
 
+  Features
+  * During node/edge edit, allow search, but not new node creation
+
   USAGE
 
     <NCSearch />
@@ -23,8 +26,6 @@ const NCAutoSuggest = require('./NCAutoSuggest');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'NCSearch';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let UDATA;
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,6 +36,7 @@ class NCSearch extends UNISYS.Component {
 
     this.state = {
       isLoggedIn: false,
+      uNodeOrEdgeBeingEdited: false,
       uIsLockedByComment: false,
       value: ''
     }; // initialized on componentDidMount and clearSelection
@@ -45,17 +47,15 @@ class NCSearch extends UNISYS.Component {
     this.UIOnSelect = this.UIOnSelect.bind(this);
     this.UINewNode = this.UINewNode.bind(this);
 
-    /// Initialize UNISYS DATA LINK for REACT
-    UDATA = UNISYS.NewDataLink(this);
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
-    UDATA.OnAppStateChange('SESSION', this.UpdateSession);
-    UDATA.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('SESSION', this.UpdateSession);
+    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
-    UDATA.AppStateChangeOff('SESSION', this.UpdateSession);
-    UDATA.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('SESSION', this.UpdateSession);
+    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /**
@@ -72,6 +72,9 @@ class NCSearch extends UNISYS.Component {
   }
 
   urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({
+      uNodeOrEdgeBeingEdited: LOCKSTATE.nodeOrEdgeBeingEdited
+    });
     // DEPRECATED -- comment editing lock state is only relevant if you are editing your own comment
     //   this.setState({
     //   // uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe  // NOT IMPLEMENTED
@@ -100,7 +103,7 @@ class NCSearch extends UNISYS.Component {
     this.setState({ value }, () => {
       if (id) {
         // open existing node
-        UDATA.LocalCall('D3_SELECT_NODE', { nodeIDs: [id] });
+        this.AppCall('D3_SELECT_NODE', { nodeIDs: [id] });
       } else if (isLoggedIn) {
         // create a new node
         this.UINewNode();
@@ -112,9 +115,9 @@ class NCSearch extends UNISYS.Component {
     const { value } = this.state;
     const data = {};
     data.label = value;
-    UDATA.LocalCall('NODE_CREATE', data).then(node => {
-      UDATA.LocalCall('D3_SELECT_NODE', { nodeIDs: [node.id] }).then(() => {
-        UDATA.LocalCall('NODE_EDIT', { nodeID: node.id });
+    this.AppCall('NODE_CREATE', data).then(node => {
+      this.AppCall('D3_SELECT_NODE', { nodeIDs: [node.id] }).then(() => {
+        this.AppCall('NODE_EDIT', { nodeID: node.id });
       });
     });
   }
@@ -123,9 +126,10 @@ class NCSearch extends UNISYS.Component {
   /// MAIN RENDER
   ///
   render() {
-    const { value, isLoggedIn, uIsLockedByComment } = this.state;
+    const { value, isLoggedIn, uNodeOrEdgeBeingEdited, uIsLockedByComment } =
+      this.state;
     const newNodeBtnHidden = !isLoggedIn || uIsLockedByComment;
-    const newNodeBtnDisabled = value === '';
+    const newNodeBtnDisabled = value === '' || uNodeOrEdgeBeingEdited;
     const key = 'search'; // used for search/source/target, placeholder for search
     return (
       <div className="--NCSearch ncsearch">
@@ -139,6 +143,7 @@ class NCSearch extends UNISYS.Component {
           hidden={newNodeBtnHidden}
           disabled={newNodeBtnDisabled}
           onClick={this.UINewNode}
+          type="button"
         >
           New Node
         </button>

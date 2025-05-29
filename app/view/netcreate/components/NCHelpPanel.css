@@ -1,0 +1,56 @@
+#NCHelpText,
+#NCVocabulary {
+  padding: 10px 20px;
+}
+
+/* tabpanel --------------------------------------------------------------- */
+#NCTabPanel {
+  display: flex;
+  flex-direction: column;
+}
+#NCTabPanel .tabs button {
+  font-weight: var(--font-weight-normal);
+  padding: 8px 26px 2px 26px;
+  opacity: 50%;
+  color: var(--clr-system);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+#NCTabPanel .tabs button:hover {
+  opacity: 100%;
+}
+#NCTabPanel .tabs button.selected {
+  font-weight: var(--font-weight-bold);
+  opacity: 100%;
+  border-bottom: 4px solid var(--clr-cat-bg);
+}
+
+#NCTabPanel .tabpanels {
+  background-color: #fff6;
+  overflow-y: auto;
+}
+
+#NCTabPanel h1 {
+  font-size: var(--font-size-reduced);
+  font-weight: var(--font-weight-bold);
+  margin-block-start: 1rem;
+}
+#NCTabPanel h1:first-child {
+  margin-block-start: 0;
+}
+#NCTabPanel ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+#NCTabPanel li {
+  margin: 0;
+  padding: 0;
+}
+#NCTabPanel dt {
+  font-weight: var(--font-weight-bold);
+}
+#NCTabPanel dd {
+  margin: 0 0 10px 0;
+  padding: 0;
+}

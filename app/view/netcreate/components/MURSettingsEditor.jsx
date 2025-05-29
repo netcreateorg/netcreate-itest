@@ -47,24 +47,81 @@ function MURSettingsEditor() {
   const backgroundColor = mod ? modColor : 'white';
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
-  return (
-    <SettingsContext.Provider value={api} modified={mod}>
-      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
-        Save Changes
-      </button>
-      &nbsp;
-      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
-        Revert Changes
-      </button>
-      {Object.keys(propDefs).map(gn => (
-        <PropertyGroup
-          groupDef={{ [gn]: propDefs[gn] }}
-          metaDef={{ [gn]: metaDefs[gn] }}
-          key={gn}
-        />
-      ))}
-    </SettingsContext.Provider>
-  );
+  /** called after subscribing via Settings.Subscribe() */
+  handleSettingsUpdate(data) {
+    const { settings, group, prop } = data;
+  }
+
+  /// RENDERED OUTPUT ///
+
+  render() {
+    const propsUI = GeneratePropList();
+    return (
+      <div>
+        <ul>
+          <li>graph name</li>
+          <li>graph description</li>
+          <li>secret key (for tokens)</li>
+          <li>admin password</li>
+          <li>
+            Node Definitions
+            <ul>
+              <li>
+                Node Type
+                <ul>
+                  <li>1: [label, color]</li>
+                  <li>2: [label, color]</li>
+                  <li>...7</li>
+                </ul>
+              </li>
+              <li>Notes -- label, type, hide</li>
+              <li>Info -- label, type, hide</li>
+              <li>InfoSource -- label, type, hide</li>
+            </ul>
+          </li>
+          <li>
+            Edge Definitions
+            <ul>
+              <li>
+                Edge Type
+                <ul>
+                  <li>1: [label, color]</li>
+                  <li>2: [label, color]</li>
+                  <li>...7</li>
+                </ul>
+              </li>
+              <li>Notes -- label, type, hide</li>
+              <li>InfoOrigin -- label, type, hide</li>
+              <li>Citation -- label, type, hide</li>
+              <li>Category -- label, type, hide</li>
+            </ul>
+          </li>
+          <li>
+            Comment Types
+            <ul>
+              <li>slug</li>
+              <li>label</li>
+              <li>
+                prompts
+                <ul>
+                  <li>1: [format, prompt, help, feedback]</li>
+                  <li>2: [format, prompt, help, feedback]</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+        <p>NOTES: </p>
+        <ul>
+          <li>
+            `isProvenance` will place a field in the Proveannce tab. But we do not
+            expect teachers to need to change that.
+          </li>
+        </ul>
+      </div>
+    );
+    // return <div>{propsUI}</div>;
+  }
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////

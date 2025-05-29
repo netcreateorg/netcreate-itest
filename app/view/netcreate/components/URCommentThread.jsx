@@ -95,6 +95,16 @@ function URCommentThread({ uiref, cref, uid, x, y }) {
     }
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function evt_OnKeyDown(event) {
+    // "Enter" adds a new comment
+    if (event.key === 'Enter') {
+      // ignore tabs changing focus
+      event.preventDefault();
+      event.stopPropagation();
+      evt_OnAddComment();
+    }
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** handles the "X" or "Close" button click, marks all comments "read" */
   function evt_OnClose() {
     CMTMGR.CloseCommentCollectionAndMarkRead(uiref, cref, uid);
@@ -143,14 +153,23 @@ function URCommentThread({ uiref, cref, uid, x, y }) {
         <div className="topbar">
           <div className="commentTitle">
             Comments on {typeLabel}{' '}
-            <a href="#" onClick={event => evt_OnReferentClick(event, cref)}>
+            <a
+              href="#"
+              onClick={event => evt_OnReferentClick(event, cref)}
+              aria-label={sourceLabel}
+            >
               {sourceLabel}
             </a>
           </div>
           {!isDisabled && (
-            <div className="closeBtn" onClick={evt_OnClose}>
+            <button
+              className="closeBtn"
+              onClick={evt_OnClose}
+              type="button"
+              aria-label="Close"
+            >
               X
-            </div>
+            </button>
           )}
         </div>
         <div className="commentScroller">
@@ -168,6 +187,8 @@ function URCommentThread({ uiref, cref, uid, x, y }) {
               placeholder="Click to add a Comment..."
               readOnly
               onClick={evt_OnAddComment}
+              onKeyDown={evt_OnKeyDown}
+              autoFocus
             ></textarea>
           )}
           {!uid && commentVObjs.length < 1 && (

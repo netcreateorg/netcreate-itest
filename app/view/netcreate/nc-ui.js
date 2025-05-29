@@ -184,23 +184,33 @@ function m_UICancelInsertImageURL() {
 function RenderTabSelectors(TABS, state, onclick) {
   const { uSelectedTab, uViewMode, degrees } = state;
   const columnsDef = `repeat(${Object.keys(TABS).length}, 1fr)`;
+  const icn = {
+    ATTRIBUTES: 'icn_attributes.svg',
+    EDGES: 'icn_edges.svg',
+    PROVENANCE: 'icn_provenance.svg'
+  };
   return (
     <div
       className="tabselectors"
       style={{ color: 'red', gridTemplateColumns: columnsDef }}
+      role="tablist"
     >
       {Object.keys(TABS).map(k => {
         return (
           <button
             id={k}
             key={k}
-            type="button"
             className={uSelectedTab === TABS[k] ? 'selected' : ''}
             onClick={onclick}
             value={TABS[k]}
             disabled={uViewMode === VIEWMODE.EDIT}
+            role="tab"
+            type="button"
+            aria-selected={uSelectedTab === TABS[k]}
+            aria-controls={TABS[k]}
           >
             {TABS[k] === 'EDGES' ? `${TABS[k]} (${degrees})` : TABS[k]}
+            <img src={`images/${icn[k]}`} />
           </button>
         );
       })}
@@ -394,15 +404,24 @@ function RenderProvenanceTabView(state, defs, BUILTIN_FIELDS) {
       <div className="category">PROVENANCE</div>
       {RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
-      {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
-      {!defs.created.hidden &&
+      {defs.created &&
+        !defs.created.hidden &&
+        RenderLabel('createdlabel', defs.created.displayLabel)}
+      {defs.created &&
+        !defs.created.hidden &&
         RenderProvenanceByline(created, createdBy, defs.createdBy)}
-      {!defs.updated.hidden && RenderLabel('updatedlabel', defs.updated.displayLabel)}
-      {!defs.updated.hidden &&
+      {defs.updated &&
+        !defs.updated.hidden &&
+        RenderLabel('updatedlabel', defs.updated.displayLabel)}
+      {defs.updated &&
+        !defs.updated.hidden &&
         RenderProvenanceByline(updated, updatedBy, defs.updatedBy)}
-      {!defs.revision.hidden &&
+      {defs.revision &&
+        !defs.revision.hidden &&
         RenderLabel('revisionlabel', defs.revision.displayLabel)}
-      {!defs.revision.hidden && RenderStringValue('revisionlabel', revision)}
+      {defs.revision &&
+        !defs.revision.hidden &&
+        RenderStringValue('revisionlabel', revision)}
     </div>
   );
 }
@@ -415,15 +434,24 @@ function RenderProvenanceTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
       <div className="category">PROVENANCE</div>
       {RenderProvenanceItemsEdit(state, defs, onchange, BUILTIN_FIELDS)}
       <div className="category">HISTORY</div>
-      {!defs.created.hidden && RenderLabel('createdlabel', defs.created.displayLabel)}
-      {!defs.created.hidden &&
+      {defs.created &&
+        !defs.created.hidden &&
+        RenderLabel('createdlabel', defs.created.displayLabel)}
+      {defs.created &&
+        !defs.created.hidden &&
         RenderProvenanceByline(created, createdBy, defs.createdBy)}
-      {!defs.updated.hidden && RenderLabel('updatedlabel', defs.updated.displayLabel)}
-      {!defs.updated.hidden &&
+      {defs.updated &&
+        !defs.updated.hidden &&
+        RenderLabel('updatedlabel', defs.updated.displayLabel)}
+      {defs.updated &&
+        !defs.updated.hidden &&
         RenderProvenanceByline(updated, updatedBy, defs.updatedBy)}
-      {!defs.revision.hidden &&
+      {defs.revision &&
+        !defs.revision.hidden &&
         RenderLabel('revisionlabel', defs.revision.displayLabel)}
-      {!defs.revision.hidden && RenderStringValue('revisionlabel', revision)}
+      {defs.revision &&
+        !defs.revision.hidden &&
+        RenderStringValue('revisionlabel', revision)}
     </div>
   );
 }

@@ -1,41 +1,23 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  description
+  Group of Filters for Nodes or Edges
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-const FILTER = require('./FilterEnums');
-const FilterGroupProperties = require('./FilterGroupProperties');
-const NumberFilter = require('./NumberFilter');
-const React = require('react');
-const SelectFilter = require('./SelectFilter');
-const StringFilter = require('./StringFilter');
-const HDateFilter = require('./HDateFilter');
-const ReactStrap = require('reactstrap');
-const { Input, Label } = ReactStrap;
+import React from 'react';
+import FILTER from './FilterEnums';
+import NCNumberFilter from './NCNumberFilter';
+import NCStringFilter from './NCStringFilter';
+import NCSelectFilter from './NCSelectFilter';
+import NCHDateFilter from './NCHDateFilter';
+import NCFilterGroupProperties from './NCFilterGroupProperties';
 
 /// METHODS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function FilterGroup({ group, label, filters, filterAction, transparency }) {
+function NCFilterGroup({ group, label, filters, filterAction, transparency }) {
   return (
-    <div
-      className="filter-group"
-      style={{
-        margin: '5px 5px 5px 0',
-        padding: '10px',
-        backgroundColor: 'rgba(0,0,0,0)'
-      }}
-    >
-      <div
-        className="small text-muted"
-        style={{
-          fontWeight: 'bold',
-          textTransform: 'uppercase',
-          marginBottom: '0.4em'
-        }}
-      >
-        {label}
-      </div>
+    <div className="filter-group">
+      <h1>{label}</h1>
       {filters.map(filter => {
         switch (filter.type) {
           case FILTER.TYPES.MARKDOWN:
@@ -44,7 +26,7 @@ function FilterGroup({ group, label, filters, filterAction, transparency }) {
           case FILTER.TYPES.INFOORIGIN:
           case FILTER.TYPES.STRING:
             return (
-              <StringFilter
+              <NCStringFilter
                 key={filter.id}
                 group={group}
                 filter={filter}
@@ -53,7 +35,7 @@ function FilterGroup({ group, label, filters, filterAction, transparency }) {
             );
           case FILTER.TYPES.NUMBER:
             return (
-              <NumberFilter
+              <NCNumberFilter
                 key={filter.id}
                 group={group}
                 filter={filter}
@@ -62,7 +44,7 @@ function FilterGroup({ group, label, filters, filterAction, transparency }) {
             );
           case FILTER.TYPES.SELECT:
             return (
-              <SelectFilter
+              <NCSelectFilter
                 key={filter.id}
                 group={group}
                 filter={filter}
@@ -72,7 +54,7 @@ function FilterGroup({ group, label, filters, filterAction, transparency }) {
           case FILTER.TYPES.TIMESTAMP: // UI uses HDate to set date, but parser uses custom timestamp
           case FILTER.TYPES.HDATE:
             return (
-              <HDateFilter
+              <NCHDateFilter
                 key={filter.id}
                 group={group}
                 filter={filter}
@@ -88,12 +70,11 @@ function FilterGroup({ group, label, filters, filterAction, transparency }) {
         }
         return '';
       })}
-      <FilterGroupProperties group={group} transparency={transparency} />
+      <NCFilterGroupProperties group={group} transparency={transparency} />
       <hr />
     </div>
   );
 }
 
-/// EXPORTS ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = FilterGroup;
+/// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
+export default NCFilterGroup;

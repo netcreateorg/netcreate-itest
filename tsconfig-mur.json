@@ -21,6 +21,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 {
   "compilerOptions": {
+    //
+    "rootDir": "./",
     // this sets the 'target' javascript version
     "target": "esnext", // https://typescriptlang.org/tsconfig/#target
 

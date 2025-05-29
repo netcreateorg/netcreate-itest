@@ -1,0 +1,47 @@
+.NCGraph {
+  height: 100%;
+  position: relative;
+}
+.NCGraph .zoom-buttons {
+  position: absolute;
+  right: 0px;
+  bottom: 10px;
+  width: 50px;
+  z-index: 1001;
+}
+.NCGraph button {
+  width: 35px;
+  height: 35px;
+  margin-top: 0.25rem;
+  line-height: 0.5rem;
+  background-color: var(--clr-fg);
+  border-color: var(--clr-system-fadedmore);
+  opacity: 0.8;
+}
+.NCGraph .legend {
+  position: absolute;
+  bottom: 0px;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0px;
+  font-size: var(--font-size-xs);
+  border-top: 1px solid var(--clr-system-fadedmore);
+  border-right: 1px solid var(--clr-system-fadedmore);
+  border-top-right-radius: 8px;
+  background-color: #fffd;
+}
+.NCGraph .legend h1 {
+  display: inline-block;
+  padding-right: 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+}
+.NCGraph .legend .legend-item {
+  display: inline-block;
+  padding-right: 0.75rem;
+}
+.NCGraph .legend .swatch {
+  display: inline-block;
+  width: 1rem;
+  height: 0.5rem;
+  border-radius: 8px;
+}
