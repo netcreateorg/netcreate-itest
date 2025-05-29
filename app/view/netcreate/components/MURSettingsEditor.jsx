@@ -47,16 +47,22 @@ function MURSettingsEditor() {
   const backgroundColor = mod ? modColor : 'white';
   const btnStyle = { ...opBtnStyle, backgroundColor };
 
-  /** called after subscribing via Settings.Subscribe() */
-  handleSettingsUpdate(data) {
-    const { settings, group, prop } = data;
-  }
-
-  /// RENDERED OUTPUT ///
-
-  render() {
-    const propsUI = GeneratePropList();
-    return (
+  return (
+    <SettingsContext.Provider value={api} modified={mod}>
+      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
+        Save Changes
+      </button>
+      &nbsp;
+      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
+        Revert Changes
+      </button>
+      {/* {Object.keys(propDefs).map(gn => (
+        <PropertyGroup
+          groupDef={{ [gn]: propDefs[gn] }}
+          metaDef={{ [gn]: metaDefs[gn] }}
+          key={gn}
+        />
+      ))} */}
       <div>
         <ul>
           <li>graph name</li>
@@ -119,9 +125,8 @@ function MURSettingsEditor() {
           </li>
         </ul>
       </div>
-    );
-    // return <div>{propsUI}</div>;
-  }
+    </SettingsContext.Provider>
+  );
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
