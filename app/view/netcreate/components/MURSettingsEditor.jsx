@@ -109,6 +109,11 @@ function MURSettingsEditor() {
           `isProvenance` will place a field in the Proveannce tab. But we do not
           expect teachers to need to change that.
         </li>
+        <li>
+          Ideally teachers can add and remove new Node and Edge field definitions,
+          rather merely re-purposing existing fields. e.g. they might add an Event
+          Date field.
+        </li>
       </ul>
     </div>
   );
