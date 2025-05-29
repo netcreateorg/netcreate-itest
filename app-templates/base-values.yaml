@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: TypeDefs
+_schemaLayer: TypeDefs
 
 # declare core types
 ValueTypes:

@@ -6,68 +6,118 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Settings, ConsoleStyler } = require('ursys-min');
-const { ReactListKey: RLK } = require('./react-settings-client');
+const { Settings } = require('ursys-min'); // import the settings manager
+const RSB = require('./react-settings-bridge');
+
+/// CONSTANTS /////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = true;
+const LOG = console.log.bind(console);
+const SettingsContext = RSB.GetSettingsContext();
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const itemStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(200px,max-content) auto',
-  margin: '0.25rem'
-};
-const labelStyle = { paddingRight: '0.5rem' };
-const inputStyle = { border: '1px solid #cc8' };
-const ttStyle = {
-  position: 'fixed',
-  backgroundColor: 'gray',
-  color: 'white',
-  padding: '5px',
-  zIndex: 1000,
-  maxWidth: '250px',
-  display: 'none'
-};
+const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles();
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { name, metadata } = props;
-  if (typeof name !== 'string') return <p>getTextInput bad name</p>;
-  if (typeof metadata !== 'object') return <p>getTextInput bad metadata</p>;
-  const { label, tooltip, help, placeholder, value, default: defValue } = metadata;
-
+  const { propDef, metaDef } = props;
+  if (DBG) {
+    if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
+    if (typeof metaDef !== 'object') return <p>TextInput bad metaDef</p>;
+  }
+  const { value, default: defValue } = propDef;
+  const { label, tooltip, help, placeholder } = metaDef;
+  // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
-  const [tooltipStyle, setTooltipStyle] = React.useState({ ...ttStyle });
+  const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
+  const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
+  const [oldValue] = React.useState(value || defValue);
+  const [inputValue, setInputValue] = React.useState(value || defValue);
 
-  const handleKeydown = event => {
-    if (event.key === 'Enter') {
-      console.log('keydown enter: would submit value');
-    }
+  /// CONTEXT ///
+
+  const api = React.useContext(SettingsContext);
+
+  /// TESTS ///
+
+  function assert_is_modified() {
+    if (label === 'description')
+      console.log(
+        `old / input / propDef\n${oldValue} \t${inputValue} \t${propDef.value}`
+      );
+  }
+
+  /// UI-SETTINGS INTEROP EVENT UPDATES ///
+
+  // send data to settings object, which will trigger rerender
+  const submitToSettings = async value => {
+    LOG('would check data', propDef);
+    LOG('would call RSB.UpdateProperty(args)');
+    // api.forceUpdate();
   };
 
+  /// LOCAL EVENT UPDATES ///
+
+  // input changes will update the current inputValue
   const handleTyping = event => {
-    console.log('typing:', event.target.value);
+    propDef.value = event.target.value;
+    setInputValue(propDef.value);
   };
 
+  // input key return will submit the value to settings object
+  const handleEnterKey = async event => {
+    if (event.key === 'Enter') submitToSettings(event.target.value);
+  };
+
+  // hovering over label will show tooltip
   const handleTooltip = event => {
     if (event.type === 'mouseover') {
+      const offset = RSB.EventTargetOffsetStyle(event);
       setTooltipStyle({
-        ...ttStyle,
+        ...popupStyle,
+        ...offset,
         display: 'block',
-        left: `${event.pageX + 5}px`,
-        top: `${event.pageY + 15}px`,
         content: tooltip || ''
       });
       setLabelColor('maroon');
     } else if (event.type === 'mouseout') {
-      setTooltipStyle({ ...ttStyle });
+      setTooltipStyle({ ...popupStyle });
       setLabelColor('black');
     }
   };
 
+  // hovering over a changed input will show the old value
+  const showOldValue = event => {
+    if (oldValue === inputValue) {
+      setOldStyle({ ...popupStyle });
+      return;
+    } else if (event.type === 'mouseover') {
+      const offset = RSB.EventTargetOffsetStyle(event);
+      setOldStyle({
+        ...popupStyle,
+        ...offset,
+        display: 'block',
+        content: oldValue || ''
+      });
+    } else if (event.type === 'mouseout') {
+      setOldStyle({ ...popupStyle });
+    }
+  };
+
+  /// RENDER ///
+
+  // conditional flags based on inputValue
+  const mod = inputValue !== oldValue;
+  const bgColor = mod ? modColor : 'white';
+  const pad = mod ? '1rem' : '0';
+
+  // assert_is_modified();
+
   return (
-    <div style={itemStyle}>
+    <div style={itemGrid}>
       <label
         htmlFor={name}
         style={{ ...labelStyle, color: labelColor }}
@@ -79,12 +129,24 @@ function TextInput(props) {
       <input
         type="text"
         name="${name}"
-        style={{ ...inputStyle, labelColor }}
-        defaultValue={defValue}
-        onKeyDown={handleKeydown}
+        style={{
+          ...inputStyle,
+          color: labelColor,
+          backgroundColor: bgColor,
+          paddingRight: pad
+        }}
+        defaultValue={inputValue}
+        onKeyDown={handleEnterKey}
+        onBlur={submitToSettings}
         onInput={handleTyping}
+        onMouseOver={showOldValue}
+        onMouseOut={showOldValue}
       />
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
+      <div style={oldStyle}>
+        <span style={{ opacity: 0.5 }}>old value: </span>
+        {oldValue}
+      </div>
     </div>
   );
 }

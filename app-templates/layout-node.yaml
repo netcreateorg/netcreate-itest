@@ -1,6 +1,6 @@
 # metadata
 _schemaVersion: '2.0'
-_key: LayoutDefs
+_schemaLayer: MetaDefs
 
 # shared elements type setting
 
@@ -45,8 +45,8 @@ NodeDef:
     conditions: [isGraphTooltip]
 
   info:
-    <<: *SharedControls
     control: 'in-number'
+    <<: *SharedControls
     label: 'Number'
     help: 'Some number comparison'
     conditions: [isGraphTooltip]
@@ -64,36 +64,36 @@ NodeDef:
     conditions: [isGraphTooltip]
 
   created:
-    <<: *SharedControls
     control: 'out-datetime'
+    <<: *SharedControls
     label: 'Created'
     help: 'Date and time edge was created'
     conditions: [isGraphTooltip]
 
   createdBy:
-    <<: *SharedControls
     control: 'out-text'
+    <<: *SharedControls
     label: 'Created By'
     help: 'Author who created the edge'
     conditions: [isGraphTooltip]
 
   updated:
-    <<: *SharedControls
     control: 'out-datetime'
+    <<: *SharedControls
     label: 'Updated'
     help: 'Date and time edge was last modified'
     conditions: [isGraphTooltip]
 
   updatedBy:
-    <<: *SharedControls
     control: 'in-text'
+    <<: *SharedControls
     label: 'Updated By'
     help: 'Author who updated the edge'
     conditions: [isGraphTooltip]
 
   revision:
-    <<: *SharedControls
     control: 'out-integer'
+    <<: *SharedControls
     label: 'Revision'
     help: 'Number of times this edge has been revised'
     conditions: [isGraphTooltip]
