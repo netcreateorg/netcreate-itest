@@ -336,13 +336,16 @@ const DEFAULT_CommentTypes: Array<TCommentType> = [
 function m_LoadUsers(dbUsers: TUserObject[]) {
   dbUsers.forEach(u => USERS.set(u.id, u.name));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadCommentTypes(commentTypes: TCommentType[]) {
   COMMENTTYPES.clear();
   commentTypes.forEach(t => COMMENTTYPES.set(t.slug, t));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadComments(comments: TComment[]) {
   comments.forEach(c => COMMENTS.set(c.comment_id, c));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadReadBy(readby: TReadByObject[]) {
   readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
 }
@@ -357,11 +360,14 @@ function Init() {
   // Load Defaults
   // m_LoadCommentTypes(DEFAULT_CommentTypes);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function LoadTemplate(commentTypes: Array<TCommentType>) {
   // fall back order: template.toml > DEFAULT_CommentTypes > DEFAULT_COMMENTTYPE
   // fall back to DEFAULT_CommentTypes if DEFAULT_CommentTypes is not in dc-comments
   // or a single DEFAULT_COMMENTTYPE if it's completely missing
+  if (commentTypes === undefined) {
+    console.warn(PR, 'No custom commentTypes provided in template, using defaults');
+  }
   const types =
     commentTypes ||
     (DEFAULT_CommentTypes && DEFAULT_CommentTypes.length > 0
@@ -369,7 +375,7 @@ function LoadTemplate(commentTypes: Array<TCommentType>) {
       : [DEFAULT_COMMENTTYPE]);
   m_LoadCommentTypes(types);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * @param {Object} data
  * @param {Object} data.users
@@ -404,34 +410,40 @@ function LoadDB(data: TLokiData) {
   // Derive Secondary Values
   m_DeriveValues();
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUsers(): TUserMap {
   return USERS;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUser(uid): TUserName {
   return USERS.get(uid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUserName(uid): TUserName {
   const u = USERS.get(uid);
   return u !== undefined ? u : uid; // fallback to using `uid` if there's no record
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCurrentUser(): TUserName {
   // TODO Placeholder
   return 'Ben32';
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCommentTypes(): TCommentTypeMap {
   return COMMENTTYPES;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCommentType(slug: CType): TCommentType {
   return COMMENTTYPES.get(slug);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetDefaultCommentType(): TCommentType {
   // returns the first comment type object
   if (COMMENTTYPES.size < 1)
     throw new Error('dc-comments: No comment types defined!');
   return GetCommentType(GetDefaultCommentTypeSlug());
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetDefaultCommentTypeSlug(): CType {
   // returns the first comment type slug
   // fall back order: template.toml > DEFAULT_CommentTypes > DEFAULT_COMMENTTYPE
@@ -439,14 +451,15 @@ function GetDefaultCommentTypeSlug(): CType {
     throw new Error('dc-comments: No comment types defined!');
   return COMMENTTYPES.keys().next().value;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCOMMENTS(): TCommentMap {
   return COMMENTS;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetComment(cid: TCommentID): TComment {
   return COMMENTS.get(cid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_DeriveValues() {
   ROOTS.clear();
   REPLY_ROOTS.clear();
@@ -465,7 +478,7 @@ function m_DeriveValues() {
   if (DBG) console.log('REPLY_ROOTS', REPLY_ROOTS);
   if (DBG) console.log('NEXT', NEXT);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddComment(data): TComment {
   if (data.cref === undefined)
     throw new Error('Comments must have a collection ref!');
@@ -492,7 +505,7 @@ function AddComment(data): TComment {
 
   return comment;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * API Call to processes a single update
  * @param {Object} cobj TComment
@@ -501,6 +514,7 @@ function UpdateComment(cobj: TComment) {
   m_UpdateComment(cobj);
   m_DeriveValues();
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Processes a single update
  * @param {Object} cobj TComment
@@ -515,6 +529,7 @@ function m_UpdateComment(cobj: TComment) {
   // );
   COMMENTS.set(cobj.comment_id, cobj);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * API Call to batch updates an array of updated comments
  * @param {Object[]} cobjs TComment[]
@@ -523,7 +538,7 @@ function HandleUpdatedComments(cobjs: TComment[]) {
   cobjs.forEach(cobj => m_UpdateComment(cobj));
   m_DeriveValues();
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Safely delete a comment and queue it for deletion
  * This is necessary to also return the `id`
@@ -539,6 +554,7 @@ function m_safeDeleteAndQueue(cid): TCommentQueueActions {
   }
   throw new Error(`Comment ${cid} not found.  This should not happen!`);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * @param {Object} parms
  * @param {Object} parms.collection_ref
@@ -727,7 +743,7 @@ function RemoveComment(parms): TCommentQueueActions[] {
   m_DeriveValues();
   return queuedActions;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * @param {Object} parms
  * @param {Object} parms.collection_ref
@@ -747,7 +763,7 @@ function RemoveAllCommentsForCref(parms): TCommentQueueActions[] {
   m_DeriveValues();
   return queuedActions;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Checks if the current root and all children are marked deleted.
  * Ignores the NEXT root items
@@ -766,7 +782,7 @@ function m_AllAreMarkedDeleted(rootCommentId: TCommentID): boolean {
   });
   return allAreMarkedDeleted;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Batch updates an array of removed comment ids
  * @param {number[]} comment_ids
@@ -778,7 +794,7 @@ function HandleRemovedComments(comment_ids: TCommentID[]) {
   });
   m_DeriveValues();
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * `uid` can be undefined if user is not logged in
  */
@@ -788,22 +804,23 @@ function MarkCommentRead(cid: TCommentID, uid: TUserID) {
   if (!readby.includes(uid)) readby.push(uid);
   READBY.set(cid, readby);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MarkCommentUnread(cid: TCommentID, uid: TUserID) {
   // Mark the comment NOT read
   const readby = READBY.get(cid) || [];
   const updatedReadby = readby.filter(readByUid => readByUid !== uid);
   READBY.set(cid, updatedReadby);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsMarkedRead(cid: TCommentID, uid: TUserID): boolean {
   const readby = READBY.get(cid) || [];
   return readby.includes(uid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsMarkedDeleted(cid: TCommentID): boolean {
   return COMMENTS.get(cid).comment_isMarkedDeleted;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Walk down the next items starting with the current
  *  Ignores child threads
  *  @returns {string[]} comment_ids
@@ -815,7 +832,7 @@ function m_GetNexts(cid: TCommentID): TCommentID[] {
   if (nextId) results.push(nextId, ...m_GetNexts(nextId));
   return results;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Gets all the child reply comments under the root
  *  Does not include the rootCid
  *  @param {string} rootCid root comment id
@@ -828,7 +845,7 @@ function m_GetReplies(rootCid: TCommentID): TCommentID[] {
   if (replyRootId) results.push(replyRootId, ...m_GetNexts(replyRootId));
   return results;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** recursively add replies and next
  * 1. Adds nested children reply threads first
  * 2. Then adds the next younger sibling
@@ -853,7 +870,7 @@ function m_GetRepliesAndNext(cid: TCommentID): TCommentID[] {
 
   return results;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Get all the comment ids related to a particular collection_ref
  * based on ROOTS.
@@ -874,7 +891,7 @@ function GetThreadedCommentIds(cref: TCollectionRef): TCommentID[] {
 }
 if (DBG) console.log('GetThreadedView', GetThreadedCommentIds('1'));
 if (DBG) console.log('GetThreadedView', GetThreadedCommentIds('2'));
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * [Currently not used]
  * Get all the comments related to a particular collection_ref
@@ -886,7 +903,7 @@ function GetThreadedCommentData(cref: TCollectionRef): TComment[] {
   // convert ids to comment objects
   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // NOT USED?
 //
 // /**
@@ -900,11 +917,10 @@ function GetThreadedCommentData(cref: TCollectionRef): TComment[] {
 //   // convert ids to comment objects
 //   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
 // }
-
 function GetReadby(cid: TCommentID): TUserID[] {
   return READBY.get(cid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCrefs(): TCollectionRef[] {
   return [...ROOTS.keys()];
 }

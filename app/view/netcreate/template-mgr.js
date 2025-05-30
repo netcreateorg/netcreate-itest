@@ -17,7 +17,7 @@
 
   ## BACKGROUND
 
-  Template data is loaded by `server-database` DB.InitializeDatabase call.
+  Template data is loaded by `server-database` DB.InitializeDataset call.
 
   With Version 1.4 of Net.Create, we introduce a new TOML template format that
   is easier to work with directly.

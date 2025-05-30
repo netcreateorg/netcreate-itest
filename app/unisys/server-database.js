@@ -82,7 +82,7 @@ function m_DefaultTemplatePath() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Initialize the database */
-DB.InitializeDatabase = function (options = {}) {
+DB.InitializeDataset = function (options = {}) {
   let dataset = NC_CONFIG.dataset;
   db_file = m_GetValidDBFilePath(dataset);
   FS.ensureDirSync(PATH.dirname(db_file));
@@ -181,7 +181,7 @@ DB.InitializeDatabase = function (options = {}) {
     }
     console.log(
       PR,
-      'dataset loaded',
+      'graph data loaded',
       BL(db_file),
       `m_max_nodeID '${m_max_nodeID}', m_max_edgeID '${m_max_edgeID}'`
     );
@@ -204,6 +204,8 @@ DB.InitializeDatabase = function (options = {}) {
 
     m_db.saveDatabase();
 
+    // load non-database assets from dataset.toml, creating
+    // it if necessary
     await m_LoadTemplate();
     m_MigrateTemplate();
     m_ValidateTemplate();
@@ -220,7 +222,7 @@ DB.InitializeDatabase = function (options = {}) {
       `AUTOSAVING! ${nodeCount} NODES / ${edgeCount} EDGES / ${commentCount} COMMENTS / ${readbyCount} READBY <3`
     );
   }
-}; // InitializeDatabase()
+}; // InitializeDataset()
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Loads a *.template.toml file from the server. */
 function m_LoadTOMLTemplate(templateFilePath) {
@@ -240,7 +242,7 @@ function m_LoadTOMLTemplate(templateFilePath) {
     2. If it can't be found, tries to load the JSON template and convert it
     3. If that fails, clone the default TOML template and load it
     Called by
-    * DB.InitializeDatabase
+    * DB.InitializeDataset
     * DB.WriteTemplateTOML
  */
 async function m_LoadTemplate() {
@@ -448,9 +450,9 @@ function m_ValidateTemplate() {
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: load database
- *  note: InitializeDatabase() was already called on system initialization
+ *  note: InitializeDataset() was already called on system initialization
  *  to populate the NODES and EDGES structures */
-DB.PKT_GetDatabase = function (pkt) {
+DB.PKT_GetDataset = function (pkt) {
   let nodes = NODES.chain().data({ removeMeta: false });
   let edges = EDGES.chain().data({ removeMeta: false });
   let comments = COMMENTS.chain().data();
@@ -458,7 +460,7 @@ DB.PKT_GetDatabase = function (pkt) {
   if (DBG)
     console.log(
       PR,
-      `PKT_GetDatabase ${pkt.Info()} (loaded ${nodes.length} nodes, ${
+      `PKT_GetDataset ${pkt.Info()} (loaded ${nodes.length} nodes, ${
         edges.length
       } edges)`
     );
@@ -490,7 +492,7 @@ DB.PKT_SetDatabase = function (pkt) {
   READBY.insert(readby);
   console.log(PR, `PKT_SetDatabase complete. Data available on next get.`);
   m_db.close();
-  DB.InitializeDatabase();
+  DB.InitializeDataset();
   LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
   return { OK: true };
 };
@@ -513,7 +515,7 @@ DB.PKT_InsertDatabase = function (pkt) {
   READBY.insert(readby);
   console.log(PR, `PKT_InsertDatabase complete. Data available on next get.`);
   m_db.close();
-  DB.InitializeDatabase();
+  DB.InitializeDataset();
   LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
   return { OK: true };
 };
@@ -560,7 +562,7 @@ DB.PKT_MergeDatabase = function (pkt) {
   return new Promise((resolve, reject) =>
     m_db.saveDatabase(err => {
       if (err) reject(new Error('rejected'));
-      DB.InitializeDatabase();
+      DB.InitializeDataset();
       LOGGER.WriteRLog(pkt.InfoObj(), `mergedatabase`);
       resolve({ OK: true });
     })

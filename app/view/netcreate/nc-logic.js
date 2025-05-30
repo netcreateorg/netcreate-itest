@@ -185,8 +185,8 @@ var TEMPLATE = null; // template definition for prompts
 /** Used by LOADASSETS and RELOAD_DB to reload NCDATA from the database.
  */
 function m_PromiseLoadDB() {
-  return DATASTORE.PromiseD3Data().then(data => {
-    if (DBG) console.log(PR, 'DATASTORE returned data', data);
+  return DATASTORE.PromiseDataset().then(data => {
+    console.log(PR, 'DATASTORE returned data', data);
     m_MigrateData(data.d3data);
     UTILS.RecalculateAllEdgeSizes(data.d3data);
     UTILS.RecalculateAllNodeDegrees(data.d3data);
@@ -261,8 +261,10 @@ MOD.Hook('LOADASSETS', () => {
       })();
     });
   }
+
+  // if got this far, then we're NOT in standalone mode
   return Promise.all([m_PromiseLoadDB()]);
-}); // loadassets
+}); // end LOADASSETS HOOK
 
 /// UNISYS LIFECYCLE HOOKS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

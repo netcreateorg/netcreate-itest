@@ -38,7 +38,7 @@ UNISYS.InitializeNetwork = override => {
   // MUR INTEROP: end
 
   // resume NetCreate server initialization
-  UDB.InitializeDatabase(override);
+  UDB.InitializeDataset(override);
   return UNET.InitializeNetwork(override);
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,7 +65,7 @@ UNISYS.RegisterHandlers = () => {
   //
   UNET.HandleMessage('SRV_DBGET', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
-    return UDB.PKT_GetDatabase(pkt);
+    return UDB.PKT_GetDataset(pkt);
   });
   //
   UNET.HandleMessage('SRV_DBSET', function (pkt) {
