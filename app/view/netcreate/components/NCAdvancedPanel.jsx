@@ -31,8 +31,11 @@ const VIEWS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState('importexport');
+  // const [isOpen, setIsOpen] = useState(false);
+  // const [openTab, setOpenTab] = useState('importexport');
+  // HACK MAKE SURE TO REMOVE BEFORE PR SUBMISSION
+  const [isOpen, setIsOpen] = useState(true);
+  const [openTab, setOpenTab] = useState('settings');
 
   useEffect(() => {
     UDATA.OnAppStateChange('PANELSTATE', evt_ToggleAdvanced);

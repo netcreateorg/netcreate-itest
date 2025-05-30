@@ -186,7 +186,6 @@ var TEMPLATE = null; // template definition for prompts
  */
 function m_PromiseLoadDB() {
   return DATASTORE.PromiseDataset().then(data => {
-    console.log(PR, 'DATASTORE returned data', data);
     m_MigrateData(data.d3data);
     UTILS.RecalculateAllEdgeSizes(data.d3data);
     UTILS.RecalculateAllNodeDegrees(data.d3data);
