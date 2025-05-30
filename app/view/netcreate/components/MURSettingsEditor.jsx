@@ -47,11 +47,11 @@ function MURSettingsEditor() {
   const { name, description } = RSB.GetLegacyTemplate();
   const propDefs = {
     graphSettings: {
-      graphName: {
+      name: {
         type: 'string',
         value: name
       },
-      graphDescription: {
+      description: {
         type: 'string',
         value: description
       }
@@ -60,12 +60,12 @@ function MURSettingsEditor() {
   const metaDefs = {
     _groupMeta: {},
     graphSettings: {
-      graphName: {
+      name: {
         label: 'Graph Name',
         tooltip: 'Name of the graph',
         placeholder: 'Graph Name'
       },
-      graphDescription: {
+      description: {
         label: 'Graph Description',
         tooltip: 'Description of the graph',
         placeholder: 'Graph Description'

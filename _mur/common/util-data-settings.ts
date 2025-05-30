@@ -72,7 +72,7 @@ function DecodeDotProp(dotProp: string): PropToken {
   if (extra.length > 0) return { error: `invalid dotProp: ${dotProp}` };
   if (!IsCamelCase(groupID)) return { error: `invalid group name: ${groupID}` };
   if (!IsCamelCase(propID)) return { error: `invalid prop name: ${propID}` };
-  return { groupID, propID };
+  return { groupID, propID, parts: [groupID, propID] };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a prop submit object is a single key object with a dotProp key and a value,

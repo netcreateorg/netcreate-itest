@@ -63,9 +63,8 @@ function TextInput(props) {
   // send data to settings object, which will trigger rerender
   const submitToSettings = async event => {
     const value = event.target.value;
-    LOG('would check value', $(value), 'against', propDef);
-    LOG(`would call RSB.UpdateProperty('${dotProp}', ${$(value)})`);
-    // api.forceUpdate();
+    console.log(dotProp, 'submitToSettings', $(value));
+    RSB.UpdateLegacySetting(dotProp, value);
   };
 
   /// LOCAL EVENT UPDATES ///

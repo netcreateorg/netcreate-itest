@@ -34,6 +34,13 @@ function Unsubscribe(event, changeHandler) {
   Settings.Unsubscribe(event, changeHandler);
 }
 
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** quote a string or return as-is number */
+function $(strOrNum) {
+  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+}
+
 /// LEGACY SETTINGS API ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the AppState('TEMPLATE') object, which is the legacy settings
@@ -44,8 +51,32 @@ function GetLegacyTemplate() {
   return legacyTemplate;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function UpdateLegacyTemplate(newTemplate) {
-  LOG(...PR('Would update legacy template with', newTemplate));
+/** API: Update the APPSTATE('TEMPLATE') object. This does NOT save the
+ *  template to the server, it just updates the local state. */
+function UpdateLegacyTemplate() {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Legacy Hack assumes that groupName is not needed; all settings are
+ *  at the top level of the template object. The groupNames are more of a
+ *  nicety for the UI in this implementation*/
+function UpdateLegacySetting(dotProp, value) {
+  const fn = 'UpdateLegacySetting:';
+  const [groupName, propName] = Settings.DecodeDotProp(dotProp).parts;
+  LOG(...PR(`Would update legacy setting ${groupName}.${propName} with ${$(value)}`));
+  const template = GetLegacyTemplate();
+  if (template[propName] === undefined) {
+    console.log(fn, `prop ${propName} not found in legacy template`, template);
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateLegacySettingMeta(dotProp, metaObj) {
+  LOG(
+    ...PR(
+      'Would update legacy setting meta',
+      dotProp,
+      'with',
+      JSON.stringify(metaObj)
+    )
+  );
 }
 
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
@@ -226,6 +257,8 @@ module.exports = {
   // legacy API
   GetLegacyTemplate,
   UpdateLegacyTemplate,
+  UpdateLegacySetting,
+  UpdateLegacySettingMeta,
   // new API
   GetPropertyDefs,
   GetMetaDefs,
