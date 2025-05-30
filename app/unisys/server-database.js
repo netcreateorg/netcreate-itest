@@ -95,7 +95,7 @@ DB.InitializeDataset = function (options = {}) {
   // console.log(PR, YL(`loading dataset`), `${BL(db_file)}...`);
   let ropt = {
     autoload: true,
-    autoloadCallback: f_DatabaseInitialize,
+    autoloadCallback: async_DatabaseInitialize,
     autosave: true,
     autosaveCallback: f_AutosaveStatus,
     autosaveInterval: 4000 // save every four seconds
@@ -111,7 +111,7 @@ DB.InitializeDataset = function (options = {}) {
       nothing to do with the database :|
   /*/
 
-  async function f_DatabaseInitialize() {
+  async function async_DatabaseInitialize() {
     // on the first load of (non-existent database), we will have no
     // collections so we can detect the absence of our collections and
     // add (and configure) them now.
@@ -206,10 +206,10 @@ DB.InitializeDataset = function (options = {}) {
 
     // load non-database assets from dataset.toml, creating
     // it if necessary
-    await m_LoadTemplate();
+    await async_LoadTemplate();
     m_MigrateTemplate();
     m_ValidateTemplate();
-  } // end f_DatabaseInitialize
+  } // end async_DatabaseInitialize
 
   // UTILITY FUNCTION
   function f_AutosaveStatus() {
@@ -225,7 +225,7 @@ DB.InitializeDataset = function (options = {}) {
 }; // InitializeDataset()
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Loads a *.template.toml file from the server. */
-function m_LoadTOMLTemplate(templateFilePath) {
+function promise_LoadTOMLTemplate(templateFilePath) {
   return new Promise((resolve, reject) => {
     const templateFile = FS.readFile(templateFilePath, 'utf8', (err, data) => {
       if (err) throw err;
@@ -245,7 +245,7 @@ function m_LoadTOMLTemplate(templateFilePath) {
     * DB.InitializeDataset
     * DB.WriteTemplateTOML
  */
-async function m_LoadTemplate() {
+async function async_LoadTemplate() {
   const TOMLPath = m_GetTemplateTOMLFilePath();
   FS.ensureDirSync(PATH.dirname(TOMLPath));
   /*/ SRI NOTE
@@ -255,13 +255,13 @@ async function m_LoadTemplate() {
   // Does the TOML template exist?
   if (FS.existsSync(TOMLPath)) {
     // 1. If TOML exists, load it
-    await m_LoadTOMLTemplate(TOMLPath);
+    await promise_LoadTOMLTemplate(TOMLPath);
   } else {
     // clone _default.template.toml
     console.log(PR, `NO EXISTING TEMPLATE ${TOMLPath}`);
     FS.copySync(m_DefaultTemplatePath(), TOMLPath);
     // then load it
-    await m_LoadTOMLTemplate(TOMLPath);
+    await promise_LoadTOMLTemplate(TOMLPath);
   }
 }
 
@@ -1556,7 +1556,7 @@ DB.WriteTemplateTOML = pkt => {
     .then(data => {
       console.log(PR, 'Saved template to', templateFilePath);
       // reload template
-      m_LoadTemplate();
+      async_LoadTemplate();
       return { OK: true, info: templateFilePath };
     })
     .catch(err => {
