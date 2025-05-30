@@ -16,6 +16,7 @@ const PR = ConsoleStyler('SettingClient', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const MOD = UNISYS.NewModule(module.id);
+const UDATA = UNISYS.NewDataLink(MOD);
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,6 +32,20 @@ function Subscribe(event, changeHandler) {
  *  @param function changeHandler - (propDef, eventObj) => {} */
 function Unsubscribe(event, changeHandler) {
   Settings.Unsubscribe(event, changeHandler);
+}
+
+/// LEGACY SETTINGS API ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Get the AppState('TEMPLATE') object, which is the legacy settings
+ *  object used by the legacy netcreate modules. This is what we have to use
+ *  in NetCreate for July and September 2025 */
+function GetLegacyTemplate() {
+  const legacyTemplate = UDATA.AppState('TEMPLATE');
+  return legacyTemplate;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function UpdateLegacyTemplate(newTemplate) {
+  LOG(...PR('Would update legacy template with', newTemplate));
 }
 
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
@@ -208,6 +223,10 @@ function useSettings(initialSettings = {}) {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
+  // legacy API
+  GetLegacyTemplate,
+  UpdateLegacyTemplate,
+  // new API
   GetPropertyDefs,
   GetMetaDefs,
   //

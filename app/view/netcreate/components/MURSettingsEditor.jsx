@@ -13,6 +13,7 @@ const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
 const PropertyGroup = require('./MURPropertyGroup');
 const { diff } = require('deep-object-diff');
+const ToDoList = require('./MURSettingsToDo');
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,83 +41,44 @@ function MURSettingsEditor() {
     LOG(...PR('would revert changes'));
   }
 
-  const propDefs = RSB.GetPropertyDefs();
-  const metaDefs = RSB.GetMetaDefs();
+  // new system is no longer used for netcreate; sticking with legacy for now
+  // const propDefs = RSB.GetPropertyDefs();
+  // const metaDefs = RSB.GetMetaDefs();
+  const { name, description } = RSB.GetLegacyTemplate();
+  const propDefs = {
+    graphSettings: {
+      graphName: {
+        type: 'string',
+        value: name
+      },
+      graphDescription: {
+        type: 'string',
+        value: description
+      }
+    }
+  };
+  const metaDefs = {
+    _groupMeta: {},
+    graphSettings: {
+      graphName: {
+        label: 'Graph Name',
+        tooltip: 'Name of the graph',
+        placeholder: 'Graph Name'
+      },
+      graphDescription: {
+        label: 'Graph Description',
+        tooltip: 'Description of the graph',
+        placeholder: 'Graph Description'
+      }
+    }
+  };
+
   const { opBtnStyle, modColor } = RSB.GetStyles();
 
   const mod = api.lastSettingsUpdate !== oldState;
   const backgroundColor = mod ? modColor : 'white';
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
-  const toDoList = (
-    <div>
-      <ul>
-        <li>graph name</li>
-        <li>graph description</li>
-        <li>secret key (for tokens)</li>
-        <li>admin password</li>
-        <li>
-          Node Definitions
-          <ul>
-            <li>
-              Node Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>Info -- label, type, hide</li>
-            <li>InfoSource -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Edge Definitions
-          <ul>
-            <li>
-              Edge Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>InfoOrigin -- label, type, hide</li>
-            <li>Citation -- label, type, hide</li>
-            <li>Category -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Comment Types
-          <ul>
-            <li>slug</li>
-            <li>label</li>
-            <li>
-              prompts
-              <ul>
-                <li>1: [format, prompt, help, feedback]</li>
-                <li>2: [format, prompt, help, feedback]</li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <p>NOTES: </p>
-      <ul>
-        <li>
-          `isProvenance` will place a field in the Proveannce tab. But we do not
-          expect teachers to need to change that.
-        </li>
-        <li>
-          Ideally teachers can add and remove new Node and Edge field definitions,
-          rather merely re-purposing existing fields. e.g. they might add an Event
-          Date field.
-        </li>
-      </ul>
-    </div>
-  );
 
   return (
     <SettingsContext.Provider value={api} modified={mod}>
@@ -138,7 +100,7 @@ function MURSettingsEditor() {
             key={gn}
           />
         ))}
-      {showToDo && toDoList}
+      {showToDo && ToDoList}
     </SettingsContext.Provider>
   );
 }

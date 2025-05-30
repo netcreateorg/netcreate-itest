@@ -40,7 +40,7 @@ function PropertyGroup(props) {
   if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
   const { groupName, properties } = gdata;
   const propList = Object.keys(properties); // list of property names
-  const meta = metaDef[groupName];
+  const meta = metaDef[groupName] || {};
   const { title, description } = meta._groupMeta || {};
   const key = `pg-${groupName}`;
   return (
@@ -54,9 +54,17 @@ function PropertyGroup(props) {
         )}
         {propList.map(p => {
           if (properties[p].type) {
-            const key = `in-${groupName}.${p}`;
-            return <TextInput propDef={properties[p]} metaDef={meta[p]} key={key} />;
-          }
+            const dotProp = `${groupName}.${p}`;
+            const key = `in-${dotProp}`;
+            return (
+              <TextInput
+                propDef={properties[p]}
+                metaDef={meta[p]}
+                dotProp={dotProp}
+                key={key}
+              />
+            );
+          } else console.log(`PropertyGroup: no type for ${groupName}.${p}`);
           return null;
         })}
       </details>

@@ -19,14 +19,22 @@ const SettingsContext = RSB.GetSettingsContext();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles();
 
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** quote a string or return as-is number */
+function $(strOrNum) {
+  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+}
+
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { propDef, metaDef } = props;
+  const { propDef, metaDef, dotProp } = props;
   if (DBG) {
     if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
     if (typeof metaDef !== 'object') return <p>TextInput bad metaDef</p>;
+    if (typeof dotProp !== 'string') return <p>TextInput bad dotProp</p>;
   }
   const { value, default: defValue } = propDef;
   const { label, tooltip, help, placeholder } = metaDef;
@@ -53,9 +61,10 @@ function TextInput(props) {
   /// UI-SETTINGS INTEROP EVENT UPDATES ///
 
   // send data to settings object, which will trigger rerender
-  const submitToSettings = async value => {
-    LOG('would check data', propDef);
-    LOG('would call RSB.UpdateProperty(args)');
+  const submitToSettings = async event => {
+    const value = event.target.value;
+    LOG('would check value', $(value), 'against', propDef);
+    LOG(`would call RSB.UpdateProperty('${dotProp}', ${$(value)})`);
     // api.forceUpdate();
   };
 
