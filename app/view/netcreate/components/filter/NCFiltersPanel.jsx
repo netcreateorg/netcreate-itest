@@ -84,6 +84,8 @@ function NCFiltersPanel({ hidden }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_UpdateFilteredNCData(data = { stats: {} }) {
+    // Skip stats update if not defined yet
+    if (!data.stats) return;
     setState(prevState => ({ ...prevState, statsSummary: data.stats.statsSummary }));
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -107,6 +109,9 @@ function NCFiltersPanel({ hidden }) {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   const { filterAction, focusRange, focusSourceLabel, statsSummary, nodes, edges } =
     state;
+
+  if (!nodes || !edges) return 'loading...'; // skip rendering for now if nodes and edges haven't been loaded yet.
+
   const defs = [nodes, edges];
   const filterActionHelp = evt_LookupFilterHelp(filterAction);
 

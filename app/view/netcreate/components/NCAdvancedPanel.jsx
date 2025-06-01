@@ -1,9 +1,40 @@
 /* eslint-disable react/no-unescaped-entities */
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ## OVERVIEW
+  # NCAdvancedPanel
 
-    Vocabulary displays a list of common terms
+  NCAdvancedPanel handles:
+  - Template Import/Export
+  - Node/Edge Import/Export
+  - User Tokens
+  - Admin Password
+
+  By default, only Export nodes/edges is enabled for normal users.
+  (The "Import/Export" tab will display "Export" only).
+  The other functions are admin-only.
+
+
+  ### PERMISSIONS App State
+
+  The `PERMISSIONS` app state is used to track the admin permissions.
+  This app state is used by NCNode, NCEdge, NCImportExport to
+  enable/disable admin-only features.
+
+  REVIEW: This probably should be moved to a permissions manager.
+
+
+  ### Admin Password
+
+  Only administrators (teachers) can manage templates, import data, and manage
+  user tokens.
+
+  The admin password is defined in the project template with the `adminPassword`
+  property and is not visible to students.
+
+  Admin features will be enabled as soon as you enter the correct password.
+  (You don't need to hit return).  When the password is validated, the input
+  form will turn into a "Reset Password"
+
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
@@ -11,6 +42,7 @@ import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
 import NCImportExport from './NCImportExport';
 import NCTemplate from './NCTemplate';
+import NCUserTokens from './NCUserTokens';
 import MURSettingEditor from './MURSettingsEditor';
 import URPopover from './URPopover';
 
@@ -24,6 +56,7 @@ const DBG = false;
 const VIEWS = {
   template: 'Template',
   importexport: 'Import/Export',
+  usertokens: 'User Tokens',
   settings: 'Settings'
 };
 
@@ -33,17 +66,44 @@ const VIEWS = {
 function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [openTab, setOpenTab] = useState('importexport');
+  const [password, setPassword] = useState('');
+  const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
   useEffect(() => {
+    const PERMISSIONS = UDATA.AppState('PERMISSIONS');
+    UDATA.SetAppState('PERMISSIONS', {
+      ...PERMISSIONS,
+      isAdmin: hasAdminPermissions
+    });
+
     UDATA.OnAppStateChange('PANELSTATE', evt_ToggleAdvanced);
+    assessAdminPrivileges();
     return () => {
       UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleAdvanced);
     };
   }, []);
 
+  useEffect(() => {
+    assessAdminPrivileges();
+  }, [password]);
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function evt_ToggleAdvanced(PANELSTATE) {
     setIsOpen(PANELSTATE.advancedIsOpen);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function assessAdminPrivileges() {
+    const TEMPLATE = UDATA.AppState('TEMPLATE');
+    if (TEMPLATE && TEMPLATE.adminPassword === undefined)
+      console.warn(
+        'No admin password defined!  Please set it if you need admin access'
+      );
+    const isAdmin =
+      TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
+    setHasAdminPermissions(isAdmin);
+
+    const PERMISSIONS = UDATA.AppState('PERMISSIONS');
+    UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_CloseAdvanced() {
@@ -52,12 +112,23 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_SelectTab(tab) {
-    console.log('setting tab to', tab);
     setOpenTab(tab);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_PasswordChange(e) {
+    const password = e.target.value;
+    setPassword(password);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_PasswordClear() {
+    setPassword('');
   }
 
   // COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  const TABS = hasAdminPermissions
+    ? VIEWS // show all tabs to admin
+    : { export: 'Export' }; // show "Export" only
 
   let jsx;
   switch (openTab) {
@@ -65,7 +136,11 @@ function NCAdvancedPanel() {
       jsx = <NCTemplate />;
       break;
     case 'importexport':
-      jsx = <NCImportExport />;
+    case 'export':
+      jsx = <NCImportExport isAdmin={hasAdminPermissions} />;
+      break;
+    case 'usertokens':
+      jsx = <NCUserTokens />;
       break;
     case 'settings':
       jsx = <MURSettingEditor />;
@@ -75,11 +150,31 @@ function NCAdvancedPanel() {
   }
 
   if (!isOpen) return null;
+
+  let adminStatus;
+  if (hasAdminPermissions === undefined) {
+    adminStatus = <span>Admin Mode Disabled</span>;
+    console.error(
+      '"adminPassword" has not been defined in template!  You will not be able to access admin features.  Add a "adminPassword" property to the template to enable admin features.'
+    );
+  } else if (hasAdminPermissions === false)
+    adminStatus = (
+      <label>
+        admin: <input type="password" id="password" onChange={ui_PasswordChange} />
+      </label>
+    );
+  else if (hasAdminPermissions === true)
+    adminStatus = (
+      <button type="button" onClick={ui_PasswordClear}>
+        Admin Logout
+      </button>
+    );
+
   return (
     <URPopover title="Advanced" onClose={ui_CloseAdvanced}>
-      <div id="NCTabPanel">
+      <div id="NCTabPanel" className="NCAdvancedPanel">
         <div className="tabs" role="tablist">
-          {Object.keys(VIEWS).map(k => (
+          {Object.keys(TABS).map(k => (
             <button
               key={k}
               role="tab"
@@ -89,12 +184,14 @@ function NCAdvancedPanel() {
               tabIndex={openTab === k ? '0' : '-1'}
               onClick={() => ui_SelectTab(k)}
             >
-              {VIEWS[k]}
+              {TABS[k]}
             </button>
           ))}
         </div>
 
         <div className="tabpanels">{jsx}</div>
+
+        <div className="footer">{adminStatus}</div>
       </div>
     </URPopover>
   );

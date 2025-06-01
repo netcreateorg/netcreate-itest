@@ -7,6 +7,7 @@
 #NCTabPanel {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 #NCTabPanel .tabs button {
   font-weight: var(--font-weight-normal);
@@ -16,6 +17,9 @@
   background-color: transparent;
   border: none;
   border-radius: 0;
+}
+#NCTabPanel.NCAdvancedPanel .tabs button {
+  padding: 8px 8px 2px 8px;
 }
 #NCTabPanel .tabs button:hover {
   opacity: 100%;

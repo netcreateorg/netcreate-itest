@@ -136,7 +136,8 @@ class SessionShell extends UNISYS.Component {
       hashedId: null,
       subId: null,
       groupId: null,
-      isValid: false
+      isValid: false,
+      templateSalt: undefined // this is set in componentDidMount()
     };
     this.previousIsValid = false; // to track changes in loggedIn status
 
@@ -346,7 +347,10 @@ class SessionShell extends UNISYS.Component {
 
     const { routeProps } = SETTINGS.GetRouteInfoFromURL();
     let { token } = routeProps;
-    let decoded = SESSION.DecodeToken(token, window.NC_CONFIG.dataset) || {};
+    const TEMPLATE = this.AppState('TEMPLATE');
+    const templateSalt = TEMPLATE && TEMPLATE.secretKey;
+    this.setState({ templateSalt });
+    const decoded = SESSION.DecodeToken(token, templateSalt) || {};
     this.SetAppState('SESSION', decoded);
     this.previousIsValid = decoded.isValid;
   }
@@ -359,7 +363,7 @@ class SessionShell extends UNISYS.Component {
     let { token } = routeProps;
 
     if (!token) return; // don't bother to check if this was a result of changes from the form
-    let decoded = SESSION.DecodeToken(token, window.NC_CONFIG.dataset);
+    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
     if (decoded.isValid !== this.previousIsValid) {
       this.SetAppState('SESSION', decoded);
       this.previousIsValid = decoded.isValid;
@@ -370,7 +374,7 @@ class SessionShell extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   handleChange(event) {
     let token = event.target.value;
-    let decoded = SESSION.DecodeToken(token, window.NC_CONFIG.dataset);
+    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
     let { classId, projId, hashedId, subId, groupId } = decoded;
     this.setState(decoded);
   }
@@ -409,7 +413,7 @@ class SessionShell extends UNISYS.Component {
     if (!token) return this.renderLogin();
 
     // try to decode token
-    let decoded = SESSION.DecodeToken(token, window.NC_CONFIG.dataset);
+    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
     if (decoded.isValid) {
       return this.renderLoggedIn(decoded);
     } else {

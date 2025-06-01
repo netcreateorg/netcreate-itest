@@ -1,0 +1,25 @@
+#NCUserTokens {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+#NCUserTokens .form {
+  display: grid;
+  grid-template-columns: 70px auto;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+#NCUserTokens input:read-only {
+  color: var(--clr-system);
+  user-select: none;
+}
+#NCUserTokens fieldset {
+  display: grid;
+  grid-template-columns: 25px auto;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+#NCUserTokens textarea {
+  width: 100%;
+}
