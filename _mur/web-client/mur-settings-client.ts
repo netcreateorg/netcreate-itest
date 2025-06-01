@@ -137,5 +137,4 @@ export {
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void
 };
-export { GetSettingsContext, useSettings } from './mur-settings-context.ts';
 export { DecodeDotProp } from '../common/util-data-settings.ts';

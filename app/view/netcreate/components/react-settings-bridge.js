@@ -12,11 +12,53 @@ const UNISYS = require('unisys/client');
 /// RUNTIME UNISYS HOOKS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('SettingClient', 'TagBlue');
+const PR = ConsoleStyler('SetBridge', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// UNISYS data system
 const MOD = UNISYS.NewModule(module.id);
 const UDATA = UNISYS.NewDataLink(MOD);
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// REACT settings manager using Context API and Reducer Hook
+const SettingsContext = React.createContext({ origin: 'react-settings-bridge' });
+const m_actions = ['update', 'revert', 'undo', 'redo', 'persist'];
+
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** quote a string or return as-is number */
+function $(strOrNum) {
+  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+}
+
+/// LEGACY SETTINGS API ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetViewState() {
+  const fn = 'GetViewState:';
+  LOG(...PR(`would return view state`));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: used by MURSettingsEditor useReducer
+ *  @param state - current state to mutate
+ *  @param action - { type: 'update', group: 'groupName', prop: 'propName', value: newValue }
+ *  @returns new state
+ */
+function DispatchViewStateChange(state, action) {
+  const fn = 'DispatchViewStateChange:';
+  const { type, group, prop, value } = action;
+  if (!m_actions.includes(type)) {
+    LOG(...PR(`${fn} unknown action type ${type}`));
+    return state; // no change
+  }
+  LOG(...PR(`would perform action`, action));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function HasPendingChanges() {
+  return true;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetLegacyTemplate() {
+  return UDATA.AppState('TEMPLATE');
+}
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,72 +76,6 @@ function Unsubscribe(event, changeHandler) {
   Settings.Unsubscribe(event, changeHandler);
 }
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** quote a string or return as-is number */
-function $(strOrNum) {
-  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
-}
-
-/// LEGACY SETTINGS API ///////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Get the AppState('TEMPLATE') object, which is the legacy settings
- *  object used by the legacy netcreate modules. This is what we have to use
- *  in NetCreate for July and September 2025 */
-function GetLegacyTemplate() {
-  const legacyTemplate = UDATA.AppState('TEMPLATE');
-  return legacyTemplate;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update the APPSTATE('TEMPLATE') object. This does NOT save the
- *  template to the server, it just updates the local state.*/
-function UpdateLegacyTemplate(dataObj) {
-  const fn = 'UpdateLegacyTemplate:';
-  if (typeof dataObj !== 'object') {
-    LOG(...PR(fn, 'error: dataObj must be an object', dataObj));
-    return;
-  }
-  // SetAppState works similar to React State, merging the new data into
-  // a state object associated with the 'TEMPLATE' namespace
-  UDATA.SetAppState('TEMPLATE', dataObj);
-  // this should fire a change event for any subscribers
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Legacy Hack assumes that groupName is not needed; all settings are
- *  at the top level of the template object. The groupNames are more of a
- *  nicety for the UI in this implementation*/
-function UpdateLegacySetting(dotProp, value) {
-  const fn = 'UpdateLegacySetting:';
-  const [groupName, propName] = Settings.DecodeDotProp(dotProp).parts;
-
-  // many settings don't use a groupName in TEMPLATE, so we key on the
-  // property name only
-  const template = GetLegacyTemplate();
-  if (template[propName] === undefined) {
-    LOG(...PR(fn, `error prop ${propName} not found in legacy template`, template));
-    return;
-  }
-  UpdateLegacyTemplate({ [propName]: value }); // this is a no-op in this implementation
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update the metadata for a legacy setting. The original legacy template
- *  has no notion of settings metadata, so we create it on the fly. */
-function UpdateLegacySettingMeta(dotProp, metaObj) {
-  LOG(...PR('would update', dotProp, 'metadata w/', JSON.stringify(metaObj)));
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: MURSettingsEditor subscribes to changes in the legacy template so it
- *  can update the UI when the template changes. */
-function SubscribeLegacyTemplateChanges(changeHandler) {
-  UDATA.OnAppStateChange('TEMPLATE', changeHandler);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: MURSettingsEditor unsubscribes from changes in the legacy template on
- *  component unmount via useEffect. */
-function UnsubscribeLegacyTemplateChanges(changeHandler) {
-  UDATA.AppStateChangeOff('TEMPLATE', changeHandler);
-}
-
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: PropertyDefs define the type and default value of a property, but not
@@ -115,7 +91,8 @@ function GetMetaDefs() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update a property in the settings object.
  *  @param string dotProp - 'group.prop'
- *  @param any value - new value for the property */
+ *  @param any value - new value for the property
+ */
 async function UpdateProperty(dotProp, value) {
   const opResult = await Settings.UpdateProperty(dotProp, value);
   if (opResult.status === 'ok') return opResult;
@@ -124,7 +101,8 @@ async function UpdateProperty(dotProp, value) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update a group in the settings object.
  *  @param string groupName - 'group'
- *  @param object propObj - { prop: value, prop2: value2 } */
+ *  @param object propObj - { prop: value, prop2: value2 }
+ */
 async function UpdateGroup(groupName, propObj) {
   const opResult = await Settings.UpdateGroup(groupName, propObj);
   if (opResult.status === 'ok') return opResult;
@@ -227,61 +205,15 @@ function EventTargetOffsetStyle(event) {
   };
 }
 
-/// CUSTOM HOOK FOR SETTINGS CONTEXT //////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** React Hook to manage settings context. The original reference
- *  implementation is in mur-settings-context */
-function useSettings(initialSettings = {}) {
-  //
-  const [lastSettingsUpdate, _updateSettings] = React.useState({});
-
-  /** universal get settings */
-  const get = dotProp => Settings.Get(dotProp);
-
-  /** update property via settings manager, then trigger rerender */
-  const updateProperty = async (dotProp, value) => {
-    const opResult = await Settings.UpdateProperty(dotProp, value);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateProperty: ${error}`);
-      return false; // indicate failure
-    }
-    _updateSettings(opResult); // trigger a rerender
-    return true;
-  };
-
-  /** update group of properties via settings manager, then trigger rerender */
-  const updateGroup = async (groupName, propObj) => {
-    const opResult = await Settings.UpdateGroup(groupName, propObj);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateGroup: ${error}`);
-      return false;
-    }
-    _updateSettings(opResult); // trigger a rerender
-    return true;
-  };
-
-  return {
-    // to trigger rerender
-    lastSettingsUpdate,
-    // api
-    get,
-    updateProperty,
-    updateGroup
-  };
-}
-
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
   // legacy API
+  SettingsContext,
   GetLegacyTemplate,
-  UpdateLegacyTemplate,
-  UpdateLegacySetting,
-  UpdateLegacySettingMeta,
-  SubscribeLegacyTemplateChanges,
-  UnsubscribeLegacyTemplateChanges,
+  GetViewState,
+  DispatchViewStateChange,
+  HasPendingChanges,
   // new API
   GetPropertyDefs,
   GetMetaDefs,
@@ -297,8 +229,5 @@ module.exports = {
   Unsubscribe,
   //
   GetStyles,
-  EventTargetOffsetStyle,
-  //
-  GetSettingsContext: Settings.GetSettingsContext,
-  useSettings // locally-defined to match react version/instance
+  EventTargetOffsetStyle
 };

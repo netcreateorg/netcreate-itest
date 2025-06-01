@@ -1,7 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Text Input Component
-  used by mur-settings-client.jsx to generate a text input component
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -48,8 +47,7 @@ function TextInput(props) {
   // send data to settings object, which will trigger rerender
   const submitToSettings = async event => {
     const value = event.target.value;
-    console.log(dotProp, 'submitToSettings', $(value));
-    RSB.UpdateLegacySetting(dotProp, value);
+    console.log('would', dotProp, 'submitToSettings', $(value));
   };
 
   /// LOCAL EVENT UPDATES ///
