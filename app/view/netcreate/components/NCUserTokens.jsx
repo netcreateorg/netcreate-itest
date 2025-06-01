@@ -28,7 +28,7 @@ function NCUserTokens() {
     isShareable: false,
     classId: '',
     projId: '',
-    hasSalt: false
+    templateSalt: undefined
   });
 
   const ref_classId = useRef(null);
@@ -37,10 +37,10 @@ function NCUserTokens() {
 
   useEffect(() => {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
-    if (TEMPLATE && TEMPLATE.salt !== undefined)
+    if (TEMPLATE && TEMPLATE.secretKey !== undefined)
       setState(prevState => ({
         ...prevState,
-        hasSalt: true
+        templateSalt: TEMPLATE.secretKey
       }));
   }, []);
 
@@ -80,10 +80,8 @@ function NCUserTokens() {
   function evt_MakeTokens() {
     const clsId = ref_classId.current.value;
     const projId = ref_projId.current.value;
-    const dataset = state.isShareable ? undefined : DATASET;
     const numGroups = parseInt(ref_count.current.value);
-    const result = MakeTokens(clsId, projId, dataset, numGroups);
-    console.log('MakeTokens', result, clsId, projId, dataset, numGroups);
+    const result = MakeTokens(clsId, projId, numGroups);
     setState(prevState => ({
       ...prevState,
       tokens: result
@@ -95,34 +93,38 @@ function NCUserTokens() {
    *  is a little iffy.
    *  @param {string} clsId - classId
    *  @param {string} projId - projectId
-   *  @param {string} dataset - database name
    *  @param {integer} numGroups - number of tokens to generate
    *  @return {string}
    */
-  function MakeTokens(clsId, projId, dataset, numGroups) {
+  function MakeTokens(clsId, projId, numGroups) {
     // from nc-logic.js
     if (typeof clsId !== 'string')
-      return 'args: str classId, str projId, str dataset, int numGroups';
+      return 'args: str classId, str projId, int numGroups';
     if (typeof projId !== 'string')
-      return 'args: str classId, str projId, str dataset, int numGroups';
-    if (!state.isShareable && typeof dataset !== 'string')
-      return 'args: str classId, str projId, str dataset, int numGroups';
+      return 'args: str classId, str projId, int numGroups';
+    // Not really relevant for nc-logic's
+    // if (!state.isShareable && typeof templateSalt !== 'string')
+    //   return 'args: str classId, str projId, int numGroups';
     if (clsId.length > 12) return 'classId arg1 should be 12 chars or less';
     if (projId.length > 12) return 'classId arg1 should be 12 chars or less';
     if (!Number.isInteger(numGroups)) return 'numGroups arg3 must be integer';
     if (numGroups < 1) return 'numGroups arg3 must be positive integer';
 
-    let out = state.isShareable ? 'Shareable ' : '';
+    // if templateSalt is not defined, then isShareable is implicitly true
+    const isShareable = state.isShareable || !state.templateSalt;
+    const salt = isShareable ? undefined : state.templateSalt;
+
+    let out = isShareable ? 'Shareable ' : '';
     out += `TOKEN LIST for class '${clsId}' project '${projId}' `;
-    out += state.isShareable
+    out += isShareable
       ? 'that can be used for any graph.'
-      : `dataset '${dataset}'`;
+      : `templateSalt '${state.templateSalt}'`;
     out += `\n\n`;
     let pad = String(numGroups).length;
     for (let i = 1; i <= numGroups; i++) {
       let id = String(i);
       id = id.padStart(pad, '0');
-      out += `group ${id}\t${SESSION.MakeToken(clsId, projId, i, dataset)}\n`;
+      out += `${SESSION.MakeToken(clsId, projId, i, salt)}\n`;
     }
     return out;
   }
@@ -185,20 +187,22 @@ function NCUserTokens() {
         <div></div>
         <fieldset>
           <legend>Advanced Options</legend>
-          {!state.hasSalt && (
+          {!state.templateSalt && (
             <span style={{ color: 'red', gridColumn: 'span 2' }}>
-              WARNING: Project template salt not defined. Tokens will be shareable.
+              WARNING: Project template secretKey not defined. Tokens will be
+              shareable for graphs without a secretKey.
             </span>
           )}
           <input
             id="shareable"
             type="checkbox"
-            checked={state.isShareable || !state.hasSalt}
+            checked={state.isShareable || !state.templateSalt}
             onChange={evt_SetShareable}
-            disabled={!state.hasSalt}
+            disabled={!state.templateSalt}
           />
           <label htmlFor="shareable">
-            Shareable -- Make tokens usable for ANY graph
+            Shareable -- Make tokens usable for ANY graph without a template
+            secretKey.
           </label>
         </fieldset>
       </div>
