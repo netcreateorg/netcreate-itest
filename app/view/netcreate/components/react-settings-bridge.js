@@ -52,8 +52,18 @@ function GetLegacyTemplate() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Update the APPSTATE('TEMPLATE') object. This does NOT save the
- *  template to the server, it just updates the local state. */
-function UpdateLegacyTemplate() {}
+ *  template to the server, it just updates the local state.*/
+function UpdateLegacyTemplate(dataObj) {
+  const fn = 'UpdateLegacyTemplate:';
+  if (typeof dataObj !== 'object') {
+    LOG(...PR(fn, 'error: dataObj must be an object', dataObj));
+    return;
+  }
+  // SetAppState works similar to React State, merging the new data into
+  // a state object associated with the 'TEMPLATE' namespace
+  UDATA.SetAppState('TEMPLATE', dataObj);
+  // this should fire a change event for any subscribers
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Legacy Hack assumes that groupName is not needed; all settings are
  *  at the top level of the template object. The groupNames are more of a
@@ -61,22 +71,33 @@ function UpdateLegacyTemplate() {}
 function UpdateLegacySetting(dotProp, value) {
   const fn = 'UpdateLegacySetting:';
   const [groupName, propName] = Settings.DecodeDotProp(dotProp).parts;
-  LOG(...PR(`Would update legacy setting ${groupName}.${propName} with ${$(value)}`));
+
+  // many settings don't use a groupName in TEMPLATE, so we key on the
+  // property name only
   const template = GetLegacyTemplate();
   if (template[propName] === undefined) {
-    console.log(fn, `prop ${propName} not found in legacy template`, template);
+    LOG(...PR(fn, `error prop ${propName} not found in legacy template`, template));
+    return;
   }
+  UpdateLegacyTemplate({ [propName]: value }); // this is a no-op in this implementation
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Update the metadata for a legacy setting. The original legacy template
+ *  has no notion of settings metadata, so we create it on the fly. */
 function UpdateLegacySettingMeta(dotProp, metaObj) {
-  LOG(
-    ...PR(
-      'Would update legacy setting meta',
-      dotProp,
-      'with',
-      JSON.stringify(metaObj)
-    )
-  );
+  LOG(...PR('would update', dotProp, 'metadata w/', JSON.stringify(metaObj)));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: MURSettingsEditor subscribes to changes in the legacy template so it
+ *  can update the UI when the template changes. */
+function SubscribeLegacyTemplateChanges(changeHandler) {
+  UDATA.OnAppStateChange('TEMPLATE', changeHandler);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: MURSettingsEditor unsubscribes from changes in the legacy template on
+ *  component unmount via useEffect. */
+function UnsubscribeLegacyTemplateChanges(changeHandler) {
+  UDATA.AppStateChangeOff('TEMPLATE', changeHandler);
 }
 
 /// REACT SETTINGS API ////////////////////////////////////////////////////////
@@ -259,6 +280,8 @@ module.exports = {
   UpdateLegacyTemplate,
   UpdateLegacySetting,
   UpdateLegacySettingMeta,
+  SubscribeLegacyTemplateChanges,
+  UnsubscribeLegacyTemplateChanges,
   // new API
   GetPropertyDefs,
   GetMetaDefs,

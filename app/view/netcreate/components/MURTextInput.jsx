@@ -6,14 +6,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
-const { Settings } = require('ursys-min'); // import the settings manager
 const RSB = require('./react-settings-bridge');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
-const SettingsContext = RSB.GetSettingsContext();
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -44,19 +42,6 @@ function TextInput(props) {
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
   const [oldValue] = React.useState(value || defValue);
   const [inputValue, setInputValue] = React.useState(value || defValue);
-
-  /// CONTEXT ///
-
-  const api = React.useContext(SettingsContext);
-
-  /// TESTS ///
-
-  function assert_is_modified() {
-    if (label === 'description')
-      console.log(
-        `old / input / propDef\n${oldValue} \t${inputValue} \t${propDef.value}`
-      );
-  }
 
   /// UI-SETTINGS INTEROP EVENT UPDATES ///
 
@@ -122,10 +107,9 @@ function TextInput(props) {
   const bgColor = mod ? modColor : 'white';
   const pad = mod ? '1rem' : '0';
 
-  // assert_is_modified();
-
   return (
     <div style={itemGrid}>
+      {console.log('>> rendering TextInput', dotProp, inputValue)}
       <label
         htmlFor={name}
         style={{ ...labelStyle, color: labelColor }}

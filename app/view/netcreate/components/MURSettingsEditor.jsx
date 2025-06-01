@@ -18,34 +18,18 @@ const ToDoList = require('./MURSettingsToDo');
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const PR = ConsoleStyler('SetEdit', 'TagBlue');
+const PR = ConsoleStyler('MURSetEd', 'TagBlue');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a react context object, providing access to the values prop of the
- *  SettingsProvider. It has to be defined within the React App root */
-const SettingsContext = RSB.GetSettingsContext(); // get the settings context
+let m_old_template;
 
-/// REACT COMPONENT ///////////////////////////////////////////////////////////
+/// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function MURSettingsEditor() {
-  const api = RSB.useSettings();
-  const [oldState, saveOldState] = React.useState(api.lastSettingsUpdate);
-  const [showToDo, setShowToDo] = React.useState(true);
-
-  function saveChanges() {
-    saveOldState(api.lastSettingsUpdate);
-    LOG(...PR('would save changes'));
-  }
-
-  function revertChanges() {
-    LOG(...PR('would revert changes'));
-  }
-
-  // new system is no longer used for netcreate; sticking with legacy for now
-  // const propDefs = RSB.GetPropertyDefs();
-  // const metaDefs = RSB.GetMetaDefs();
-  const { name, description } = RSB.GetLegacyTemplate();
-  const propDefs = {
+/** Given the TEMPLATE object, make a MURSettings compatible propDefs object
+ *  for use by the PropertyGroup component and TextInput component */
+function m_MakePropDefs(template) {
+  const { name, description } = template || {};
+  return {
     graphSettings: {
       name: {
         type: 'string',
@@ -57,6 +41,48 @@ function MURSettingsEditor() {
       }
     }
   };
+}
+
+/// REACT COMPONENT ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function MURSettingsEditor() {
+  const [showToDo, setShowToDo] = React.useState(true);
+  // the change object should be recreated on every change to force a re-render
+  const [template, setTemplate] = React.useState(RSB.GetLegacyTemplate());
+  const [changes, setChanges] = React.useState({});
+  const [propDefs, setPropDefs] = React.useState(m_MakePropDefs(template));
+
+  React.useEffect(() => {
+    LOG(...PR('MURSettingsEditor mounted'));
+    RSB.SubscribeLegacyTemplateChanges(handleTemplateChange);
+    m_old_template = RSB.GetLegacyTemplate();
+    setTemplate({ ...m_old_template });
+    return () => {
+      LOG(...PR('MURSettingsEditor unmounted'));
+      RSB.UnsubscribeLegacyTemplateChanges(handleTemplateChange);
+    };
+  }, []);
+
+  function saveChanges() {
+    LOG(...PR('would call RSB.SaveLegacyTemplate()'));
+    // expecting that a template-wide update message will be received
+    // elsewhere
+  }
+
+  function revertChanges() {
+    LOG(...PR('Reverting changes to old template'), m_old_template);
+    setPropDefs(m_MakePropDefs(m_old_template));
+    setChanges({});
+  }
+
+  function handleTemplateChange(changeObj) {
+    LOG(...PR('Legacy template changed'), changeObj);
+    setChanges({ ...changes, ...changeObj });
+  }
+
+  // new system is no longer used for netcreate; sticking with legacy for now
+  // const propDefs = RSB.GetPropertyDefs();
+  // const metaDefs = RSB.GetMetaDefs();
   const metaDefs = {
     _groupMeta: {},
     graphSettings: {
@@ -74,19 +100,21 @@ function MURSettingsEditor() {
   };
 
   const { opBtnStyle, modColor } = RSB.GetStyles();
-
-  const mod = api.lastSettingsUpdate !== oldState;
+  const mod = Object.keys(changes).length > 0;
   const backgroundColor = mod ? modColor : 'white';
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
+  /// RENDER ///
+  LOG(...PR('Rendering MURSettingsEditor props', propDefs, changes));
+
   return (
-    <SettingsContext.Provider value={api} modified={mod}>
-      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
+    <div id="--MURSettingsEditor">
+      <button style={btnStyle} onClick={saveChanges} disabled={!changes}>
         Save Changes
       </button>
       &nbsp;
-      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
+      <button style={btnStyle} onClick={revertChanges} disabled={!changes}>
         Revert Changes
       </button>
       <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
@@ -101,7 +129,7 @@ function MURSettingsEditor() {
           />
         ))}
       {showToDo && ToDoList}
-    </SettingsContext.Provider>
+    </div>
   );
 }
 

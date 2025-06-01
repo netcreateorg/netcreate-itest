@@ -13,6 +13,7 @@ import TextInput from './MURTextInput';
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
+const LOG = console.log.bind(console);
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,6 +37,7 @@ function PropertyGroup(props) {
     if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
     if (typeof metaDef !== 'object') return <p>PropertyGroup bad metaDef</p>;
   }
+
   const gdata = DerefGroupDef(groupDef);
   if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
   const { groupName, properties } = gdata;
@@ -45,6 +47,7 @@ function PropertyGroup(props) {
   const key = `pg-${groupName}`;
   return (
     <div key={key} style={{ margin: '1rem' }}>
+      {console.log('>>rendering PropertyGroup', properties)}
       <details open>
         <summary>
           <GroupHeader label={title || groupName} />
@@ -52,10 +55,12 @@ function PropertyGroup(props) {
         {description && (
           <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
         )}
+        {console.log(`>>> RENDERING ${propList.length} PROPERTIES`)}
         {propList.map(p => {
           if (properties[p].type) {
             const dotProp = `${groupName}.${p}`;
             const key = `in-${dotProp}`;
+
             return (
               <TextInput
                 propDef={properties[p]}
