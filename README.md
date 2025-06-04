@@ -1,6 +1,6 @@
 ## PROJECT SUMMARY
 
-NetCreate 2018 is a network graph analysis tool for researching reading comprehension in the digital humanities classroom. See the [NetCreate Wiki](https://github.com/netcreateorg/netcreate-2018/wiki) for additional documentation.
+Net.Create is a network graph analysis tool for researching reading comprehension in the digital humanities classroom. See the [NetCreate Wiki](https://github.com/netcreateorg/netcreate-itest/wiki) for additional documentation.
 
 
 
@@ -15,6 +15,7 @@ If you use or refer to Net.Create in a publication, we ask that you cite it. The
 ## QUICK INSTALLATION
 
 The Wiki has [detailed instructions](https://github.com/netcreateorg/netcreate-itest/wiki/Installation-Guide). In general, you'll need to install the prerequisite `Git` and `NodeJS` (as of 12/23/2023 the officially supported version of Node is version 18.18.0) command line utilities to your computer and use a `terminal` program to issue the following commands to install from the Internet.
+
 
 ### 1. First Install
 
@@ -38,6 +39,7 @@ The first time you run Net.Create, you also need to create a `net-create.config`
 
 This will start up the app server. View the webapp by visiting `localhost:3000`. The IP address of the server is reported in console if you need to test from remote computer.
 
+
 ### 2. Subsequent Runs
 
 After you've installed Net.Create, you can just run this script whenever you want to start the app:
@@ -50,15 +52,24 @@ This will load the dataset defined and set by the `nc.js` command during first i
 To change the default dataset, use the `./nc.js --dataset=projectname` command.
 
 
+### 3. Accessing Admin Settings
 
-To access the Import/Export and Template Editor, you will need to enable admin mode in one of two ways:
+You will need to be an admin in order to do the following:
+* Change the admin password
+* Change the secret key used to generate unique user login tokens
+* Update the template
+* Import templates, nodes, and edges
+
+Go to the Advanced Panel (vertical `...` menu in the upper right) to enter the admin password.
+
+(NOTE the old methods of using `localhost` and `?admin=true` are now deprecated and no longer work.)
+
+
 ### 4. Generating Logins
 
 Use the Advanced Panel to generate user tokens.
 You will need to log in as an administrator to manage tokens.
 
-* use `localhost:3000` instead of the ip address.
-* if on a remote, login with a login token and append `?admin=true` to the end of the URL (e.g. `192.168.1.100:3000/#/edit/TEST-TEST-GXK?admin=true`)
 
 ## NPM SCRIPTS
 
