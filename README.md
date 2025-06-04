@@ -49,11 +49,13 @@ npm run dev
 This will load the dataset defined and set by the `nc.js` command during first install. 
 To change the default dataset, use the `./nc.js --dataset=projectname` command.
 
-### 3. Generating Logins
 
-Run NetCreate server and browse to the web app. Enter the console and type `ncMakeTokens('class','prj','demo',5);` to generate 5 login tokens.
 
 To access the Import/Export and Template Editor, you will need to enable admin mode in one of two ways:
+### 4. Generating Logins
+
+Use the Advanced Panel to generate user tokens.
+You will need to log in as an administrator to manage tokens.
 
 * use `localhost:3000` instead of the ip address.
 * if on a remote, login with a login token and append `?admin=true` to the end of the URL (e.g. `192.168.1.100:3000/#/edit/TEST-TEST-GXK?admin=true`)
@@ -74,18 +76,11 @@ You will be using these commands most frequently:
 
 **How to access Net.Create as a client:** After starting the Net.Create server, you'll see a set of command line responses. One of those is labeled "CLIENTS" and has an IP address that clients can paste into their browser window's address field to access the main Net.Create server.
 
-**How to add/change node/edge entries in Net.Create:** Net.Create defaults to a view-only state. In order to make any additions/changes to the Net.Create database, each client needs an access token entered in the "Login" field in the upper left-hand corner of the Net.Create window. See `ncMakeTokens` below in "Support Operations".
+**How to add/change node/edge entries in Net.Create:** Net.Create defaults to a view-only state. In order to make any additions/changes to the Net.Create database, each client needs an access token entered in the "Login" field in the upper left-hand corner of the Net.Create window.  Tokens can be created by logging in as an admin and visiting the Advanced Panel. 
 
 **How to change node/edge types and select a different project:** Two files in the /build/runtime folder hold both data (netcreate.loki) and template (netcreate.template). You can copy and rename these file pairs (i.e. netcreate.template/loki -> mynetwork.template/loki) and then use that to run the server (`./nc.js --dataset=mynetwork`).
 
 ## SUPPORT OPERATIONS
-
-To generate **access keys** for groups, there is a utility accessible from the **javascript console** of a browser that's running the NetCreate app. 
-
-* Open the javascript console (in MacOS Chrome, COMMAND-OPTION-J will open it)
-* Type `ncMakeTokens('<class>','<project>',10)` to create 10 **group access tokens** that can be used to connect to the application. `<class>` and `<project>` are short strings used to uniquely identify each class and project. The access tokens are case-insensitive and 
-* The group access tokens can be generated ahead-of-time and assigned during class. If you need more access tokens, you can easily increase the number. These tokens will be used to tag every logged action performed by connected computers.
-* Students within a group and append a string of the form `-ID<#>`, where `<#>` is a positive integer to uniquely identify their computer. They can tell the teacher which ID they used.
 
 To **erase the database**, another javascript console command `ncEmptyDatabase()` will erase the server database. You may have to issue the command twice for it to take hold. Then refresh the browser and see if the database was erased.
 
