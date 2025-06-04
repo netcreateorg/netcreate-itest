@@ -67,7 +67,7 @@ SESUTIL.DecodeToken = function (token, templateSalt) {
 
   if (DBG)
     console.warn(
-      'commen-session ignoring "dataset" to allow decoding of shared tokens'
+      'common-session ignoring "dataset" to allow decoding of shared tokens'
     );
   try {
     let hashids = new HashIds(salt, HASH_MINLEN, HASH_ABET);
