@@ -36,6 +36,8 @@ v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data f
   - Conversion of JSON templates to TOML/YAML has been deprecated
 
 **Significant Features**
+- Generate "User Tokens" via the Advanced Panel #389
+- Nodes/Edges can be imported using "Replace" or "Merge" #386
 - All user interface widgets should be accessible #362
   - keyboard control is supported
   - voice control is supported

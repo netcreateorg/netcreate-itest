@@ -56,7 +56,7 @@ import URCommentVBtn from './URCommentVBtn';
 const DBG = false;
 const PR = 'NCNode';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const isAdmin = SETTINGS.IsAdmin();
+// const isAdmin = SETTINGS.IsAdmin();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const TABS = {
   // Also used as labels
@@ -73,7 +73,8 @@ class NCNode extends UNISYS.Component {
     super(props);
 
     this.state = {
-      isLoggedIn: false
+      isLoggedIn: false,
+      isAdmin: false
     }; // initialized on componentDidMount and clearSelection
 
     // STATE MANAGEMENT
@@ -81,6 +82,7 @@ class NCNode extends UNISYS.Component {
     this.urstate_SESSION = this.urstate_SESSION.bind(this);
     this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.urstate_NCDATA = this.urstate_NCDATA.bind(this);
+    this.urstate_PERMISSIONS = this.urstate_PERMISSIONS.bind(this);
     this.IsLoggedIn = this.IsLoggedIn.bind(this);
     this.DerivePermissions = this.DerivePermissions.bind(this);
 
@@ -130,6 +132,7 @@ class NCNode extends UNISYS.Component {
     this.OnAppStateChange('NCDATA', this.urstate_NCDATA);
     this.OnAppStateChange('SELECTION', this.urstate_SELECTION);
     this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.OnAppStateChange('PERMISSIONS', this.urstate_PERMISSIONS);
     this.HandleMessage('NODE_EDIT', this.UIRequestEditNode); // Node Table request
     this.HandleMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
     this.HandleMessage('EDGE_SELECT', this.SelectEdge);
@@ -146,6 +149,7 @@ class NCNode extends UNISYS.Component {
     this.AppStateChangeOff('NCDATA', this.urstate_NCDATA);
     this.AppStateChangeOff('SELECTION', this.urstate_SELECTION);
     this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
+    this.AppStateChangeOff('PERMISSIONS', this.urstate_PERMISSIONS);
     this.DropMessage('NODE_EDIT', this.UIRequestEditNode);
     this.DropMessage('EDGE_SELECT_AND_EDIT', this.SelectEdgeAndEdit);
     this.DropMessage('EDGE_SELECT', this.SelectEdge);
@@ -176,7 +180,7 @@ class NCNode extends UNISYS.Component {
       edges: [], // selected nodes' edges not ALL edges
       // SYSTEM STATE
       // isLoggedIn: false, // don't clear session state!
-      // isAdmin: false,
+      isAdmin: false,
       previousState: {},
       // UI State
       uEditBtnDisable: false,
@@ -234,6 +238,11 @@ class NCNode extends UNISYS.Component {
     const permissionsState = this.DerivePermissions(this.state.id);
     this.setState({ ...permissionsState });
   }
+
+  urstate_PERMISSIONS(PERMISSIONS) {
+    this.setState({ isAdmin: PERMISSIONS.isAdmin });
+  }
+
   /*
       Called by NCDATA AppState updates
   */
@@ -263,7 +272,8 @@ class NCNode extends UNISYS.Component {
     const isLoggedIn = this.IsLoggedIn();
 
     const LOCKSTATE = this.AppState('LOCKSTATE');
-    const uIsLockedByDB = LOCKSTATE.lockedNodes.includes(nodeId);
+    const uIsLockedByDB =
+      LOCKSTATE.lockedNodes && LOCKSTATE.lockedNodes.includes(nodeId);
     const uIsLockedByTemplate = LOCKSTATE.templateBeingEdited;
     const uIsLockedByImport = LOCKSTATE.importActive;
     // NOT IMPLEMENTED
@@ -730,7 +740,8 @@ class NCNode extends UNISYS.Component {
       uShowCitationDialog,
       id,
       label,
-      type
+      type,
+      isAdmin
     } = this.state;
     const TEMPLATE = this.AppState('TEMPLATE');
     const defs = TEMPLATE.nodeDefs;

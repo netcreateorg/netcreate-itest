@@ -220,7 +220,6 @@ class NCTemplate extends UNISYS.Component {
 
   onSaveChanges(templateJSON) {
     TEMPLATE_MGR.SaveTemplateToFile(templateJSON).then(result => {
-      console.error('onSaveChanges', result, templateJSON);
       if (!result.OK) {
         alert(result.info);
       } else {

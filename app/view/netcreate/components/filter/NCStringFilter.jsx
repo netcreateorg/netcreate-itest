@@ -96,7 +96,6 @@ function NCStringFilter({
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeValue(event) {
     const value = event.target.value;
-    console.log('...onchangeValue', value);
     // First update the input field, retaining cursor position
     setState(prevState => ({ ...prevState, inputval: value, value }));
   }
