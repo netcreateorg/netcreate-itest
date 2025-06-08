@@ -64,8 +64,13 @@ const VIEWS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState('importexport');
+  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
+  // this completely bypasses the adminPassword checks //
+  // const [isOpen, setIsOpen] = useState(false);
+  // const [openTab, setOpenTab] = useState('importexport');
+  const [isOpen, setIsOpen] = useState(true);
+  const [openTab, setOpenTab] = useState('settings');
+  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
