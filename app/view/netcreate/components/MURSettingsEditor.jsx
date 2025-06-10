@@ -19,7 +19,7 @@ const { SettingsContext } = RSB; // import SettingsContext from the bridge
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const PR = ConsoleStyler('MURSetEd', 'TagBlue');
+const PR = ConsoleStyler('SEdit', 'TagBlue');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_viewstate; // initialized from RSB.GetViewState() on mount
@@ -47,13 +47,7 @@ function m_MakePropDefs(template) {
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
-  const [showToDo, setShowToDo] = React.useState(true);
-  //
-  m_viewstate = RSB.GetViewState();
-  const [viewState, dispatch] = React.useReducer(
-    RSB.DispatchViewStateChange,
-    m_viewstate
-  );
+  /// HANDLERS ///
 
   function queueChange() {
     LOG(...PR(`would dispatch update to RSB`));
@@ -75,25 +69,18 @@ function MURSettingsEditor() {
     LOG(...PR(`would dispatch persist to RSB`));
   }
 
-  // new system is no longer used for netcreate; sticking with legacy for now
-  // const propDefs = RSB.GetPropertyDefs();
-  // const metaDefs = RSB.GetMetaDefs();
-  const propDefs = m_MakePropDefs(RSB.GetLegacyTemplate());
-  const metaDefs = {
-    _groupMeta: {},
-    graphSettings: {
-      name: {
-        label: 'Graph Name',
-        tooltip: 'Name of the graph',
-        placeholder: 'Graph Name'
-      },
-      description: {
-        label: 'Graph Description',
-        tooltip: 'Description of the graph',
-        placeholder: 'Graph Description'
-      }
-    }
-  };
+  /// SETUP ///
+
+  const initialState = RSB.GetTemplate();
+  const [showToDo, setShowToDo] = React.useState(true);
+  const [settings, dispatch] = React.useReducer(RSB.Dispatch, initialState);
+  const value = { settings, dispatch };
+
+  const { globalsList, groupList } = RSB.GetUISettingsList(settings._ui);
+
+  // call RSB.DecodeUISettings
+
+  /// RENDER PREP ///
 
   const { opBtnStyle, modColor } = RSB.GetStyles();
   const mod = RSB.HasPendingChanges();
@@ -101,10 +88,12 @@ function MURSettingsEditor() {
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
-  /// RENDER ///
+  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
+  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global settings group
 
+  /// RENDER ///
   return (
-    <SettingsContext.Provider>
+    <SettingsContext.Provider value={value}>
       <button style={btnStyle} onClick={queueChange} disabled={!mod}>
         Save Changes
       </button>
@@ -116,14 +105,7 @@ function MURSettingsEditor() {
       <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
         {showToDo ? 'ShowWIP' : 'ShowToDo'}
       </button>
-      {!showToDo &&
-        Object.keys(propDefs).map(gn => (
-          <PropertyGroup
-            groupDef={{ [gn]: propDefs[gn] }}
-            metaDef={{ [gn]: metaDefs[gn] }}
-            key={gn}
-          />
-        ))}
+      {!showToDo && GroupList}
       {showToDo && ToDoList}
     </SettingsContext.Provider>
   );

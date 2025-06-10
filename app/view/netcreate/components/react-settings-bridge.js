@@ -18,10 +18,6 @@ const DBG = true;
 /// UNISYS data system
 const MOD = UNISYS.NewModule(module.id);
 const UDATA = UNISYS.NewDataLink(MOD);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// REACT settings manager using Context API and Reducer Hook
-const SettingsContext = React.createContext({ origin: 'react-settings-bridge' });
-const m_actions = ['update', 'revert', 'undo', 'redo', 'persist'];
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,34 +26,113 @@ function $(strOrNum) {
   return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
 }
 
-/// LEGACY SETTINGS API ///////////////////////////////////////////////////////
+/// DISPATCHER API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetViewState() {
-  const fn = 'GetViewState:';
-  LOG(...PR(`would return view state`));
+/// REACT: This is how React components can access the value of
+/// <SettingsContext.Provider value={value}> through useContext(SettingsContext)
+const SettingsContext = React.createContext({ origin: 'react-settings-bridge' });
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: used by MURSettingsEditor useReducer, which returns [state, dispatch]
+ *  during construction. See mur-settings-client.ts for more info. Returns
+ *  a new state object */
+function Dispatch(state, action) {
+  return SETTINGS.Dispatch(state, action);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: used by MURSettingsEditor useReducer
- *  @param state - current state to mutate
- *  @param action - { type: 'update', group: 'groupName', prop: 'propName', value: newValue }
- *  @returns new state
- */
-function DispatchViewStateChange(state, action) {
-  const fn = 'DispatchViewStateChange:';
-  const { type, group, prop, value } = action;
-  if (!m_actions.includes(type)) {
-    LOG(...PR(`${fn} unknown action type ${type}`));
-    return state; // no change
+/** API: Get the current template from the UDATA AppState */
+function GetTemplate() {
+  const template = UDATA.AppState('TEMPLATE');
+  return template;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: splits a dotProp string into groupName and propName */
+function DecodeDotProp(dotProp) {
+  return Settings.DecodeDotProp(dotProp);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: create a dotProp string from groupName and propName */
+function EncodeDotProp(groupName, propName) {
+  return Settings.EncodeDotProp(groupName, propName);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: Given a settings object and dotProp, return all UI-relevant
+ *  data. The settings object could be TEMPLATE or from React Context value.
+ *  Since this is a legacy codebase, we don't have access to ?. operators */
+function DecodeUIData(setObj, dotProp) {
+  const fn = 'DecodeUIData:';
+  if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
+  if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
+  const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
+  // determine value stored in the settings object
+  const setUI = setObj._ui;
+  let value;
+  let uiData;
+  if (groupName === undefined) {
+    // case 1: no groupName, just propName
+    value = setObj[propName];
+    if (value === undefined) return { value, error: `no value for ${dotProp}` };
+    if (!setUI || !setUI[propName])
+      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
+    uiData = setUI[propName];
+    return { value, ...uiData };
+  } else {
+    // case 2: groupName and propName
+    if (
+      setObj[groupName] === undefined ||
+      setObj[groupName][propName] === undefined
+    ) {
+      return { value: undefined, error: `no value for ${dotProp}` };
+    }
+    value = setObj[groupName][propName];
+    if (!setUI || !setUI[groupName] || !setUI[groupName][propName]) {
+      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
+    }
+    uiData = setUI[groupName][propName];
+    return { groupName, propName, value, ...uiData };
   }
-  LOG(...PR(`would perform action`, action));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: determine if passed object is a ui object which has a type */
+function IsUIObj(uobj) {
+  // either a property or property in a group
+  if (uobj === undefined || typeof uobj !== 'object')
+    throw Error('uobj must be an object');
+  return typeof uobj.type === 'string';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: determine if passed object is a ui group which has properties */
+function IsUIGroup(uobj) {
+  // a group is an object with properties, not a property itself
+  if (uobj === undefined || typeof uobj !== 'object')
+    throw Error('uobj must be an object');
+  if (Object.keys(uobj).length === 0) return false; // empty group
+  if (uobj.type !== undefined) return false; // not a group, it's a property
+  // got this far so it's probably a valid group
+  return Object.keys(uobj).some(key => IsUIObj(uobj[key]));
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: Given a uiData object, return a list of global settings and
+ *  a list of groups found without further decoding the group properties */
+function GetUISettingsList(uiData) {
+  if (uiData === undefined || typeof uiData !== 'object')
+    return { error: 'uiData is not anobject' };
+  if (Object.keys(uiData).length === 0)
+    return { globalsList: [], groupList: [], error: 'uiData is empty' };
+  const globalsList = [];
+  const groupList = [];
+  Object.keys(uiData).forEach(g => {
+    const entry = uiData[g];
+    if (IsUIObj(entry)) globalsList.push(g);
+    else if (IsUIGroup(entry)) groupList.push(g);
+  });
+  return { globalsList, groupList };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Check if there are any pending changes in the settings object. */
 function HasPendingChanges() {
-  return true;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetLegacyTemplate() {
-  return UDATA.AppState('TEMPLATE');
+  // Check if there are any pending changes in the settings
+  return Settings.HasPendingChanges();
 }
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
@@ -208,26 +283,29 @@ function EventTargetOffsetStyle(event) {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
+  // React Context
+  SettingsContext, // used by MURSettingsEditor to provide Provider
+  // Template Settings API
+  Dispatch, // state, action
+  GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
+  DecodeUIData, // setObj, dotProp => { value, ...uiData }
+  GetUISettingsList, // uiData => { globalsList, groupSettings }
+  HasPendingChanges, // return true if there are pending changes
+  DecodeDotProp, // 'group.prop' => { groupName, propName }
+  EncodeDotProp, // { groupName, propName } => 'group.prop'
+  IsUIObj, // uobj => true if it has a type
+  IsUIGroup, // uobj => true if it has properties
+  // Styling API
+  GetStyles,
+  EventTargetOffsetStyle,
   // legacy API
-  SettingsContext,
-  GetLegacyTemplate,
-  GetViewState,
-  DispatchViewStateChange,
-  HasPendingChanges,
-  // new API
   GetPropertyDefs,
   GetMetaDefs,
-  //
   DerefGroupDef,
   DerefSingularMetaDef,
   FlattenPropertyDefs,
-  //
   UpdateProperty,
   UpdateGroup,
-  //
   Subscribe,
-  Unsubscribe,
-  //
-  GetStyles,
-  EventTargetOffsetStyle
+  Unsubscribe
 };

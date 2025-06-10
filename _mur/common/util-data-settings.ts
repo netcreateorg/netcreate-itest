@@ -64,7 +64,7 @@ type PropToken = {
   MetaDef &
   SchemaMeta;
 
-/// DECODE METHODS ////////////////////////////////////////////////////////////
+/// DECODE/ENCODE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a dotProp is a string with a groupID and a propID separated by a period */
 function DecodeDotProp(dotProp: string): PropToken {

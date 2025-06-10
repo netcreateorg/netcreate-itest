@@ -6,11 +6,13 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
+const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
+const PR = ConsoleStyler('InText', 'TagBlue');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,14 +29,12 @@ function $(strOrNum) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
-  const { propDef, metaDef, dotProp } = props;
-  if (DBG) {
-    if (typeof propDef !== 'object') return <p>TextInput bad groupDef</p>;
-    if (typeof metaDef !== 'object') return <p>TextInput bad metaDef</p>;
-    if (typeof dotProp !== 'string') return <p>TextInput bad dotProp</p>;
-  }
-  const { value, default: defValue } = propDef;
-  const { label, tooltip, help, placeholder } = metaDef;
+  const { propDef } = props;
+  const { settings, dispatch } = React.useContext(RSB.SettingsContext);
+  const data = RSB.DecodeUIData(settings, propDef);
+  const { groupName, propName } = data;
+  const { name, value, default: defValue } = data;
+  const { label, tooltip, help, placeholder } = data;
   // declare reactive render state
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
@@ -47,15 +47,15 @@ function TextInput(props) {
   // send data to settings object, which will trigger rerender
   const submitToSettings = async event => {
     const value = event.target.value;
-    console.log('would', dotProp, 'submitToSettings', $(value));
+    console.log('would', propDef, 'submitToSettings', $(value));
   };
 
   /// LOCAL EVENT UPDATES ///
 
   // input changes will update the current inputValue
   const handleTyping = event => {
-    propDef.value = event.target.value;
-    setInputValue(propDef.value);
+    const value = event.target.value;
+    setInputValue(value);
   };
 
   // input key return will submit the value to settings object
@@ -107,7 +107,6 @@ function TextInput(props) {
 
   return (
     <div style={itemGrid}>
-      {console.log('>> rendering TextInput', dotProp, inputValue)}
       <label
         htmlFor={name}
         style={{ ...labelStyle, color: labelColor }}

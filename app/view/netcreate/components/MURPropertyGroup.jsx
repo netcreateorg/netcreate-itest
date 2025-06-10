@@ -6,13 +6,14 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-const { DerefGroupDef } = RSB;
 import TextInput from './MURTextInput';
+const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
+const PR = ConsoleStyler('PGroup', 'TagBlue');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,49 +28,58 @@ function GroupHeader(props) {
 
 /// COMPONENTS ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** A PropertyGroup component that displays a group of properties, having
+ *  received groupName */
 function PropertyGroup(props) {
-  const {
-    groupDef, // { groupname: { propname: { type, default }, {}... }
-    metaDef // { groupname:{ propname: { _groupMeta, propname: metaDef, {}... } }
-  } = props;
-  if (DBG) {
-    if (typeof groupDef !== 'object') return <p>PropertyGroup bad groupDef</p>;
-    if (typeof metaDef !== 'object') return <p>PropertyGroup bad metaDef</p>;
+  const groupName = props.groupName || ''; // e.g. 'graphSettings'
+  const { settings } = React.useContext(RSB.SettingsContext);
+  const uiData = settings._ui || {};
+
+  // editable properties are in propsData and propNames
+  // which are derived by scanning uiData which is the metadata
+  // dictionary that determines what the UI should display
+
+  let propNames; // array of property names to display
+  let propsData = {}; // related
+
+  // handle a blank groupName as the special case where all the
+  // ungrouped settings in the TEMPLATE are considered "globalsList"
+  if (groupName === '') {
+    propNames = RSB.GetUISettingsList(uiData).globalsList || [];
+    propNames.forEach(p => (propsData[p] = uiData[p]));
+    propsData._src = '';
+    if (uiData._editor && uiData._editor.global) {
+      propsData._editor = uiData._editor.global;
+    } else {
+      propsData._editor = { label: '<editor global>', description: '' };
+    }
+  }
+  // for all other groups, just copy the uiData into propsData
+  else {
+    propsData = uiData[groupName] || {};
+    propsData._src = groupName;
+    propNames = Object.keys(uobj).filter(RSB.IsUIGroup(uobj));
   }
 
-  const gdata = DerefGroupDef(groupDef);
-  if (gdata.error) return <p>PropertyGroup bad groupDef {gdata.error}</p>;
-  const { groupName, properties } = gdata;
-  const propList = Object.keys(properties); // list of property names
-  const meta = metaDef[groupName] || {};
-  const { title, description } = meta._groupMeta || {};
+  // look for title in propsData or _editor.global
+  const metadata = propsData[groupName] || propsData._editor || {};
+  const grpTitle = metadata.label || groupName.toUpperCase() || '<title not set>';
+  const grpDesc = metadata.description || '';
   const key = `pg-${groupName}`;
+
+  /// RENDER ///
+
   return (
     <div key={key} style={{ margin: '1rem' }}>
-      {console.log('>>rendering PropertyGroup', properties)}
       <details open>
         <summary>
-          <GroupHeader label={title || groupName} />
+          <GroupHeader label={grpTitle} />
         </summary>
-        {description && (
-          <p style={{ color: 'gray', fontStyle: 'italic' }}>{description}</p>
-        )}
-        {console.log(`>>> RENDERING ${propList.length} PROPERTIES`)}
-        {propList.map(p => {
-          if (properties[p].type) {
-            const dotProp = `${groupName}.${p}`;
-            const key = `in-${dotProp}`;
-
-            return (
-              <TextInput
-                propDef={properties[p]}
-                metaDef={meta[p]}
-                dotProp={dotProp}
-                key={key}
-              />
-            );
-          } else console.log(`PropertyGroup: no type for ${groupName}.${p}`);
-          return null;
+        {grpDesc && <p style={{ color: 'gray', fontStyle: 'italic' }}>{grpDesc}</p>}
+        {propNames.map(p => {
+          const propDef = RSB.EncodeDotProp(groupName, p);
+          const inputKey = `in-${propDef}`;
+          return <TextInput propDef={propDef} key={inputKey} />;
         })}
       </details>
     </div>
