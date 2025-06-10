@@ -159,9 +159,7 @@ function NCAdvancedPanel() {
   let adminStatus;
   if (hasAdminPermissions === undefined) {
     adminStatus = <span>Admin Mode Disabled</span>;
-    console.error(
-      '"adminPassword" has not been defined in template!  You will not be able to access admin features.  Add a "adminPassword" property to the template to enable admin features.'
-    );
+    console.log(`NOTE: "adminPassword" is not set (premature mount?)`);
   } else if (hasAdminPermissions === false)
     adminStatus = (
       <label>

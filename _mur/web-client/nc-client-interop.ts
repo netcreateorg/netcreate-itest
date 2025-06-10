@@ -42,7 +42,7 @@ type NC_HandlerObj = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('interop', 'TagPink');
-let DBG = true;
+let DBG = false;
 const ERR_NONET = 'UDATA instance not initialized';
 const ERR_NOSYS = 'UNISYS instance not initialized';
 const ERR_LATE = 'Cannot queue hook after InteropConnect';
@@ -88,7 +88,7 @@ function m_ProcessHookQueue() {
 /** register message handlers for NetCreate client in DOMContentLoaded
  *  handler in init.jsx */
 function InteropConnect(unisys: NC_Unisys) {
-  LOG(...PR('InteropConnect'));
+  if (DBG) LOG(...PR('InteropConnect'));
   UNISYS = unisys;
   UMOD = UNISYS.NewModule('mur-interop');
   UDATA = UNISYS.NewDataLink(UMOD);

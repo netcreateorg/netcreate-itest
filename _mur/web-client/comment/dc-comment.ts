@@ -366,7 +366,7 @@ function LoadTemplate(commentTypes: Array<TCommentType>) {
   // fall back to DEFAULT_CommentTypes if DEFAULT_CommentTypes is not in dc-comments
   // or a single DEFAULT_COMMENTTYPE if it's completely missing
   if (commentTypes === undefined) {
-    console.warn(PR, 'No custom commentTypes provided in template, using defaults');
+    console.log(PR, 'No custom commentTypes provided in template, using defaults');
   }
   const types =
     commentTypes ||
