@@ -6,7 +6,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { produce } from 'immer';
+import { produce, current, enableMapSet } from 'immer';
 import * as NCI from './nc-client-interop.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { EventMachine } from '../common/class-event-machine.ts';
@@ -16,9 +16,15 @@ import { EventMachine } from '../common/class-event-machine.ts';
 import type { DataObj, OpResult } from '../_types/ursys.ts';
 type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 type ActionObj = {
-  op: 'start' | 'update' | 'cancel' | 'submit';
-  propDef: string; // 'group.prop' or just 'prop'
+  op: 'update' | 'cancel' | 'submit';
+  propDef?: string; // 'group.prop' or just 'prop'
   value?: any; // new value for the property
+};
+type DraftObj = {
+  template: DataObj; // original settings object
+  pending?: DataObj | null; // pending changes
+  isDirty?: boolean; // true if there are pending changes
+  changeSet?: Set<string>; // set of changed propDefs
 };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -85,28 +91,34 @@ let m_dispatcher = null;
 function m_EnsureDispatcher() {
   if (m_dispatcher) return m_dispatcher; // already set
   const fn = 'm_EnsureDispatcher:';
-  m_dispatcher = produce((draft: DataObj, action: ActionObj) => {
+  enableMapSet(); // enable Map and Set support in immer
+  m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
     const { op, propDef, value } = action;
-    const [group, prop] = DecodeDotProp(propDef);
+    let group, prop;
     switch (op) {
-      case 'start':
+      case 'update':
         if (!draft.pending) {
-          draft.pending = draft.template;
+          LOG(...PR('create pending copy'));
+          draft.pending = JSON.parse(JSON.stringify(draft.template));
           draft.isDirty = false;
           draft.changeSet = new Set();
         }
-        break;
-      case 'update':
-        if (!draft.pending) {
-          draft.pending = {};
-          draft.changeSet = new Set();
-        }
-        // template can have settings without a group
+        [group, prop] = DecodeDotProp(propDef);
+        // groupless properties are at the top level of the template
         if (group === undefined) {
+          LOG(...PR('update no group'), { prop, value });
+          if (draft.pending === draft.template)
+            throw Error(`${fn} pending/template are the same`);
           draft.pending[prop] = value;
           draft.changeSet.add(prop);
           draft.isDirty = true;
-        } else {
+          const orig = current(draft).template[prop];
+          const curr = current(draft).pending[prop];
+          LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
+        }
+        // grouped properties are nested in the template
+        else {
+          LOG(...PR('update with group'), { group, prop, value });
           if (draft.pending[group] === undefined) {
             throw Error(`${fn} invalid group referenced in ${propDef}`);
           }
@@ -116,6 +128,7 @@ function m_EnsureDispatcher() {
         }
         break;
       case 'cancel':
+        // on cancel, clear pending and isDirty, no write done
         if (draft.pending) {
           draft.pending = null;
           draft.isDirty = false;
@@ -123,6 +136,8 @@ function m_EnsureDispatcher() {
         }
         break;
       case 'submit':
+        // on submit, copy pending to template
+        // immer handles object immutability
         if (draft.pending && draft.isDirty) {
           draft.template = draft.pending;
           draft.pending = null;
@@ -159,7 +174,7 @@ function Dispatch(state, action) {
   m_EnsureDispatcher(); // ensure m_dispatcher is set
   const newState = m_dispatcher(state, action);
   m_has_pending = newState.pending !== null;
-  return m_dispatcher(state, action);
+  return newState;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: if there were pendinng operations from the last Dispatch call,

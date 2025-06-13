@@ -71,12 +71,11 @@ function MURSettingsEditor() {
 
   /// SETUP ///
 
-  const initialState = RSB.GetTemplate();
+  const initialState = { template: RSB.GetTemplate() };
   const [showToDo, setShowToDo] = React.useState(true);
-  const [settings, dispatch] = React.useReducer(RSB.Dispatch, initialState);
-  const value = { settings, dispatch };
-
-  const { globalsList, groupList } = RSB.GetUISettingsList(settings._ui);
+  const [editState, dispatch] = React.useReducer(RSB.Dispatch, initialState);
+  const value = { editState, dispatch };
+  const { globalsList, groupList } = RSB.GetUISettingsList(editState.template._ui);
 
   // call RSB.DecodeUISettings
 
@@ -89,7 +88,7 @@ function MURSettingsEditor() {
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
   const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
-  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global settings group
+  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global editState group
 
   /// RENDER ///
   return (

@@ -30,9 +30,8 @@ function $(strOrNum) {
 /** A TextInput component */
 function TextInput(props) {
   const { propDef } = props;
-  const { settings, dispatch } = React.useContext(RSB.SettingsContext);
-  const data = RSB.DecodeUIData(settings, propDef);
-  const { groupName, propName } = data;
+  const { editState, dispatch } = React.useContext(RSB.SettingsContext);
+  const data = RSB.DecodeUIData(editState.template, propDef);
   const { name, value, default: defValue } = data;
   const { label, tooltip, help, placeholder } = data;
   // declare reactive render state
@@ -43,11 +42,15 @@ function TextInput(props) {
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
   /// UI-SETTINGS INTEROP EVENT UPDATES ///
-
-  // send data to settings object, which will trigger rerender
+  // send data to editState object, which will trigger rerender
   const submitToSettings = async event => {
-    const value = event.target.value;
-    console.log('would', propDef, 'submitToSettings', $(value));
+    const value = String(event.target.value);
+    LOG(...PR(`TextInput: ${propDef} = ${$(value)}`));
+    dispatch({
+      op: 'update',
+      propDef,
+      value
+    });
   };
 
   /// LOCAL EVENT UPDATES ///
@@ -58,9 +61,9 @@ function TextInput(props) {
     setInputValue(value);
   };
 
-  // input key return will submit the value to settings object
+  // input key return will submit the value to editState object
   const handleEnterKey = async event => {
-    if (event.key === 'Enter') submitToSettings(event.target.value);
+    if (event.key === 'Enter') submitToSettings(event);
   };
 
   // hovering over label will show tooltip

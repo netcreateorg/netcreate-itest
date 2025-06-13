@@ -36,7 +36,7 @@ const SettingsContext = React.createContext({ origin: 'react-settings-bridge' })
  *  during construction. See mur-settings-client.ts for more info. Returns
  *  a new state object */
 function Dispatch(state, action) {
-  return SETTINGS.Dispatch(state, action);
+  return Settings.Dispatch(state, action);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the current template from the UDATA AppState */
