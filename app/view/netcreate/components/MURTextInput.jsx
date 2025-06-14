@@ -41,7 +41,17 @@ function TextInput(props) {
   const [oldValue] = React.useState(value || defValue);
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
+  // this is a workaround for React's stupidity about dataflow, state
+  // retention with hooks, and other bullshit.
+  React.useEffect(() => {
+    if (!editState.pending) {
+      const data = RSB.DecodeUIData(editState.template, propDef);
+      setInputValue(data.value || data.default);
+    }
+  }, [editState.pending]);
+
   /// UI-SETTINGS INTEROP EVENT UPDATES ///
+
   // send data to editState object, which will trigger rerender
   const submitToSettings = async event => {
     const value = String(event.target.value);
@@ -103,6 +113,7 @@ function TextInput(props) {
 
   /// RENDER ///
 
+  LOG(...PR(`TextInput: ${propDef} value ${inputValue} or ${oldValue}`));
   // conditional flags based on inputValue
   const mod = inputValue !== oldValue;
   const bgColor = mod ? modColor : 'white';
@@ -127,10 +138,10 @@ function TextInput(props) {
           backgroundColor: bgColor,
           paddingRight: pad
         }}
-        defaultValue={inputValue}
+        value={inputValue}
         onKeyDown={handleEnterKey}
         onBlur={submitToSettings}
-        onInput={handleTyping}
+        onChange={handleTyping}
         onMouseOver={showOldValue}
         onMouseOut={showOldValue}
       />

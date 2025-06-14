@@ -17,7 +17,7 @@ import type { DataObj, OpResult } from '../_types/ursys.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 type ActionObj = {
-  op: 'update' | 'cancel' | 'submit';
+  op: 'update' | 'revert' | 'submit';
   propDef?: string; // 'group.prop' or just 'prop'
   value?: any; // new value for the property
 };
@@ -93,12 +93,14 @@ function EncodeDotProp(groupID: string | undefined, propID: string): string {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_dispatcher = null;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: m_EnsureDispatcher creates a m_dispatcher function for use with the
- *  Dispatch method. It understands start, update, cancel, and submit.
- *  This is passed to useReducer in MURSettingsEditor */
-function m_EnsureDispatcher() {
+/** API: GetDispatcher creates a m_dispatcher function for use with the
+ *  Dispatch method. It understands start, update, revert, and submit.
+ *  This is passed to useReducer in MURSettingsEditor. The function
+ *  signature of the returned function is dispatch(actionObj) => newState
+ *   */
+function GetDispatcher() {
   if (m_dispatcher) return m_dispatcher; // already set
-  const fn = 'm_EnsureDispatcher:';
+  const fn = 'GetDispatcher:';
   enableMapSet(); // enable Map and Set support in immer
   m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
     const { op, propDef, value } = action;
@@ -135,12 +137,16 @@ function m_EnsureDispatcher() {
           draft.isDirty = true;
         }
         break;
-      case 'cancel':
-        // on cancel, clear pending and isDirty, no write done
+      case 'revert':
+        // on revert, clear pending and isDirty, no write done
         if (draft.pending) {
+          LOG(...PR('revert changes', current(draft).changeSet));
           draft.pending = null;
           draft.isDirty = false;
           draft.changeSet.clear();
+        } else {
+          LOG(...PR('revert: no pending changes'));
+          LOG(...PR('   template', current(draft).template));
         }
         break;
       case 'submit':
@@ -170,7 +176,7 @@ let m_has_pending = false; // flag to indicate if there are pending changes
  *  in MURSettingsEditor and passed as the first argument. Subsequent
  *  changes to the state are made by calling this function with an
  *  action object that has the following properties:
- *  - op: 'start', 'update', 'cancel', or 'submit'
+ *  - op: 'update', 'revert', or 'submit'
  *  - propDef: 'group.prop' or just 'prop' if no group is used
  *  - value: the new value for the property
  *  @param state - current state to mutate
@@ -179,8 +185,8 @@ let m_has_pending = false; // flag to indicate if there are pending changes
  *  and re-render the component.
  */
 function Dispatch(state, action) {
-  m_EnsureDispatcher(); // ensure m_dispatcher is set
-  const newState = m_dispatcher(state, action);
+  const dispatch = GetDispatcher();
+  const newState = dispatch(state, action);
   m_has_pending = newState.pending !== null;
   return newState;
 }

@@ -47,28 +47,6 @@ function m_MakePropDefs(template) {
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
-  /// HANDLERS ///
-
-  function queueChange() {
-    LOG(...PR(`would dispatch update to RSB`));
-  }
-
-  function undoChange() {
-    LOG(...PR(`would dispatch undo to RSB`));
-  }
-
-  function redoChange() {
-    LOG(...PR(`would dispatch redo to RSB`));
-  }
-
-  function revertChanges() {
-    LOG(...PR(`would dispatch revert to RSB`));
-  }
-
-  function persistChanges() {
-    LOG(...PR(`would dispatch persist to RSB`));
-  }
-
   /// SETUP ///
 
   const initialState = { template: RSB.GetTemplate() };
@@ -77,18 +55,30 @@ function MURSettingsEditor() {
   const value = { editState, dispatch };
   const { globalsList, groupList } = RSB.GetUISettingsList(editState.template._ui);
 
-  // call RSB.DecodeUISettings
-
   /// RENDER PREP ///
 
   const { opBtnStyle, modColor } = RSB.GetStyles();
-  const mod = RSB.HasPendingChanges();
+  const mod = editState.isDirty;
   const backgroundColor = mod ? modColor : 'white';
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
   const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
   GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global editState group
+
+  /// HANDLERS ///
+
+  function queueChange() {
+    LOG(...PR(`would dispatch update to RSB`));
+  }
+
+  function revertChanges() {
+    dispatch({ op: 'revert' });
+  }
+
+  function persistChanges() {
+    LOG(...PR(`would dispatch persist to RSB`));
+  }
 
   /// RENDER ///
   return (
@@ -97,7 +87,7 @@ function MURSettingsEditor() {
         Save Changes
       </button>
       &nbsp;
-      <button style={btnStyle} onClick={undoChange} disabled={!mod}>
+      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
         Revert Changes
       </button>
       &nbsp;
