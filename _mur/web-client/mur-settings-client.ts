@@ -14,12 +14,14 @@ import { EventMachine } from '../common/class-event-machine.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataObj, OpResult } from '../_types/ursys.ts';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SNA_EvtHandler = (evt: string, param: DataObj) => void;
 type ActionObj = {
   op: 'update' | 'cancel' | 'submit';
   propDef?: string; // 'group.prop' or just 'prop'
   value?: any; // new value for the property
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type DraftObj = {
   template: DataObj; // original settings object
   pending?: DataObj | null; // pending changes
@@ -35,16 +37,22 @@ const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SETTINGS: DataObj = {};
 const EM = new EventMachine('settings_client');
+
+/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NCI.QueueHook('LOADASSETS', async () => {
-  const fn = 'LOADASSETS:';
-  const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
-  if (data.error) throw Error(`${fn} ${data.error}`);
-  if (data.settings === undefined) throw Error(`${fn} no settings found in data`);
-  if (Object.keys(data.settings).length === 0)
-    console.warn(`${fn} received empty settings object`, data);
-  SETTINGS = data.settings;
-});
+(async () => {
+  NCI.QueueHook('LOADASSETS', async () => {
+    const fn = 'LOADASSETS:';
+    const data = await NCI.NetCall('SRV_PSOP', { op: 'get' });
+    if (data.error) throw Error(`${fn} ${data.error}`);
+    if (data.settings === undefined) throw Error(`${fn} no settings found in data`);
+    if (Object.keys(data.settings).length === 0)
+      console.warn(`${fn} received empty settings object`, data);
+    SETTINGS = data.settings;
+  });
+  // register for settings server push messages
+  NCI.QueueMessageRegistration('CLI_PSDATA', m_ReceiveServerChanges);
+})();
 
 /// HELPER METHODS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -182,14 +190,6 @@ function Dispatch(state, action) {
 function HasPendingChanges() {
   return m_has_pending;
 }
-
-/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this code block will run as soon as the module is loaded */
-(async () => {
-  // register for settings server push messages
-  NCI.QueueMessageRegistration('CLI_PSDATA', m_ReceiveServerChanges);
-})();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
