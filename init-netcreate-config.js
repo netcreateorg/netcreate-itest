@@ -30,3 +30,10 @@ const destDir = path.join('runtime');
 const destFile = path.join(destDir, `${dataset}.template.toml`);
 if (!fs.existsSync(destDir)) shell.mkdir('-p', destDir);
 shell.cp(templateSrc, destFile);
+
+console.log('init-netcreate-config.js');
+console.log('1. Created app-config/netcreate-config.js file');
+console.log(`   with ${dataset} and ${port}`);
+console.log(`2. Created a ${dataset}.template.toml file`);
+console.log('   based on _default.template.toml');
+console.log('You can now run the server with "./nc.js" or nc-multiplex.');
