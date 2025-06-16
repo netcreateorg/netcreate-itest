@@ -34,13 +34,15 @@ function TextInput(props) {
   const data = RSB.DecodeUIData(editState.template, propDef);
   const { name, value, default: defValue } = data;
   const { label, tooltip, help, placeholder } = data;
+
   // declare reactive render state
   // note that this only runs on the FIRST render, which is why
   // we need the useEffect() to work around it
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
-  const [oldValue, setOldValue] = React.useState(value || defValue);
+
+  const templateValue = value || defValue;
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
   // this is a workaround for React's stupidity about dataflow, state
@@ -48,7 +50,6 @@ function TextInput(props) {
   React.useEffect(() => {
     if (!editState.pending) {
       const data = RSB.DecodeUIData(editState.template, propDef);
-      setOldValue(inputValue);
       setInputValue(data.value || data.default);
     }
   }, [editState.pending]);
@@ -67,7 +68,7 @@ function TextInput(props) {
 
   /// LOCAL EVENT UPDATES ///
 
-  // input changes will update the current inputValue
+  // input changes will update the current templateValue =value || defValue;
   const handleTyping = event => {
     const value = event.target.value;
     setInputValue(value);
@@ -97,7 +98,7 @@ function TextInput(props) {
 
   // hovering over a changed input will show the old value
   const showOldValue = event => {
-    if (oldValue === inputValue) {
+    if (inputValue === templateValue) {
       setOldStyle({ ...popupStyle });
       return;
     } else if (event.type === 'mouseover') {
@@ -106,7 +107,7 @@ function TextInput(props) {
         ...popupStyle,
         ...offset,
         display: 'block',
-        content: oldValue || ''
+        content: inputValue || ''
       });
     } else if (event.type === 'mouseout') {
       setOldStyle({ ...popupStyle });
@@ -115,8 +116,8 @@ function TextInput(props) {
 
   /// RENDER ///
 
-  // conditional flags based on inputValue
-  const mod = inputValue !== oldValue;
+  // conditional flags based on templateValue =value || defValue;
+  const mod = templateValue !== inputValue;
   const bgColor = mod ? modColor : 'white';
   const pad = mod ? '1rem' : '0';
 
@@ -149,7 +150,7 @@ function TextInput(props) {
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
       <div style={oldStyle}>
         <span style={{ opacity: 0.5 }}>old value: </span>
-        {oldValue}
+        {inputValue}
       </div>
     </div>
   );
