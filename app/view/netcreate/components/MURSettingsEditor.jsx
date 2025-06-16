@@ -68,22 +68,18 @@ function MURSettingsEditor() {
 
   /// HANDLERS ///
 
-  function queueChange() {
-    LOG(...PR(`would dispatch update to RSB`));
-  }
-
   function revertChanges() {
     dispatch({ op: 'revert' });
   }
 
-  function persistChanges() {
-    LOG(...PR(`would dispatch persist to RSB`));
+  function submitChanges() {
+    dispatch({ op: 'submit' });
   }
 
   /// RENDER ///
   return (
     <SettingsContext.Provider value={value}>
-      <button style={btnStyle} onClick={queueChange} disabled={!mod}>
+      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
         Save Changes
       </button>
       &nbsp;

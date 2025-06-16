@@ -35,10 +35,12 @@ function TextInput(props) {
   const { name, value, default: defValue } = data;
   const { label, tooltip, help, placeholder } = data;
   // declare reactive render state
+  // note that this only runs on the FIRST render, which is why
+  // we need the useEffect() to work around it
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
-  const [oldValue] = React.useState(value || defValue);
+  const [oldValue, setOldValue] = React.useState(value || defValue);
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
   // this is a workaround for React's stupidity about dataflow, state
@@ -46,6 +48,7 @@ function TextInput(props) {
   React.useEffect(() => {
     if (!editState.pending) {
       const data = RSB.DecodeUIData(editState.template, propDef);
+      setOldValue(inputValue);
       setInputValue(data.value || data.default);
     }
   }, [editState.pending]);
@@ -55,7 +58,6 @@ function TextInput(props) {
   // send data to editState object, which will trigger rerender
   const submitToSettings = async event => {
     const value = String(event.target.value);
-    LOG(...PR(`TextInput: ${propDef} = ${$(value)}`));
     dispatch({
       op: 'update',
       propDef,
@@ -113,7 +115,6 @@ function TextInput(props) {
 
   /// RENDER ///
 
-  LOG(...PR(`TextInput: ${propDef} value ${inputValue} or ${oldValue}`));
   // conditional flags based on inputValue
   const mod = inputValue !== oldValue;
   const bgColor = mod ? modColor : 'white';

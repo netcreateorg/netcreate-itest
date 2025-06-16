@@ -106,6 +106,7 @@ function GetDispatcher() {
     const { op, propDef, value } = action;
     let group, prop;
     switch (op) {
+      // update is called by individual property editors like TextInput
       case 'update':
         if (!draft.pending) {
           LOG(...PR('create pending copy'));
@@ -137,6 +138,7 @@ function GetDispatcher() {
           draft.isDirty = true;
         }
         break;
+      // revert is called by the MURSettingsEditor Revert Changes button
       case 'revert':
         // on revert, clear pending and isDirty, no write done
         if (draft.pending) {
@@ -149,20 +151,27 @@ function GetDispatcher() {
           LOG(...PR('   template', current(draft).template));
         }
         break;
+      // submit is called by the MURSettingsEditor Save Changes button
       case 'submit':
         // on submit, copy pending to template
         // immer handles object immutability
         if (draft.pending && draft.isDirty) {
-          draft.template = draft.pending;
+          LOG(...PR('submit changes', current(draft).changeSet));
+          draft.template = JSON.parse(JSON.stringify(draft.pending));
           draft.pending = null;
           draft.isDirty = false;
           draft.changeSet.clear();
+        } else {
+          LOG(...PR('submit: no pending changes'));
+          LOG(...PR('   template', current(draft).template));
         }
         break;
       default:
         throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
     }
+    return draft;
   });
+  // this is required for React useReducer to trigger
   return m_dispatcher;
 }
 
