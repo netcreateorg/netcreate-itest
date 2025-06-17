@@ -16,7 +16,7 @@ const DBG = false;
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 const Loki = require('lokijs');
 const PATH = require('path');
-const FS = require('fs-extra');
+const FSE = require('fs-extra');
 const TOML = require('@iarna/toml');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -65,14 +65,14 @@ let DB = {};
     Used by PKT_MergeDatabase to clone the db before importing.
     Saves the db in the runtime folder with a timestamp suffix. */
 function m_BackupDatabase() {
-  FS.ensureDirSync(PATH.dirname(db_file));
-  if (FS.existsSync(db_file)) {
+  FSE.ensureDirSync(PATH.dirname(db_file));
+  if (FSE.existsSync(db_file)) {
     const timestamp = new Date().toISOString().replace(/:/g, '.');
     const backupDBFilePath = m_GetValidDBFilePath(
       BACKUPPATH + NC_CONFIG.dataset + '_' + timestamp
     );
     console.log(PR, 'Saving database backup to', backupDBFilePath);
-    FS.copySync(db_file, backupDBFilePath);
+    FSE.copySync(db_file, backupDBFilePath);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -85,8 +85,8 @@ function m_DefaultTemplatePath() {
 DB.InitializeDataset = function (options = {}) {
   let dataset = NC_CONFIG.dataset;
   db_file = m_GetValidDBFilePath(dataset);
-  FS.ensureDirSync(PATH.dirname(db_file));
-  if (!FS.existsSync(db_file)) {
+  FSE.ensureDirSync(PATH.dirname(db_file));
+  if (!FSE.existsSync(db_file)) {
     console.log(
       PR,
       YL(`NOTICE: NO EXISTING DATABASE ${db_file}, so creating BLANK DATABASE...`)
@@ -206,7 +206,7 @@ DB.InitializeDataset = function (options = {}) {
 
     // load non-database assets from dataset.toml, creating
     // it if necessary
-    await async_LoadTemplate();
+    await m_LoadTemplate();
     m_MigrateTemplate();
     m_ValidateTemplate();
   } // end async_DatabaseInitialize
@@ -223,46 +223,21 @@ DB.InitializeDataset = function (options = {}) {
     );
   }
 }; // InitializeDataset()
+
+/// TEMPLATE LOADER ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Loads a *.template.toml file from the server. */
-function promise_LoadTOMLTemplate(templateFilePath) {
-  return new Promise((resolve, reject) => {
-    const templateFile = FS.readFile(templateFilePath, 'utf8', (err, data) => {
-      if (err) throw err;
-      const json = TOML.parse(data);
-      TEMPLATE = json;
-      console.log(PR, 'template loaded', BL(templateFilePath));
-      resolve({ Loaded: true });
-    });
-  });
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Load Template
-    1. Tries to load a TOML template
-    2. If it can't be found, tries to load the JSON template and convert it
-    3. If that fails, clone the default TOML template and load it
-    Called by
-    * DB.InitializeDataset
-    * DB.WriteTemplateTOML
- */
-async function async_LoadTemplate() {
+/** Load Template */
+async function m_LoadTemplate() {
   const TOMLPath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLPath));
-  /*/ SRI NOTE
-      ripping out the json template conversion to simplify loading and
-      avoid wasting time validating this poorly structured code
-  /*/
-  // Does the TOML template exist?
-  if (FS.existsSync(TOMLPath)) {
-    // 1. If TOML exists, load it
-    await promise_LoadTOMLTemplate(TOMLPath);
-  } else {
-    // clone _default.template.toml
-    console.log(PR, `NO EXISTING TEMPLATE ${TOMLPath}`);
-    FS.copySync(m_DefaultTemplatePath(), TOMLPath);
-    // then load it
-    await promise_LoadTOMLTemplate(TOMLPath);
+  FSE.ensureDirSync(PATH.dirname(TOMLPath));
+  if (!FSE.existsSync(TOMLPath)) {
+    console.log(PR, `Cloning default template to ${TOMLPath}`);
+    FSE.copySync(m_DefaultTemplatePath(), TOMLPath);
   }
+  const data = FSE.readFileSync(TOMLPath, 'utf8');
+  const json = TOML.parse(data);
+  TEMPLATE = json;
+  console.log(PR, 'Template loaded', BL(TOMLPath));
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1506,9 +1481,9 @@ DB.WriteDbJSON = function (filePath) {
         let data = { nodes, edges, comments, readby };
         let json = JSON.stringify(data);
         if (DBG) console.log(PR, `ensuring DIR ${PATH.dirname(filePath)}`);
-        FS.ensureDirSync(PATH.dirname(filePath));
+        FSE.ensureDirSync(PATH.dirname(filePath));
         if (DBG) console.log(PR, `writing file ${filePath}`);
-        FS.writeFileSync(filePath, json);
+        FSE.writeFileSync(filePath, json);
         console.log(PR, `*** WROTE JSON DATABASE ${filePath}`);
       } else {
         console.log(PR, `ERR path ${filePath} must be a pathname`);
@@ -1542,27 +1517,25 @@ DB.WriteTemplateTOML = pkt => {
   if (pkt.data === undefined)
     throw 'DB.WriteTemplateTOML pkt received with no `data`';
   const templateFilePath = pkt.data.path || m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(templateFilePath));
-  // Does the template exist?  If so, rename the old version with curren timestamp.
-  if (FS.existsSync(templateFilePath)) {
+  FSE.ensureDirSync(PATH.dirname(templateFilePath));
+  // first back-up the old template file
+  if (FSE.existsSync(templateFilePath)) {
     const timestamp = new Date().toISOString().replace(/:/g, '.');
     const backupFilePath =
       RUNTIMEPATH + NC_CONFIG.dataset + '_' + timestamp + TEMPLATE_EXT;
-    FS.copySync(templateFilePath, backupFilePath);
+    FSE.copySync(templateFilePath, backupFilePath);
     console.log(PR, 'Backed up template to', backupFilePath);
   }
+  // write the new template file
   const toml = TOML.stringify(pkt.data.template);
-  return FS.outputFile(templateFilePath, toml)
-    .then(data => {
-      console.log(PR, 'Saved template to', templateFilePath);
-      // reload template
-      async_LoadTemplate();
-      return { OK: true, info: templateFilePath };
-    })
-    .catch(err => {
-      console.log(PR, 'Failed trying to save', templateFilePath, err);
-      return { OK: false, info: 'Failed trying to save', templateFilePath };
-    });
+  try {
+    FSE.outputFileSync(templateFilePath, toml);
+    m_LoadTemplate();
+    return { OK: true, info: templateFilePath };
+  } catch (err) {
+    console.error(PR, 'Failed trying to save', templateFilePath, err);
+    return { OK: false, info: 'Failed trying to save', templateFilePath };
+  }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Clones the existing toml template
@@ -1572,12 +1545,12 @@ DB.WriteTemplateTOML = pkt => {
  */
 DB.CloneTemplateTOML = function (filePath) {
   const TOMLPath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLPath));
+  FSE.ensureDirSync(PATH.dirname(TOMLPath));
   // Does the template exist?
-  if (!FS.existsSync(TOMLPath)) {
+  if (!FSE.existsSync(TOMLPath)) {
     console.error(PR, `ERR could not find template ${TOMLPath}`);
   } else {
-    FS.copySync(TOMLPath, filePath);
+    FSE.copySync(TOMLPath, filePath);
     console.log(PR, `*** COPIED TEMPLATE ${TOMLPath} to ${filePath}`);
   }
 };

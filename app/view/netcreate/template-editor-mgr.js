@@ -27,7 +27,7 @@
     server-database.m_LoadJSONTemplate() and m_MigrateJSONtoTOML().
   * If you try to load a TOML template that is missing some key fields
     (e.g. error message definitions), then the app will fall back on
-    fields defined in the schema.  See server-database.promise_LoadTOMLTemplate()).
+    fields defined in the schema.  See server-database.async_LoadTOMLTemplate()).
 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/

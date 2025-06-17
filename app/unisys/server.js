@@ -72,12 +72,13 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_SetDatabase(pkt);
   });
-  //
-  /// Add new node/edges to db after an import
+
+  // Add new node/edges to db after an import
   UNET.HandleMessage('SRV_DBINSERT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_InsertDatabase(pkt);
   });
+
   // Update or add new node/edges to db after an import
   UNET.HandleMessage('SRV_DBMERGE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
@@ -101,6 +102,7 @@ UNISYS.RegisterHandlers = () => {
     const data = UDB.GetEditStatus(pkt);
     return data;
   });
+
   /** Requested by Node / Edge Editor when user wants to edit node / edge
    * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
@@ -112,6 +114,7 @@ UNISYS.RegisterHandlers = () => {
     UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
     return editStatus;
   });
+
   /**
    * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
@@ -126,22 +129,31 @@ UNISYS.RegisterHandlers = () => {
 
   /** TEMPLATE EDITING **/
 
+  //
   UNET.HandleMessage('SRV_TEMPLATE_REGENERATE_DEFAULT', pkt => {
-    // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.RegenerateDefaultTemplate();
   });
+
+  //
   UNET.HandleMessage('SRV_TEMPLATESAVE', pkt => {
-    // server-database
     if (DBG) console.log(PR, sprint_message(pkt));
-    UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template); // Broadcast template to other computers on the net
-    return UDB.WriteTemplateTOML(pkt);
+    const result = UDB.WriteTemplateTOML(pkt);
+    if (result.OK) {
+      UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template);
+    } else {
+      const errMsg = `Error saving template: ${result.info}, ${result.templateFilePath}`;
+      console.log(PR, errMsg);
+    }
+    return result;
   });
+
+  //
   UNET.HandleMessage('SRV_GET_TEMPLATETOML_FILENAME', () => {
     return UDB.GetTemplateTOMLFileName();
   });
 
-  /// Update all EXISTING nodes/edges after a Template edit
+  // Update all EXISTING nodes/edges after a Template edit
   UNET.HandleMessage('SRV_DBUPDATE_ALL', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_UpdateDatabase(pkt);
@@ -182,14 +194,19 @@ UNISYS.RegisterHandlers = () => {
     return { OK: true, info: 'SRV_DBBATCHUPDATE' };
   });
 
+  //
   UNET.HandleMessage('SRV_CALCULATE_MAXNODEID', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_CalculateMaxNodeID(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBGETNODEID', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_GetNewNodeID(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBGETNODEIDS', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_GetNewNodeIDs(pkt);
@@ -216,6 +233,8 @@ UNISYS.RegisterHandlers = () => {
     }
     return lockResult; // handle callback
   });
+
+  //
   UNET.HandleMessage('SRV_DBUNLOCKNODE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const unlockResult = UDB.PKT_RequestUnlockNode(pkt);
@@ -231,6 +250,8 @@ UNISYS.RegisterHandlers = () => {
     }
     return unlockResult; // handle callback
   });
+
+  //
   UNET.HandleMessage('SRV_DBLOCKEDGE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const lockResult = UDB.PKT_RequestLockEdge(pkt);
@@ -246,6 +267,8 @@ UNISYS.RegisterHandlers = () => {
     }
     return lockResult; // handle callback
   });
+
+  //
   UNET.HandleMessage('SRV_DBUNLOCKEDGE', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const unlockResult = UDB.PKT_RequestUnlockEdge(pkt);
@@ -262,11 +285,13 @@ UNISYS.RegisterHandlers = () => {
     return unlockResult; // handle callback
   });
 
+  //
   UNET.HandleMessage('SRV_DBISEDGELOCKED', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_IsEdgeLocked(pkt);
   });
 
+  //
   UNET.HandleMessage('SRV_DBLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const lockResult = UDB.PKT_RequestLockComment(pkt);
@@ -283,6 +308,7 @@ UNISYS.RegisterHandlers = () => {
     return lockResult; // handle callback
   });
 
+  //
   UNET.HandleMessage('SRV_DBUNLOCKCOMMENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const unlockResult = UDB.PKT_RequestUnlockComment(pkt);
@@ -299,23 +325,31 @@ UNISYS.RegisterHandlers = () => {
     return unlockResult; // handle callback
   });
 
+  //
   UNET.HandleMessage('SRV_DBISCOMMENTLOCKED', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_IsCommentLocked(pkt);
   });
 
+  //
   UNET.HandleMessage('SRV_DBUNLOCKALLNODES', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_RequestUnlockAllNodes(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBUNLOCKALLEDGES', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_RequestUnlockAllEdges(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBUNLOCKALLCOMMENTS', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_RequestUnlockAllComments(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBUNLOCKALL', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     const res = UDB.PKT_RequestUnlockAll(pkt);
@@ -325,24 +359,31 @@ UNISYS.RegisterHandlers = () => {
     return res;
   });
 
+  //
   UNET.HandleMessage('SRV_CALCULATE_MAXEDGEID', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_CalculateMaxEdgeID(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBGETEDGEID', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_GetNewEdgeID(pkt);
   });
+
+  //
   UNET.HandleMessage('SRV_DBGETEDGEIDS', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_GetNewEdgeIDs(pkt);
   });
 
+  //
   UNET.HandleMessage('SRV_DBGETCOMMENTID', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return UDB.PKT_GetNewCommentID(pkt);
   });
 
+  //
   UNET.HandleMessage('SRV_LOG_EVENT', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));
     return LOGGER.PKT_LogEvent(pkt);
