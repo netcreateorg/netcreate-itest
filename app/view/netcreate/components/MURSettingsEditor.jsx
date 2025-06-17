@@ -63,7 +63,9 @@ function MURSettingsEditor() {
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
+  // any grouped properties are in groupList.mapped PropertyGroups
   const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
+  // the existing template doesn't use grouped properties, so we add a global group
   GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global editState group
 
   /// HANDLERS ///

@@ -89,7 +89,7 @@ function EncodeDotProp(groupID: string | undefined, propID: string): string {
   return `${groupID}.${propID}`;
 }
 
-/// IMMER DISPATCHER //////////////////////////////////////////////////////////
+/// DISPATCHER API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_dispatcher = null;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -169,13 +169,12 @@ function GetDispatcher() {
       default:
         throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
     }
+    // return the modified draft object
     return draft;
   });
-  // this is required for React useReducer to trigger
-  return m_dispatcher;
 }
 
-/// DISPATCHER API ////////////////////////////////////////////////////////////
+/// REACH DISPATCHER API //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_has_pending = false; // flag to indicate if there are pending changes
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -194,8 +193,8 @@ let m_has_pending = false; // flag to indicate if there are pending changes
  *  and re-render the component.
  */
 function Dispatch(state, action) {
-  const dispatch = GetDispatcher();
-  const newState = dispatch(state, action);
+  const immer_dispatch = GetDispatcher(); // not the same as useReducer dispatch!
+  const newState = immer_dispatch(state, action);
   m_has_pending = newState.pending !== null;
   return newState;
 }
@@ -206,7 +205,7 @@ function HasPendingChanges() {
   return m_has_pending;
 }
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// SERVER INTERFACES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** handle incoming settings change from the server */
 function m_ReceiveServerChanges(data: DataObj) {
