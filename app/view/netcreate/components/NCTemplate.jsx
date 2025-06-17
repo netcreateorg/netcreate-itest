@@ -267,82 +267,52 @@ class NCTemplate extends UNISYS.Component {
       // OK to Edit, show edit buttons
       editorjsx = (
         <div hidden={isBeingEdited}>
-          <p>
-            <b>PROCEED WITH CAUTION!</b>: Editing templates will modify the data in
-            your dataset and may leave your dataset in an unusable state. Only{' '}
-            <b>expert users</b> who know how the data is set up should do this.
-          </p>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              columnGap: '10px',
-              rowGap: '5px'
-            }}
-          >
-            <i className="small text-muted">Edit Current Template Options</i>
-            <br />
-            <button size="sm" onClick={this.onEditNodeTypes} disabled>
-              Edit Node Types
-            </button>
-            <button size="sm" onClick={this.onEditEdgeTypes} disabled>
-              Edit Edge Types
-            </button>
-          </div>
           <div>
             <div style={{ color: 'red' }}>
               [Edit Node Types] and [Edit Edge Types] are currently disabled because
               JSON Editor has been deprecated. Stay tuned for return of that
               functionality.
             </div>
-            <p></p>
-            <p></p>
-            <hr />
             <hr />
             <p>ADVANCED USERS ONLY</p>
             <p></p>
-            <div>
-              <i className="small text-muted">
-                Import TOML template (replace existing template)
-              </i>
+            <i className="small text-muted">
+              Import TOML template (replace existing template)
+            </i>
+            <br />
+            <label>
+              <input
+                type="file"
+                accept="text/toml"
+                id="tomlfileInput"
+                onChange={this.onTOMLfileSelect}
+              />
+              &nbsp;<i>{tomlfileStatus}</i>
               <br />
-              <label>
-                <input
-                  type="file"
-                  accept="text/toml"
-                  id="tomlfileInput"
-                  onChange={this.onTOMLfileSelect}
-                />
-                &nbsp;<i>{tomlfileStatus}</i>
-                <br />
-                {tomlfileErrors && (
-                  <span style={{ color: 'red' }}>{tomlfileErrors}</span>
-                )}
-              </label>
-            </div>
+              {tomlfileErrors && (
+                <span style={{ color: 'red' }}>{tomlfileErrors}</span>
+              )}
+            </label>
             <p></p>
-            <i className="small text-muted">Current Template</i>
+            <i className="small text-muted">Download Current Template</i>
             <br />
             <button size="sm" onClick={this.onDownloadTemplate}>
               Download Current Template
             </button>
-            <p></p>
-            <i className="small text-muted">Create New Template</i>
             <br />
-            <button size="sm" onClick={this.onNewTemplate} disabled>
-              New Template
-            </button>
-            <br />
+            <hr />
             <div style={{ color: 'red' }}>
-              [New Template] is disabled because JSON Editor has been deprecated. Stay
-              tuned for return of that functionality.
+              [Create New Template] is disabled because JSON Editor has been
+              deprecated. Stay tuned for return of that functionality.
             </div>
             <p></p>
           </div>
-          <hr />
         </div>
       );
     }
+
+    /// RENDER ///
+
     return (
       <div
         style={{
@@ -354,6 +324,7 @@ class NCTemplate extends UNISYS.Component {
         <p>
           <label>Current Template File Name:</label> <code>{tomlfilename}</code>
         </p>
+        <hr />
         {editorjsx}
         <div hidden={!isBeingEdited}>
           <button onClick={this.onCancelEdit} size="sm">

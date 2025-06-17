@@ -52,7 +52,7 @@ import URPopover from './URPopover';
 const UDATAOwner = { name: 'NCAdvancedPanel' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const VIEWS = {
   template: 'Template',
   importexport: 'Import/Export',
@@ -105,7 +105,15 @@ function NCAdvancedPanel() {
       );
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
-    setHasAdminPermissions(isAdmin);
+    // HACK: disable admin password for prop-settings-2
+    if (!DBG) setHasAdminPermissions(isAdmin);
+    else {
+      console.log(
+        '%c*** DBG Mode: AdminPassword Bypassed ***',
+        'color: red; font-weight: bold;'
+      );
+      setHasAdminPermissions(true);
+    }
 
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
     UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
