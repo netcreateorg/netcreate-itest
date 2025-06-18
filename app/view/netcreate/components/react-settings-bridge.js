@@ -8,6 +8,7 @@
 const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
 const UNISYS = require('unisys/client');
+const DATASTORE = require('system/datastore');
 
 /// RUNTIME UNISYS HOOKS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,6 +44,12 @@ function Dispatch(state, action) {
 function GetTemplate() {
   const template = UDATA.AppState('TEMPLATE');
   return template;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: invokes SRV_TEMPLATE_SAVE to save template to the server. The server
+ *  will send NET_TEMPLATE_UPDATE to all clients with the updated template */
+function PersistTemplate(templateObj) {
+  return DATASTORE.SaveTemplateFile(templateObj);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: splits a dotProp string into groupName and propName */
@@ -210,6 +217,7 @@ module.exports = {
   // Template Settings API
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
+  PersistTemplate, // dataObj => { template: dataObj }
   DecodeUIData, // setObj, dotProp => { value, ...uiData }
   GetUISettingsList, // uiData => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes

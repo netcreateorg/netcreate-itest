@@ -72,7 +72,7 @@ function MURSettingsEditor() {
   }
 
   function submitChanges() {
-    dispatch({ op: 'submit' });
+    dispatch({ op: 'submit', saveFunction: RSB.PersistTemplate });
   }
 
   /// RENDER ///

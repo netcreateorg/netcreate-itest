@@ -25,6 +25,7 @@ type ActionObj = {
   op: 'update' | 'revert' | 'submit';
   propDef?: string; // 'group.prop' or just 'prop'
   value?: any; // new value for the property
+  saveFunction?: (data: DataObj) => OpResult; // optional save function
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type DraftObj = {
@@ -92,7 +93,7 @@ function GetDispatcher() {
   const fn = 'GetDispatcher:';
   enableMapSet(); // enable Map and Set support in immer
   m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
-    const { op, propDef, value } = action;
+    const { op, propDef, value, saveFunction } = action;
     let group, prop;
     switch (op) {
       // update is called by individual property editors like TextInput
@@ -142,6 +143,9 @@ function GetDispatcher() {
         break;
       // submit is called by the MURSettingsEditor Save Changes button
       case 'submit':
+        if (typeof saveFunction !== 'function') {
+          throw Error(`${fn} no saveFunction provided for submit`);
+        }
         // on submit, copy pending to template
         // immer handles object immutability
         if (draft.pending && draft.isDirty) {
@@ -150,6 +154,15 @@ function GetDispatcher() {
           draft.pending = null;
           draft.isDirty = false;
           draft.changeSet.clear();
+          // invoke save function passed in the action
+          saveFunction(current(draft).template)
+            .then((result: OpResult) => {
+              if (result.OK) LOG(...PR('submit: success', result));
+              else LOG(...PR('submit: error', result));
+            })
+            .catch(err => {
+              LOG(...PR('submit: error', err));
+            });
         } else {
           LOG(...PR('submit: no pending changes'));
           LOG(...PR('   template', current(draft).template));
