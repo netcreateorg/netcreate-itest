@@ -93,7 +93,8 @@ UNISYS.RegisterHandlers = () => {
 
   /** TEMPLATE / IMPORT / NODE / EDGE EDITOR LOCKING **/
 
-  /** Reports on whether template, import, or node/edge are being edited
+  /** Reports on whether template, import, or node/edge are being edited. Also includes template
+   *  and import operation status as part of lockable edit state.
    *  @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
   UNET.HandleMessage('SRV_GET_EDIT_STATUS', pkt => {
@@ -103,8 +104,9 @@ UNISYS.RegisterHandlers = () => {
     return data;
   });
 
-  /** Requested by Node / Edge Editor when user wants to edit node / edge
-   * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
+  /** Requested by Node / Edge Editor when user wants to edit node / edge. Also includes template
+   *  and import operation status as part of lockable edit state.
+   *  @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
   UNET.HandleMessage('SRV_REQ_EDIT_LOCK', pkt => {
     // server-database
@@ -115,8 +117,8 @@ UNISYS.RegisterHandlers = () => {
     return editStatus;
   });
 
-  /**
-   * @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
+  /** Release all locks related to nodes, template editing, and import operations.
+   *  @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
   UNET.HandleMessage('SRV_RELEASE_EDIT_LOCK', pkt => {
     // server-database

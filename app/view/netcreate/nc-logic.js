@@ -200,14 +200,17 @@ function m_PromiseLoadDB() {
 
 /// UNISYS LIFECYCLE HOOKS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** LOADASSETS fires before react components are loaded
-    see client-lifecycle.js for description
+/** LOADASSETS fires before react components are loaded.
+ *  This hook will return one of three promises:
+ *  1. loading cached data from local storage (default not used ever)
+ *  2. loading data from the saved static files
+ *  3. loading data from the server (very bottom)
  */
 MOD.Hook('LOADASSETS', () => {
   if (UNISYS.IsStandaloneMode()) {
-    // STANDALONE MODE
-    // Load read-only database from exported db file.
-
+    //
+    // STANDALONE OPTION 1 - use browser cache
+    // not generally used, see hardcoded USE_CACHE flag below
     const USE_CACHE = false;
     if (USE_CACHE) {
       console.warn(PR, "STANDALONE MODE: 'LOADASSETS' using browser cache");
@@ -226,15 +229,16 @@ MOD.Hook('LOADASSETS', () => {
         resolve();
       });
     }
-    // don't use cache, but instead try loading standalone files
-    console.warn(
-      PR,
-      "STANDALONE MODE: 'LOADASSETS' is using files (USE_CACHE=false)"
-    );
+    //
+    // STANDALONE OPTION 2 - load from static files on web server
     // added by Joshua to check for alternative datasets in the folder
+    console.warn(PR, "STANDALONE MODE: 'LOADASSETS' loading file from webserver");
     let urlParams = new URLSearchParams(window.location.search);
     let dataset = urlParams.get('dataset');
+    // brunch-config 'package' writes standalone-db.json as fallback
+    // as well as the [dataset]-db.json file
     if (dataset === null) dataset = 'standalone';
+    // retrieve
     return new Promise(resolve => {
       (async () => {
         let p1 = await DATASTORE.PromiseJSONFile('data/' + dataset + '-db.json').then(
@@ -260,8 +264,9 @@ MOD.Hook('LOADASSETS', () => {
       })();
     });
   }
-
-  // if got this far, then we're NOT in standalone mode
+  //
+  // NETWORK OPTION - if got this far, then we're NOT in standalone mode
+  // and do the normal load from the database
   return Promise.all([m_PromiseLoadDB()]);
 }); // end LOADASSETS HOOK
 

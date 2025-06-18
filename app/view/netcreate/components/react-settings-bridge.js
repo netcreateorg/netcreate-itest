@@ -34,7 +34,7 @@ const SettingsContext = React.createContext({ origin: 'react-settings-bridge' })
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: used by MURSettingsEditor useReducer, which returns [state, dispatch]
  *  during construction. See mur-settings-client.ts for more info. Returns
- *  a new state object as required by useReducer. */
+ *  a new state object as required by React's useReducer. */
 function Dispatch(state, action) {
   return Settings.Dispatch(state, action);
 }
