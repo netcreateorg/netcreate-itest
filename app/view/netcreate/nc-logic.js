@@ -857,7 +857,7 @@ MOD.Hook('APP_READY', function (info) {
       'COMMENT_UPDATE',
       'COMMENTS_UPDATE',
       'READBY_UPDATE',
-      'EDIT_PERMISSIONS_UPDATE',
+      'CLI_UPDATE_LOCKSTATE',
       'NET_TEMPLATE_UPDATE'
     ]).then(d => {
       clearTimeout(timeout);

@@ -1582,7 +1582,7 @@ DB.RegenerateDefaultTemplate = () => {
     edited or data is being imported, any editor that is opened registers
     as an OPENEDITOR.  The UI will also pre-emptively disable edit buttons
     whenever the open editors have been updated via a broacast of the
-    `EDIT_PERMISSIONS_UPDATE` message by server.js.
+    `CLI_UPDATE_LOCKSTATE` message by server.js.
 
     * When a Template editor is open, "Import", "Node Edit", "Edge Edit",
       "Add New Node", and "Add New Edge" buttons are all disabled.
@@ -1605,7 +1605,7 @@ DB.RegenerateDefaultTemplate = () => {
     UI elements query `GetEditStatus` to figure out what they should
     enable or disable.
 
-    UI elements should also listen to `EDIT_PERMISSIONS_UPDATE` to
+    UI elements should also listen to `CLI_UPDATE_LOCKSTATE` to
     enable or disable elements.
 
     Note that multiple `node` and `edge` editors can be open at the same

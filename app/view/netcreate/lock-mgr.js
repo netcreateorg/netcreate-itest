@@ -20,8 +20,8 @@
   - lock-mgr makes to request to the server
   - server passes the call to server-database.GetEditStatus
   - server-database returns the new value
-  - server sends EDIT_PERMISSIONS_UPDATE to all clients
-  - EDIT_PERMISSIONS_UPDATE tells lock-mgr to update the LOCKMGR state
+  - server sends CLI_UPDATE_LOCKSTATE to all clients
+  - CLI_UPDATE_LOCKSTATE tells lock-mgr to update the LOCKMGR state
 
   Used by:
   - NCNode
@@ -51,7 +51,7 @@ const UDATA = UNISYS.NewDataLink(MOD);
 /*/
 MOD.Hook('INITIALIZE', () => {
   m_Init();
-  UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', m_UpdateLockState);
+  UDATA.HandleMessage('CLI_UPDATE_LOCKSTATE', m_UpdateLockState);
   UDATA.HandleMessage('COMMENT_UPDATE_PERMISSIONS', m_UpdateLockState);
 }); // end UNISYS_INIT
 
@@ -111,7 +111,15 @@ function RequestUnlockEdge(edgeId, cb) {
     if (typeof cb === 'function') cb(data.locked);
   });
 }
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Generic Lock Request: editorType is defined in system/util/enum.js. For this
+ *  call, 'template' or 'importer' are expected.
+ *
+ *  ALERT: The 'SRV_REQ_EDIT_LOCK' and related calls are highly weird and
+ *  inconsistent in how they call each other across the server and network.
+ *  Don't assume a simple MESSAGE => SINGLE OPERATION message flow.
+ */
 function RequestEditLock(editorType, cb) {
   if (cb)
     UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: editorType }).then(data => {
@@ -120,6 +128,13 @@ function RequestEditLock(editorType, cb) {
   else UDATA.NetSignal('SRV_REQ_EDIT_LOCK', { editor: editorType });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Generic Unlock Request: editorType is defined in system/util/enum.js. For this
+ *  call, 'template' or 'importer' are expected.
+ *
+ *  ALERT: The 'SRV_REQ_EDIT_LOCK' and related calls are highly weird and
+ *  inconsistent in how they call each other across the server and network.
+ *  Don't assume a simple MESSAGE => SINGLE OPERATION message flow.
+ */
 function RequestEditUnlock(editorType, cb) {
   if (cb)
     UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: editorType }).then(data => {

@@ -100,7 +100,7 @@ UNISYS.RegisterHandlers = () => {
     return data;
   });
 
-  /** Requested by Node / Edge Editor when user wants to edit node / edge. Also includes template
+  /** Requested by Node / EdgEe Editor when user wants to edit node / edge. Also includes template
    *  and import operation status as part of lockable edit state.
    *  @return { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean }
    */
@@ -109,7 +109,7 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     const editStatus = UDB.RequestEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     return editStatus;
   });
 
@@ -121,7 +121,7 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     const editStatus = UDB.ReleaseEditLock(pkt);
     // Broadcast Lock State
-    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+    UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     return editStatus;
   });
 
@@ -227,7 +227,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.RequestEditLock(pkt);
       // - broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return lockResult; // handle callback
   });
@@ -244,7 +244,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.ReleaseEditLock(pkt);
       // - broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return unlockResult; // handle callback
   });
@@ -261,7 +261,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.RequestEditLock(pkt);
       // = broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return lockResult; // handle callback
   });
@@ -278,7 +278,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.ReleaseEditLock(pkt);
       // - broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return unlockResult; // handle callback
   });
@@ -301,7 +301,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.ReleaseEditLock(pkt);
       // - broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return lockResult; // handle callback
   });
@@ -318,7 +318,7 @@ UNISYS.RegisterHandlers = () => {
       pkt.SetData(pktData);
       const editStatus = UDB.ReleaseEditLock(pkt);
       // - broadcast lock state
-      UNET.NetSend('EDIT_PERMISSIONS_UPDATE', editStatus);
+      UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
     }
     return unlockResult; // handle callback
   });
@@ -353,7 +353,7 @@ UNISYS.RegisterHandlers = () => {
     const res = UDB.PKT_RequestUnlockAll(pkt);
     // Broadcast Lock State
     const data = UDB.GetEditStatus(pkt);
-    UNET.NetSend('EDIT_PERMISSIONS_UPDATE', data);
+    UNET.NetSend('CLI_UPDATE_LOCKSTATE', data);
     return res;
   });
 
