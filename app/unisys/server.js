@@ -29,12 +29,8 @@ var UNISYS = {};
  *  network values, so it can embed them in the index.ejs file for webapps
  *  override = { port } */
 UNISYS.InitializeNetwork = override => {
-  // MUR INTEROP: connect to MUR
+  // MUR INTEROP: connect MUR to UNISYS
   MUR.NCI.InteropConnect(UNET, NC_CONFIG);
-  // MUR INTEROP: load settings and persist unified file
-  const settings = MUR.SettingMgr.LoadSettings(TEST_TEMPL_DIR);
-  MUR.SettingMgr.WriteDefaultSettings();
-  console.log(PR, `Loaded settings: [${Object.keys(settings).join(', ')}`);
   // MUR INTEROP: end
 
   // resume NetCreate server initialization

@@ -108,10 +108,6 @@ function m_RenderApp() {
   if (DBG)
     console.log('%cINIT %cReactDOM.render() begin', 'color:blue', 'color:auto');
 
-  // declare web components for MUR
-  MUR.ViewLib.DeclareComponents();
-  //
-
   return new Promise((resolve, reject) => {
     try {
       ReactDOM.render(<AppShell />, document.querySelector('#app-container'), () => {

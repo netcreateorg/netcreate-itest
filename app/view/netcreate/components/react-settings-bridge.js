@@ -33,7 +33,7 @@ function $(strOrNum) {
 const SettingsContext = React.createContext({ origin: 'react-settings-bridge' });
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: used by MURSettingsEditor useReducer, which returns [state, dispatch]
- *  during construction. See mur-settings-client.ts for more info. Returns
+ *  during construction. See nc-settings-client.ts for more info. Returns
  *  a new state object as required by React's useReducer. */
 function Dispatch(state, action) {
   return Settings.Dispatch(state, action);
@@ -151,84 +151,6 @@ function Unsubscribe(event, changeHandler) {
   Settings.Unsubscribe(event, changeHandler);
 }
 
-/// REACT SETTINGS API ////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: PropertyDefs define the type and default value of a property, but not
- *  the value itself. */
-function GetPropertyDefs() {
-  return Settings.Get('PropertyDefs');
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: MetaDefs define metadata for a property's UI representation */
-function GetMetaDefs() {
-  return Settings.Get('MetaDefs');
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update a property in the settings object.
- *  @param string dotProp - 'group.prop'
- *  @param any value - new value for the property
- */
-async function UpdateProperty(dotProp, value) {
-  const opResult = await Settings.UpdateProperty(dotProp, value);
-  if (opResult.status === 'ok') return opResult;
-  throw Error(`Failed to update ${dotProp} with value ${value}`);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update a group in the settings object.
- *  @param string groupName - 'group'
- *  @param object propObj - { prop: value, prop2: value2 }
- */
-async function UpdateGroup(groupName, propObj) {
-  const opResult = await Settings.UpdateGroup(groupName, propObj);
-  if (opResult.status === 'ok') return opResult;
-  throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
-}
-
-/// DECODERS //////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Return the name of the single key in an object, undefined
- *  otherwise */
-function GetSingularKey(obj) {
-  const groupList = Object.keys(obj).filter(key => !key.startsWith('_'));
-  if (groupList.length !== 1) return;
-  return groupList[0];
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Dereference groupObj, returning groupName and properties list */
-function DerefGroupDef(groupObj) {
-  const groupName = GetSingularKey(groupObj);
-  if (groupName === undefined) return { error: 'groupObj must have a single key' };
-  const properties = groupObj[groupName];
-  const deref = { groupName, properties };
-  //
-  return deref; // { groupname, properties:{[propName]:{ definition props }} }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Dereference metaObj, returning just the properites for the */
-function DerefSingularMetaDef(metaObj) {
-  const groupName = GetSingularKey(metaObj);
-  if (groupName === undefined) return { error: 'metaObj must have a single key' };
-  const deref = metaObj[groupName];
-  //
-  return deref; // { metadata props }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: promote a named key as the direct value of a property,
- *  converting { group:{prop:{value:1}} } to { group: {prop:1} } for using
- *  in a settings values structure */
-function FlattenPropertyDefs(propDefs, key = 'value') {
-  const flat = {};
-  Object.keys(propDefs).forEach(groupName => {
-    flat[groupName] = {};
-    const group = propDefs[groupName];
-    Object.keys(group).forEach(propName => {
-      const propDef = group[propName];
-      flat[groupName][propName] = propDef[key];
-    });
-  });
-  return flat;
-}
-
 /// SHARED STYLING OBJECTS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const padding = '0.2rem 0.4rem';
@@ -298,14 +220,7 @@ module.exports = {
   // Styling API
   GetStyles,
   EventTargetOffsetStyle,
-  // legacy API
-  GetPropertyDefs,
-  GetMetaDefs,
-  DerefGroupDef,
-  DerefSingularMetaDef,
-  FlattenPropertyDefs,
-  UpdateProperty,
-  UpdateGroup,
+  //
   Subscribe,
   Unsubscribe
 };

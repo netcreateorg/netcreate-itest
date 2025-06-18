@@ -3,9 +3,6 @@
   MUR Property Editor Panel
   (replacement for deprecated `NCTemplate.jsx`)
 
-  Requires that init.jsx has called UR.ViewLib.DeclareComponents() to make
-  custom web components available _before_ React renders anything.
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
