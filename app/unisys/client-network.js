@@ -85,7 +85,12 @@ NETWORK.Connect = function (datalink, opt) {
 
   // create websocket
   // uses values that were embedded in index.ejs on load
-  let wsURI = `ws://${NETSOCK.uaddr}:${NETSOCK.uport}`;
+  let wsURI;
+  if (window.location.protocol === 'https:') {
+    // use secure websocket if running on https, redirects port to /ws-port/
+    // used with `netcreate-deploy-do` repo `nginx-ssl.conf.j2` on DigitalOcean droplets with SSL
+    wsURI = `wss://${window.location.host}/ws-port/${NETSOCK.uport}/`;
+  } else wsURI = `ws://${NETSOCK.uaddr}:${NETSOCK.uport}`;
   NETSOCK.ws = new WebSocket(wsURI);
 
   // create listeners
