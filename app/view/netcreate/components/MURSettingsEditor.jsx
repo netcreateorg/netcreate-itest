@@ -3,6 +3,16 @@
   MUR Property Editor Panel
   (replacement for deprecated `NCTemplate.jsx`)
 
+  Concept: This design assumes "Property Groups" that contain "Properties"
+  in a data object, which is different than how TEMPLATE is organized.
+  The MURSettingsEditor figures out what Property Groups are available,
+  and writes PropertyGroup components that themselves render the specific
+  Input components for each property.
+
+  Unfortunately, React itself does not lend itself to this kind of top-
+  down data sharing, so we have to jump through hoops to make it work
+  through various hooks and context providers.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
@@ -18,28 +28,6 @@ const { SettingsContext } = RSB; // import SettingsContext from the bridge
 const DBG = true;
 const PR = ConsoleStyler('SEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let m_viewstate; // initialized from RSB.GetViewState() on mount
-
-/// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Given the TEMPLATE object, make a MURSettings compatible propDefs object
- *  for use by the PropertyGroup component and TextInput component */
-function m_MakePropDefs(template) {
-  const { name, description } = template || {};
-  return {
-    graphSettings: {
-      name: {
-        type: 'string',
-        value: name
-      },
-      description: {
-        type: 'string',
-        value: description
-      }
-    }
-  };
-}
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,11 +48,6 @@ function MURSettingsEditor() {
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
 
-  // any grouped properties are in groupList.mapped PropertyGroups
-  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
-  // the existing template doesn't use grouped properties, so we add a global group
-  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />); // add global editState group
-
   /// HANDLERS ///
 
   function revertChanges() {
@@ -76,12 +59,13 @@ function MURSettingsEditor() {
   }
 
   /// RENDER ///
-  return (
-    <SettingsContext.Provider value={value}>
+
+  // save, revert, toggle
+  const ButtonBar = (
+    <div>
       <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
         Save Changes
       </button>
-      &nbsp;
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
         Revert Changes
       </button>
@@ -89,6 +73,16 @@ function MURSettingsEditor() {
       <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
         {showToDo ? 'ShowWIP' : 'ShowToDo'}
       </button>
+    </div>
+  );
+
+  // note: template global settings not grouped, so prepend as special case group=""
+  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
+  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
+
+  return (
+    <SettingsContext.Provider value={value}>
+      {ButtonBar}
       {!showToDo && GroupList}
       {showToDo && ToDoList}
     </SettingsContext.Provider>
