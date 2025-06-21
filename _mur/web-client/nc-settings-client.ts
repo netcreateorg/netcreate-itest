@@ -41,7 +41,6 @@ const LOG = console.log.bind(console);
 const PR = ConsoleStyler('settings', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let SETTINGS: DataObj = {};
 const EM = new EventMachine('settings_client');
 
 /// HELPER METHODS //////////////////////////////////////////////////////////
@@ -110,11 +109,13 @@ function GetDispatcher() {
           LOG(...PR('update no group'), { prop, value });
           if (draft.pending === draft.template)
             throw Error(`${fn} pending/template are the same`);
-          draft.pending[prop] = value;
-          draft.changeSet.add(prop);
-          draft.isDirty = true;
           const orig = current(draft).template[prop];
           const curr = current(draft).pending[prop];
+          if (curr !== value) {
+            draft.pending[prop] = value;
+            draft.changeSet.add(prop);
+            draft.isDirty = value !== orig;
+          } else LOG(...PR('   no change for', prop));
           LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
         }
         // grouped properties are nested in the template
@@ -123,9 +124,13 @@ function GetDispatcher() {
           if (draft.pending[group] === undefined) {
             throw Error(`${fn} invalid group referenced in ${propDef}`);
           }
-          draft.pending[group][prop] = value;
-          draft.changeSet.add(propDef);
-          draft.isDirty = true;
+          const orig = current(draft).template[group][prop];
+          const curr = current(draft).pending[group][prop];
+          if (curr !== value) {
+            draft.pending[group][prop] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else LOG(...PR('   no change for', propDef));
         }
         break;
       // revert is called by the MURSettingsEditor Revert Changes button
