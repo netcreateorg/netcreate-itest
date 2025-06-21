@@ -188,10 +188,16 @@ module.exports = {
       },
       hooks: {
         preCompile() {
-          // These files will eventually be copied over to public by brunch
-          // save json of database to public/data
-          UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
-          UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
+          // As of 6/14/2025 the `WriteDbJSON` calls are commented out because
+          // 1. I don't believe we do anything with db json files anymore
+          // 2. If a loki file hasn't already been created, the WriteDbJSON call
+          //    will fail silently and the rest of the compile process is skipped
+          //    which means the `npm run package` will not work.
+          //
+          // // These files will eventually be copied over to public by brunch
+          // // save json of database to public/data
+          // UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
+          // UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
 
           // // save json of template to public/data
           // UDB.WriteTemplateJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-template.json`);
