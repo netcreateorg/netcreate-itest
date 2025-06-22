@@ -32,8 +32,8 @@ function GroupHeader(props) {
  *  received groupName */
 function PropertyGroup(props) {
   const groupName = props.groupName || ''; // e.g. 'graphSettings'
-  const { editState } = React.useContext(RSB.SettingsContext);
-  const uiData = editState.template._ui || {};
+  const { draft } = React.useContext(RSB.SettingsContext);
+  const uiData = draft.template._ui || {};
 
   // editable properties are in propsData and propNames
   // which are derived by scanning uiData which is the metadata

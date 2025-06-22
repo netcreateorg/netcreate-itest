@@ -1663,6 +1663,7 @@ DB.GetEditStatus = pkt => {
  */
 DB.RequestEditLock = pkt => {
   m_open_editors.push(pkt.Data().editor);
+  console.log(PR, `RequestEditLock: ${pkt.Data().editor} added to open editors`);
   return DB.GetEditStatus(pkt);
 };
 /**
@@ -1672,8 +1673,23 @@ DB.RequestEditLock = pkt => {
  * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean }
  */
 DB.ReleaseEditLock = pkt => {
-  const i = m_open_editors.findIndex(e => e === pkt.Data().editor);
-  if (i > -1) m_open_editors.splice(i, 1);
+  const { editor } = pkt.Data();
+  const i = m_open_editors.findIndex(e => e === editor);
+  if (i > -1) {
+    console.log(
+      PR,
+      `ReleaseEditLock: ${editor} found in open editors`,
+      m_open_editors
+    );
+    m_open_editors.splice(i, 1);
+    console.log(PR, `ReleaseEditLock: open editors is now`, m_open_editors);
+  } else {
+    console.warn(
+      PR,
+      `ReleaseEditLock: ${editor} not found in open editors`,
+      m_open_editors
+    );
+  }
   return DB.GetEditStatus(pkt);
 };
 

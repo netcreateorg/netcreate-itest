@@ -30,8 +30,8 @@ function $(strOrNum) {
 /** A TextInput component */
 function TextInput(props) {
   const { propDef } = props;
-  const { editState, dispatch } = React.useContext(RSB.SettingsContext);
-  const data = RSB.DecodeUIData(editState.template, propDef);
+  const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
+  const data = RSB.DecodeUIData(draft.template, propDef);
   const { name, value, default: defValue } = data;
   const { label, tooltip, help, placeholder } = data;
 
@@ -41,22 +41,21 @@ function TextInput(props) {
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
-
   const templateValue = value || defValue;
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
   // this is a workaround for React's stupidity about dataflow, state
   // retention with hooks, and other bullshit.
   React.useEffect(() => {
-    if (!editState.pending) {
-      const data = RSB.DecodeUIData(editState.template, propDef);
+    if (!draft.pending) {
+      const data = RSB.DecodeUIData(draft.template, propDef);
       setInputValue(data.value || data.default);
     }
-  }, [editState.pending]);
+  }, [draft.pending]);
 
   /// UI-SETTINGS INTEROP EVENT UPDATES ///
 
-  // send data to editState object, which will trigger rerender
+  // send data to draft object, which will trigger rerender
   const submitToSettings = async event => {
     const value = String(event.target.value);
     dispatch({
@@ -74,7 +73,7 @@ function TextInput(props) {
     setInputValue(value);
   };
 
-  // input key return will submit the value to editState object
+  // input key return will submit the value to draft object
   const handleEnterKey = async event => {
     if (event.key === 'Enter') submitToSettings(event);
   };
@@ -83,11 +82,12 @@ function TextInput(props) {
   const handleTooltip = event => {
     if (event.type === 'mouseover') {
       const offset = RSB.EventTargetOffsetStyle(event);
+      const content = tooltip || '';
       setTooltipStyle({
         ...popupStyle,
         ...offset,
         display: 'block',
-        content: tooltip || ''
+        content
       });
       setLabelColor('maroon');
     } else if (event.type === 'mouseout') {
@@ -98,8 +98,9 @@ function TextInput(props) {
 
   // hovering over a changed input will show the old value
   const showOldValue = event => {
+    const content = inputValue || '';
     if (inputValue === templateValue) {
-      setOldStyle({ ...popupStyle });
+      setOldStyle({ ...popupStyle, content });
       return;
     } else if (event.type === 'mouseover') {
       const offset = RSB.EventTargetOffsetStyle(event);
@@ -107,7 +108,7 @@ function TextInput(props) {
         ...popupStyle,
         ...offset,
         display: 'block',
-        content: inputValue || ''
+        content
       });
     } else if (event.type === 'mouseout') {
       setOldStyle({ ...popupStyle });
@@ -121,6 +122,28 @@ function TextInput(props) {
   const bgColor = mod ? modColor : 'white';
   const pad = mod ? '1rem' : '0';
 
+  const InputField = hasLock ? (
+    <input
+      type="text"
+      name={`${name}`}
+      style={{
+        ...inputStyle,
+        color: labelColor,
+        backgroundColor: bgColor,
+        paddingRight: pad
+      }}
+      value={inputValue}
+      onKeyDown={handleEnterKey}
+      onBlur={submitToSettings}
+      onChange={handleTyping}
+      onMouseOver={showOldValue}
+      onMouseOut={showOldValue}
+      disabled={!hasLock}
+    />
+  ) : (
+    <p>{inputValue}</p>
+  );
+
   return (
     <div style={itemGrid}>
       <label
@@ -131,22 +154,7 @@ function TextInput(props) {
       >
         {label || name}
       </label>
-      <input
-        type="text"
-        name="${name}"
-        style={{
-          ...inputStyle,
-          color: labelColor,
-          backgroundColor: bgColor,
-          paddingRight: pad
-        }}
-        value={inputValue}
-        onKeyDown={handleEnterKey}
-        onBlur={submitToSettings}
-        onChange={handleTyping}
-        onMouseOver={showOldValue}
-        onMouseOut={showOldValue}
-      />
+      {InputField}
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
       <div style={oldStyle}>
         <span style={{ opacity: 0.5 }}>old value: </span>

@@ -35,18 +35,33 @@ function MURSettingsEditor() {
   /// SETUP ///
 
   const initialState = { template: RSB.GetTemplate() };
-  const [showToDo, setShowToDo] = React.useState(true);
-  const [editState, dispatch] = React.useReducer(RSB.Dispatch, initialState);
-  const value = { editState, dispatch };
-  const { globalsList, groupList } = RSB.GetUISettingsList(editState.template._ui);
+  const [showToDo, setShowToDo] = React.useState(false);
+  const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
+  const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
+  const value = { hasLock, draft, dispatch };
+  const { globalsList, groupList } = RSB.GetUISettingsList(draft.template._ui);
 
-  /// RENDER PREP ///
+  /// LOCKING ///
 
-  const { opBtnStyle, modColor } = RSB.GetStyles();
-  const mod = editState.isDirty;
-  const backgroundColor = mod ? modColor : 'white';
-  const color = mod ? 'black' : 'gray';
-  const btnStyle = { ...opBtnStyle, backgroundColor, color };
+  React.useEffect(() => {
+    LOG(...PR('MURSettingsEditor mounted'));
+    RSB.LockTemplate().then(reqLockOK => {
+      setHasLock(reqLockOK);
+      LOG(...PR('Locking template on mount:', reqLockOK));
+    });
+    return () => {
+      LOG(...PR('MURSettingsEditor unmounted'));
+      if (hasLock) {
+        RSB.ReleaseTemplate().then(reqUnlockOK => {
+          if (!reqUnlockOK) {
+            LOG(...PR('Failed to unlock template on unmount'));
+          } else {
+            LOG(...PR('Unlocked template on unmount'));
+          }
+        });
+      }
+    };
+  }, []); // empty dependency array means this runs once on mount
 
   /// HANDLERS ///
 
@@ -58,10 +73,18 @@ function MURSettingsEditor() {
     dispatch({ op: 'submit', saveFunction: RSB.PersistTemplate });
   }
 
+  /// RENDER PREP ///
+
+  const { opBtnStyle, modColor } = RSB.GetStyles();
+  const mod = draft.isDirty;
+  const backgroundColor = mod ? modColor : 'white';
+  const color = mod ? 'black' : 'gray';
+  const btnStyle = { ...opBtnStyle, backgroundColor, color };
+
   /// RENDER ///
 
   // save, revert, toggle
-  const ButtonBar = (
+  const ButtonBar = hasLock ? (
     <div>
       <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
         Save Changes
@@ -74,11 +97,15 @@ function MURSettingsEditor() {
         {showToDo ? 'ShowWIP' : 'ShowToDo'}
       </button>
     </div>
+  ) : (
+    <p>Template is locked by another user.</p>
   );
 
   // note: template global settings not grouped, so prepend as special case group=""
   const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
   GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
+
+  //
 
   return (
     <SettingsContext.Provider value={value}>

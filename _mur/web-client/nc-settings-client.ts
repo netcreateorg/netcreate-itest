@@ -39,7 +39,7 @@ type DraftObj = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('settings', 'TagCyan');
-const DBG = true;
+const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EM = new EventMachine('settings_client');
 
@@ -98,7 +98,7 @@ function GetDispatcher() {
       // update is called by individual property editors like TextInput
       case 'update':
         if (!draft.pending) {
-          LOG(...PR('create pending copy'));
+          if (DBG) LOG(...PR('create pending copy'));
           draft.pending = JSON.parse(JSON.stringify(draft.template));
           draft.isDirty = false;
           draft.changeSet = new Set();
@@ -106,7 +106,7 @@ function GetDispatcher() {
         [group, prop] = DecodeDotProp(propDef);
         // groupless properties are at the top level of the template
         if (group === undefined) {
-          LOG(...PR('update no group'), { prop, value });
+          if (DBG) LOG(...PR('update no group'), { prop, value });
           if (draft.pending === draft.template)
             throw Error(`${fn} pending/template are the same`);
           const orig = current(draft).template[prop];
@@ -115,12 +115,12 @@ function GetDispatcher() {
             draft.pending[prop] = value;
             draft.changeSet.add(prop);
             draft.isDirty = value !== orig;
-          } else LOG(...PR('   no change for', prop));
-          LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
+          } else if (DBG) LOG(...PR('- no change for', prop));
+          if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
         }
         // grouped properties are nested in the template
         else {
-          LOG(...PR('update with group'), { group, prop, value });
+          if (DBG) LOG(...PR('update with group'), { group, prop, value });
           if (draft.pending[group] === undefined) {
             throw Error(`${fn} invalid group referenced in ${propDef}`);
           }
@@ -130,20 +130,20 @@ function GetDispatcher() {
             draft.pending[group][prop] = value;
             draft.changeSet.add(propDef);
             draft.isDirty = value !== orig;
-          } else LOG(...PR('   no change for', propDef));
+          } else if (DBG) LOG(...PR('- no change for', propDef));
         }
         break;
       // revert is called by the MURSettingsEditor Revert Changes button
       case 'revert':
         // on revert, clear pending and isDirty, no write done
         if (draft.pending) {
-          LOG(...PR('revert changes', current(draft).changeSet));
+          if (DBG) LOG(...PR('revert changes', current(draft).changeSet));
           draft.pending = null;
           draft.isDirty = false;
           draft.changeSet.clear();
         } else {
-          LOG(...PR('revert: no pending changes'));
-          LOG(...PR('   template', current(draft).template));
+          if (DBG) LOG(...PR('revert: no pending changes'));
+          if (DBG) LOG(...PR('- template', current(draft).template));
         }
         break;
       // submit is called by the MURSettingsEditor Save Changes button
@@ -154,7 +154,7 @@ function GetDispatcher() {
         // on submit, copy pending to template
         // immer handles object immutability
         if (draft.pending && draft.isDirty) {
-          LOG(...PR('submit changes', current(draft).changeSet));
+          if (DBG) LOG(...PR('submit changes', current(draft).changeSet));
           draft.template = JSON.parse(JSON.stringify(draft.pending));
           draft.pending = null;
           draft.isDirty = false;
@@ -162,15 +162,16 @@ function GetDispatcher() {
           // invoke save function passed in the action
           saveFunction(current(draft).template)
             .then((result: OpResult) => {
-              if (result.OK) LOG(...PR('submit: success', result));
-              else LOG(...PR('submit: error', result));
+              if (result.OK) {
+                if (DBG) LOG(...PR('submit: success', result));
+              } else if (DBG) LOG(...PR('submit: error', result));
             })
             .catch(err => {
-              LOG(...PR('submit: error', err));
+              if (DBG) LOG(...PR('submit: error', err));
             });
         } else {
-          LOG(...PR('submit: no pending changes'));
-          LOG(...PR('   template', current(draft).template));
+          if (DBG) LOG(...PR('submit: no pending changes'));
+          if (DBG) LOG(...PR('- template', current(draft).template));
         }
         break;
       default:

@@ -1,7 +1,19 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   React Settings Bridge
-  bridges the difference legacy netcreate modules and new settings manager
+  bridges the difference legacy netcreate modules and typescript modules
+  in the MUR subsystem (part of our long-term migration strategy)
+
+  TEMPLATE API
+
+  In NetCreate, AppState('TEMPLATE') is a settings object that is persisted
+  to disk. It is more than just a template, despite its name. It also contains
+  various definitions for UI and data construction.
+
+  STYLING OBJECTS
+
+  Provides css-in-js styling objects for use in the MUR components that have
+  been converted to (ugh) React
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -9,6 +21,7 @@ const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
 const UNISYS = require('unisys/client');
 const DATASTORE = require('system/datastore');
+const LOCKMGR = require('../lock-mgr');
 
 /// RUNTIME UNISYS HOOKS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,10 +149,66 @@ function GetUISettingsList(uiData) {
   return { globalsList, groupList };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Check if there are any pending changes in the settings object. */
+/** API: Check if there are any pending changes in the settings object,
+ *  (the TEMPLATE AppState) which is maintained by an immer draft.
+ *  This flag is is true while the dispatched state has a non-null
+ *  pending property (this is a copy of TEMPLATE). */
 function HasPendingChanges() {
-  // Check if there are any pending changes in the settings
   return Settings.HasPendingChanges();
+}
+
+/// LOCKING ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let m_client_has_lock = false; // true if we have a lock on the template
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Get the current lock state of the settings object, which covers
+ *  more than just the template. See IsTemplateLocked() for specifics */
+function GetLockState() {
+  return UDATA.AppState('LOCKSTATE') || { error: 'AppState LOCKSTATE undefined' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Check if the template should be considered "locked" based on the
+ *  the flags that are set by various components in NetCreate.*/
+function IsTemplateLocked(lockState = GetLockState()) {
+  const { templateBeingEdited } = lockState;
+  const { importActive, nodeOrEdgeBeingEdited } = lockState;
+  return templateBeingEdited || importActive || nodeOrEdgeBeingEdited;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Check if the template is locked by the current client. It's used by
+ *  child components to know whether to render or not. This implementation
+ *  works around the weak server locking mechanism */
+function IsTemplateLockedByUs() {
+  return m_client_has_lock;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Call when opening MURSettingsEditor. Naively assume it worked, because
+ *  the entire locking architecture is a mess and we don't have a way to
+ *  reliably detect lock authority. */
+async function LockTemplate() {
+  if (IsTemplateLocked()) return false;
+  const lockState = await LOCKMGR.RequestEditLock('template');
+  console.log('LockTemplate received', lockState);
+  m_client_has_lock = IsTemplateLocked(lockState);
+  return lockState.error === undefined;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Call when closing MURSettingsEditor. Naively assume it worked, because
+ *  the entire locking architecture is a mess and we don't have a way to
+ *  reliably detect lock authority. */
+async function ReleaseTemplate() {
+  if (!IsTemplateLocked()) return false;
+  const lockState = await LOCKMGR.RequestEditUnlock('template');
+  console.log('ReleaseTemplate received', lockState);
+  // the bugs in server lockign mean that the lockState is incorrect
+  // so we assume it worked if there is no error
+  if (lockState.error === undefined) {
+    console.log(...PR('ReleaseTemplate succeeded'));
+    m_client_has_lock = false;
+    return true;
+  }
+  console.log(...PR('ReleaseTemplate failed:', lockState.error));
+  return lockState.error === undefined;
 }
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
@@ -221,6 +290,13 @@ module.exports = {
   DecodeUIData, // setObj, dotProp => { value, ...uiData }
   GetUISettingsList, // uiData => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
+  // Locking API
+  GetLockState, // ()=>AppState('LOCKSTATE')
+  IsTemplateLocked, // return true if template considered "locked"
+  IsTemplateLockedByUs, // return true if this app instance has lock
+  LockTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
+  ReleaseTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
+  // PropDef and MetaDef helpers
   DecodeDotProp, // 'group.prop' => { groupName, propName }
   EncodeDotProp, // { groupName, propName } => 'group.prop'
   IsUIObj, // uobj => true if it has a type
@@ -228,7 +304,7 @@ module.exports = {
   // Styling API
   GetStyles,
   EventTargetOffsetStyle,
-  //
+  // Use these with React useEffect mount/unmount
   Subscribe,
   Unsubscribe
 };

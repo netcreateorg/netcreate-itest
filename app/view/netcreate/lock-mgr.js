@@ -113,34 +113,29 @@ function RequestUnlockEdge(edgeId, cb) {
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Generic Lock Request: editorType is defined in system/util/enum.js. For this
- *  call, 'template' or 'importer' are expected.
- *
- *  ALERT: The 'SRV_REQ_EDIT_LOCK' and related calls are highly weird and
- *  inconsistent in how they call each other across the server and network.
- *  Don't assume a simple MESSAGE => SINGLE OPERATION message flow.
- */
-function RequestEditLock(editorType, cb) {
-  if (cb)
-    UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: editorType }).then(data => {
-      if (typeof cb === 'function') cb(data);
-    });
-  else UDATA.NetSignal('SRV_REQ_EDIT_LOCK', { editor: editorType });
+/** Generic Lock Request: editor types is defined in system/util/enum.js. For this
+ *  call, 'template' or 'importer' are expected. */
+async function RequestEditLock(editor) {
+  if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
+    return {
+      error: `Skipped invalid editor ${editor} for edit lock request`
+    };
+  }
+  const status = await UDATA.Call('SRV_REQ_EDIT_LOCK', { editor });
+
+  return status;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Generic Unlock Request: editorType is defined in system/util/enum.js. For this
- *  call, 'template' or 'importer' are expected.
- *
- *  ALERT: The 'SRV_REQ_EDIT_LOCK' and related calls are highly weird and
- *  inconsistent in how they call each other across the server and network.
- *  Don't assume a simple MESSAGE => SINGLE OPERATION message flow.
- */
-function RequestEditUnlock(editorType, cb) {
-  if (cb)
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: editorType }).then(data => {
-      if (typeof cb === 'function') cb(data.locked);
-    });
-  else UDATA.NetSignal('SRV_RELEASE_EDIT_LOCK', { editor: editorType });
+ *  call, 'template' or 'importer' are expected. */
+async function RequestEditUnlock(editor) {
+  if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
+    return {
+      error: `Skipped invalid editor ${editor} for edit lock release`
+    };
+  }
+  const status = await UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor });
+  return status;
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////

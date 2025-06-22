@@ -66,10 +66,10 @@ const VIEWS = {
 function NCAdvancedPanel() {
   // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   // this completely bypasses the adminPassword checks //
-  // const [isOpen, setIsOpen] = useState(false);
-  // const [openTab, setOpenTab] = useState('importexport');
-  const [isOpen, setIsOpen] = useState(true);
-  const [openTab, setOpenTab] = useState('settings');
+  const [isOpen, setIsOpen] = useState(false);
+  const [openTab, setOpenTab] = useState('importexport');
+  // const [isOpen, setIsOpen] = useState(true);
+  // const [openTab, setOpenTab] = useState('settings');
   // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
@@ -105,8 +105,8 @@ function NCAdvancedPanel() {
       );
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
-    // HACK: disable admin password for prop-settings-2
     if (!DBG) setHasAdminPermissions(isAdmin);
+    // HACK: disable admin password for prop-settings-2
     else {
       console.log(
         '%c*** DBG Mode: AdminPassword Bypassed ***',
@@ -114,6 +114,7 @@ function NCAdvancedPanel() {
       );
       setHasAdminPermissions(true);
     }
+    // HACK END
 
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
     UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
