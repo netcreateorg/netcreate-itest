@@ -37,6 +37,7 @@ const { EDITORTYPE } = require('system/util/enum');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'lock-mgr: ';
+const LOG = console.log.bind(console);
 
 /// MODULE INITIALIZATION /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,19 +112,43 @@ function RequestUnlockEdge(edgeId, cb) {
     if (typeof cb === 'function') cb(data.locked);
   });
 }
+
+/// NEW TEMPLATE LOCKING SYSTEM ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Request a lock on the template being edited if it's available,
  *  using new lock manager system added in 2025. */
 async function RequestTemplateLock() {
-  const status = await UDATA.Call('SRV_REQ_TEMPLATE_LOCK');
-  return status;
+  const lockState = await UDATA.Call('SRV_REQ_TEMPLATE_LOCK');
+  const { success, uaddr, error, lockedBy } = lockState;
+  if (error) {
+    LOG(PR, 'LockTemplate failed:', lockState);
+    m_UpdateLockState({ templateBeingEdited: false });
+  } else if (success) {
+    LOG(PR, 'LockTemplate succeeded:', lockState);
+    m_UpdateLockState({ templateBeingEdited: true });
+  } else {
+    LOG(PR, 'LockTemplate returned unexpected state:', lockState);
+  }
+  return lockState;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Release the lock on the template being edited using new lock manager
  *  system added in 2025. */
 async function RequestTemplateUnlock() {
-  const status = await UDATA.Call('SRV_REQ_TEMPLATE_UNLOCK');
-  return status;
+  const lockState = await UDATA.Call('SRV_REQ_TEMPLATE_UNLOCK');
+  const { success, error } = lockState;
+  LOG(PR, 'RequestTemplateUnlock returned:', lockState);
+  if (error) {
+    LOG(PR, `error: ${error}`);
+    return lockState;
+  }
+  if (success) {
+    LOG(PR, 'UnlockTemplate succeeded:', lockState);
+    m_UpdateLockState({ templateBeingEdited: false });
+    return lockState;
+  }
+  LOG(PR, 'UnlockTemplate returned unexpected state:', lockState);
+  return lockState;
 }
 
 /// OLD TERRIBLE CALLS ////////////////////////////////////////////////////////
@@ -156,6 +181,8 @@ async function RequestEditUnlock(editor) {
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
+  RequestTemplateLock,
+  RequestTemplateUnlock,
   RequestLockNode,
   RequestUnlockNode,
   RequestLockEdge,

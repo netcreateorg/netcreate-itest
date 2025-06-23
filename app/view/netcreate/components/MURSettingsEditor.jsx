@@ -44,23 +44,16 @@ function MURSettingsEditor() {
   /// LOCKING ///
 
   React.useEffect(() => {
-    LOG(...PR('MURSettingsEditor mounted'));
-    RSB.LockTemplate().then(reqLockOK => {
-      setHasLock(reqLockOK);
-      LOG(...PR('Locking template on mount:', reqLockOK));
-    });
-    return () => {
-      LOG(...PR('MURSettingsEditor unmounted'));
-      if (hasLock) {
-        RSB.ReleaseTemplate().then(reqUnlockOK => {
-          if (!reqUnlockOK) {
-            LOG(...PR('Failed to unlock template on unmount'));
-          } else {
-            LOG(...PR('Unlocked template on unmount'));
-          }
-        });
+    (async () => {
+      if (await RSB.LockTemplate()) {
+        setHasLock(true);
+        LOG(...PR('Locking template on mount'));
+      } else {
+        setHasLock(false);
+        LOG(...PR('Failed to lock template on mount'));
       }
-    };
+    })();
+    return () => RSB.ReleaseTemplate();
   }, []); // empty dependency array means this runs once on mount
 
   /// HANDLERS ///

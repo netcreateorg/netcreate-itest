@@ -10,7 +10,7 @@
 /* added for pull request #81 so 'npm run lint' test appears clean */
 /* eslint-disable no-unused-vars */
 
-const DBG = false;
+const DBG = true;
 
 /// LOAD LIBRARIES ////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -47,10 +47,11 @@ let NODES; // loki "nodes" collection
 let EDGES; // loki "edges" collection
 let COMMENTS; // loki "comments" collection
 let READBY; // loki "readby" collection
+let TEMPLATE;
 let m_locked_nodes; // map key = nodeID, value = uaddr initiating the lock
 let m_locked_edges; // map key = edgeID, value = uaddr initiating the lock
 let m_locked_comments; // map key = commentID, value = uaddr initiating the lock
-let TEMPLATE;
+let m_template_locks; // set of uaddr that have locks on template setting editing
 let m_open_editors = []; // array of template, node, or edge editors
 /// formatting
 const BL = s => `\x1b[1;34m${s}\x1b[0m`;
@@ -237,6 +238,7 @@ async function m_LoadTemplate() {
   const data = FSE.readFileSync(TOMLPath, 'utf8');
   const json = TOML.parse(data);
   TEMPLATE = json;
+  m_template_locks = new Set(); // set of uaddr that have locks on template
   console.log(PR, 'Template loaded', BL(TOMLPath));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -708,7 +710,7 @@ DB.PKT_RequestLockNode = function (pkt) {
     return m_MakeLockError(`nodeID ${nodeID} is already locked`);
   // SUCCESS
   // single matching node exists and is not yet locked, so lock it
-  m_locked_nodes.set(nodeID, uaddr);
+  m_locked_nodes.add(uaddr);
   return { nodeID, locked: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -876,7 +878,9 @@ DB.PKT_RequestUnlockAll = function (pkt) {
  *  nodes and edges they had locked. */
 DB.UnlockByUADDR = function (uaddr) {
   m_locked_nodes.forEach((value, key) => {
-    if (value === uaddr) m_locked_nodes.delete(key);
+    if (value === uaddr) {
+      m_locked_nodes.delete(key);
+    }
   });
   m_locked_edges.forEach((value, key) => {
     if (value === uaddr) m_locked_edges.delete(key);
@@ -884,6 +888,10 @@ DB.UnlockByUADDR = function (uaddr) {
   m_locked_comments.forEach((value, key) => {
     if (value === uaddr) m_locked_comments.delete(key);
   });
+  if (m_template_locks.has(uaddr)) {
+    console.log(PR, `template lock ${uaddr}' released`);
+    m_template_locks.delete(uaddr);
+  }
 };
 
 /// NODE, EDGE, COMMENT UPDATE METHODS ////////////////////////////////////////
@@ -1504,6 +1512,43 @@ DB.WriteDbJSON = function (filePath) {
   });
 };
 
+/// TEMPLATE LOCKING METHODS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called by SRV_REQ_TEMPLATE_LOCK. Returns { error, success, uaddr,
+ *  lockedBy } */
+DB.PKT_RequestLockTemplate = pkt => {
+  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  const uaddr = pkt.s_uaddr;
+  if (m_template_locks.size > 0) {
+    const uaddrs = [...m_template_locks.keys()];
+    if (uaddrs.includes(pkt.s_uaddr)) return { success: true, uaddr: pkt.s_uaddr };
+    else
+      return {
+        error: `template already locked by ${uaddrs}`,
+        lockedBy: uaddrs,
+        uaddr
+      };
+  }
+  // if we're not locked, lock it!
+  m_template_locks.add(uaddr);
+  if (DBG) console.log(PR, `${uaddr} locked template`);
+  return { success: true, uaddr };
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called by SRV_REQ_TEMPLATE_UNLOCK. Returns { error, success, uaddr,
+ *  lockedBy } */
+DB.PKT_RequestUnlockTemplate = pkt => {
+  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  const uaddr = pkt.s_uaddr;
+  if (m_template_locks.has(uaddr)) {
+    m_template_locks.delete(uaddr);
+    if (DBG) console.log(PR, `${uaddr} unlocked template`);
+    return { success: true, uaddr };
+  }
+  const uaddrs = [...m_template_locks.keys()];
+  return { error: `template not locked by ${uaddr}`, lockedBy: uaddrs, uaddr };
+};
+
 /// TEMPLATE READ+WRITE METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by Template Editor and DB.WriteTemplateTOML */
@@ -1680,28 +1725,31 @@ DB.RequestEditLock = pkt => {
   return DB.GetEditStatus(pkt);
 };
 /**
- * Deregister a template, import, node or edge as being actively edited.
+ * Deregister a import, node or edge as being actively edited.
  * @param {Object} pkt
  * @param {string} pkt.editor - 'template', 'importer', 'node', 'edge', or 'comment'
  * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean }
+ * NOTE: 'template' is no longer handled here
  */
 DB.ReleaseEditLock = pkt => {
   const { editor } = pkt.Data();
   const i = m_open_editors.findIndex(e => e === editor);
   if (i > -1) {
-    console.log(
-      PR,
-      `ReleaseEditLock: ${editor} found in open editors`,
-      m_open_editors
-    );
+    if (DBG)
+      console.log(
+        PR,
+        `ReleaseEditLock: ${editor} found in open editors`,
+        m_open_editors
+      );
     m_open_editors.splice(i, 1);
-    console.log(PR, `ReleaseEditLock: open editors is now`, m_open_editors);
+    if (DBG) console.log(PR, `ReleaseEditLock: open editors is now`, m_open_editors);
   } else {
-    console.warn(
-      PR,
-      `ReleaseEditLock: ${editor} not found in open editors`,
-      m_open_editors
-    );
+    if (DBG)
+      console.warn(
+        PR,
+        `ReleaseEditLock: ${editor} not found in open editors`,
+        m_open_editors
+      );
   }
   return DB.GetEditStatus(pkt);
 };

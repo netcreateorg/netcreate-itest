@@ -164,6 +164,18 @@ UNISYS.RegisterHandlers = () => {
     return UDB.PKT_UpdateDatabase(pkt);
   });
 
+  /// TEMPLATE LOCKING //////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  UNET.HandleMessage('SRV_REQ_TEMPLATE_LOCK', function (pkt) {
+    const lockResult = UDB.PKT_RequestLockTemplate(pkt);
+    return lockResult;
+  });
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  UNET.HandleMessage('SRV_REQ_TEMPLATE_UNLOCK', function (pkt) {
+    const unlockResult = UDB.PKT_RequestUnlockTemplate(pkt);
+    return unlockResult;
+  });
+
   /// NODE & EDGE EDITING ///////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** receives a packet from a client */

@@ -175,40 +175,25 @@ function IsTemplateLocked(lockState = GetLockState()) {
   return templateBeingEdited || importActive || nodeOrEdgeBeingEdited;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Check if the template is locked by the current client. It's used by
- *  child components to know whether to render or not. This implementation
- *  works around the weak server locking mechanism */
-function IsTemplateLockedByUs() {
-  return m_client_has_lock;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Call when opening MURSettingsEditor. Naively assume it worked, because
- *  the entire locking architecture is a mess and we don't have a way to
- *  reliably detect lock authority. */
+/** API: Call when opening MURSettingsEditor.LockManager sets AppState
+ *  for LOCKSTATE. Return true if successful lock */
 async function LockTemplate() {
-  if (IsTemplateLocked()) return false;
-  const lockState = await LOCKMGR.RequestEditLock('template');
-  console.log('LockTemplate received', lockState);
-  m_client_has_lock = IsTemplateLocked(lockState);
-  return lockState.error === undefined;
+  const lockState = await LOCKMGR.RequestTemplateLock();
+  const { success, error, lockedBy } = lockState;
+  if (error) return false;
+  if (success) return true;
+  throw Error('LockTemplate: unexpected lock state');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Call when closing MURSettingsEditor. Naively assume it worked, because
  *  the entire locking architecture is a mess and we don't have a way to
  *  reliably detect lock authority. */
 async function ReleaseTemplate() {
-  if (!IsTemplateLocked()) return false;
-  const lockState = await LOCKMGR.RequestEditUnlock('template');
-  console.log('ReleaseTemplate received', lockState);
-  // the bugs in server lockign mean that the lockState is incorrect
-  // so we assume it worked if there is no error
-  if (lockState.error === undefined) {
-    console.log(...PR('ReleaseTemplate succeeded'));
-    m_client_has_lock = false;
-    return true;
-  }
-  console.log(...PR('ReleaseTemplate failed:', lockState.error));
-  return lockState.error === undefined;
+  const lockState = await LOCKMGR.RequestTemplateUnlock();
+  const { success, error } = lockState;
+  if (error) return false;
+  if (success) return true;
+  throw Error('UnlockTemplate: unexpected lock state');
 }
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
@@ -293,7 +278,6 @@ module.exports = {
   // Locking API
   GetLockState, // ()=>AppState('LOCKSTATE')
   IsTemplateLocked, // return true if template considered "locked"
-  IsTemplateLockedByUs, // return true if this app instance has lock
   LockTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   ReleaseTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   // PropDef and MetaDef helpers
