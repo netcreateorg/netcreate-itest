@@ -874,7 +874,7 @@ DB.PKT_RequestUnlockAll = function (pkt) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by server-network when a client disconnects we want to unlock any
  *  nodes and edges they had locked. */
-DB.RequestUnlock = function (uaddr) {
+DB.UnlockByUADDR = function (uaddr) {
   m_locked_nodes.forEach((value, key) => {
     if (value === uaddr) m_locked_nodes.delete(key);
   });
