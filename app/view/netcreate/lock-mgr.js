@@ -111,10 +111,25 @@ function RequestUnlockEdge(edgeId, cb) {
     if (typeof cb === 'function') cb(data.locked);
   });
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Generic Lock Request: editor types is defined in system/util/enum.js. For this
- *  call, 'template' or 'importer' are expected. */
+/** API: Request a lock on the template being edited if it's available,
+ *  using new lock manager system added in 2025. */
+async function RequestTemplateLock() {
+  const status = await UDATA.Call('SRV_REQ_TEMPLATE_LOCK');
+  return status;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Release the lock on the template being edited using new lock manager
+ *  system added in 2025. */
+async function RequestTemplateUnlock() {
+  const status = await UDATA.Call('SRV_REQ_TEMPLATE_UNLOCK');
+  return status;
+}
+
+/// OLD TERRIBLE CALLS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Generic Lock Request: editor types is defined in system/util/enum.js.
+ *  For this call, 'template' or 'importer' are expected. */
 async function RequestEditLock(editor) {
   if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
     return {
@@ -126,8 +141,8 @@ async function RequestEditLock(editor) {
   return status;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Generic Unlock Request: editorType is defined in system/util/enum.js. For this
- *  call, 'template' or 'importer' are expected. */
+/** Generic Unlock Request: editorType is defined in system/util/enum.js.
+ *  For this call, 'template' or 'importer' are expected. */
 async function RequestEditUnlock(editor) {
   if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
     return {

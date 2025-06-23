@@ -239,7 +239,6 @@ async function m_LoadTemplate() {
   TEMPLATE = json;
   console.log(PR, 'Template loaded', BL(TOMLPath));
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Updated Migrate Template - WARNING
  *  The original m_MigrateTemplate() uses a lot of indirection and references
@@ -320,7 +319,6 @@ function m_MigrateTemplate() {
   // Migrate 1.5 to 2.0 Template Version
   T._schemaVersion = '2.0';
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Validate Template File
     Lazy check of template object definitions to make sure they are of
@@ -422,7 +420,6 @@ function m_ValidateTemplate() {
     console.error('Error loading template `', templateFileName, '`::::', error);
   }
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: load database
  *  note: InitializeDataset() was already called on system initialization
@@ -600,6 +597,8 @@ DB.PKT_ReplaceDatabase = function (pkt) {
   LOGGER.WriteRLog(pkt.InfoObj(), `replacedatabase`);
   return { OK: true };
 };
+
+/// ID HELPER FUNCTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// WARN: Side Effect: Changes `m_max_nodeID`
 function m_CalculateMaxNodeID() {
@@ -696,6 +695,8 @@ function m_CalculateMaxCommentID() {
   }
   return m_max_commentID;
 }
+
+/// NODE LOCKING METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockNode = function (pkt) {
   let { nodeID } = pkt.Data();
@@ -755,6 +756,8 @@ function m_IsInvalidNode(nodeID) {
 function m_MakeLockError(info) {
   return { NOP: `ERR`, INFO: info };
 }
+
+/// EDGE LOCKING METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockEdge = function (pkt) {
   let { edgeID } = pkt.Data();
@@ -810,6 +813,8 @@ function m_IsInvalidEdge(edgeID) {
   // no retval is no error!
   return undefined;
 }
+
+/// COMMENT LOCKING ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockComment = function (pkt) {
   let { commentID } = pkt.Data();
@@ -841,6 +846,8 @@ DB.PKT_IsCommentLocked = function (pkt) {
   const isLocked = m_locked_comments.has(commentID);
   return { commentID, locked: isLocked };
 };
+
+/// UNLOCK ALL METHODS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAllNodes = function (pkt) {
   m_locked_nodes = new Map();
@@ -878,6 +885,8 @@ DB.RequestUnlock = function (uaddr) {
     if (value === uaddr) m_locked_comments.delete(key);
   });
 };
+
+/// NODE, EDGE, COMMENT UPDATE METHODS ////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // eslint-disable-next-line complexity
 DB.PKT_Update = function (pkt) {
@@ -1360,7 +1369,7 @@ function m_CommentUpdate(comment, pkt) {
     retval = { op: 'error-multinodeid' };
   }
   return retval;
-} // if comment
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CommentRemove(commentID, pkt) {
   if (DBG) console.log(PR, `PKT_Update ${pkt.Info()} DELETE commentID ${commentID}`);
@@ -1386,6 +1395,7 @@ DB.AppendNodeLog = function (node, pkt) {
     console.log(PR, 'nodelog', out);
   }
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.FilterNodeLog = function (node) {
   let newNode = Object.assign({}, node);
   Reflect.deleteProperty(newNode, '_nlog');
@@ -1413,6 +1423,7 @@ DB.FilterEdgeLog = function (edge) {
   Reflect.deleteProperty(newEdge, '_elog');
   return newEdge;
 };
+
 /// COMMENT ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the comment before writing
@@ -1434,6 +1445,7 @@ DB.FilterCommentLog = function (comment) {
   Reflect.deleteProperty(newComment, '_nlog');
   return newComment;
 };
+
 /// READBY ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the readby before writing
@@ -1491,9 +1503,10 @@ DB.WriteDbJSON = function (filePath) {
     }
   });
 };
+
+/// TEMPLATE READ+WRITE METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** called by Template Editor and DB.WriteTemplateTOML
- */
+/** called by Template Editor and DB.WriteTemplateTOML */
 function m_GetTemplateTOMLFileName() {
   return NC_CONFIG.dataset + TEMPLATE_EXT;
 }
@@ -1693,8 +1706,8 @@ DB.ReleaseEditLock = pkt => {
   return DB.GetEditStatus(pkt);
 };
 
-/// UTILITIES FOR LOADING DATA ///
-
+/// HELPER UTILITIES FOR LOADING DATA /////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Migrates old network data to new formats based on the template defintion.
  *  This will automatically migrate any field/property that is marked `isRequired`
  *  and has a `defaultValue` defined.
