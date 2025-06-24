@@ -238,7 +238,9 @@ async function m_LoadTemplate() {
   const data = FSE.readFileSync(TOMLPath, 'utf8');
   const json = TOML.parse(data);
   TEMPLATE = json;
-  m_template_locks = new Set(); // set of uaddr that have locks on template
+  // don't clear the locks of a reload of template happens post-init
+  if (m_template_locks === undefined) m_template_locks = new Set();
+
   console.log(PR, 'Template loaded', BL(TOMLPath));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
