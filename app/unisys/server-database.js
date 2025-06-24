@@ -10,7 +10,7 @@
 /* added for pull request #81 so 'npm run lint' test appears clean */
 /* eslint-disable no-unused-vars */
 
-const DBG = true;
+const DBG = false;
 
 /// LOAD LIBRARIES ////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1531,7 +1531,7 @@ DB.PKT_RequestLockTemplate = pkt => {
   }
   // if we're not locked, lock it!
   m_template_locks.add(uaddr);
-  if (DBG) console.log(PR, `${uaddr} locked template`);
+  console.log(PR, `${uaddr} locked template`);
   return { success: true, uaddr };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1542,7 +1542,7 @@ DB.PKT_RequestUnlockTemplate = pkt => {
   const uaddr = pkt.s_uaddr;
   if (m_template_locks.has(uaddr)) {
     m_template_locks.delete(uaddr);
-    if (DBG) console.log(PR, `${uaddr} unlocked template`);
+    console.log(PR, `${uaddr} unlocked template`);
     return { success: true, uaddr };
   }
   const uaddrs = [...m_template_locks.keys()];
