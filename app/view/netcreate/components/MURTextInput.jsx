@@ -40,7 +40,6 @@ function TextInput(props) {
   // we need the useEffect() to work around it
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
-  const [oldStyle, setOldStyle] = React.useState({ ...popupStyle });
   const templateValue = value || defValue;
   const [inputValue, setInputValue] = React.useState(value || defValue);
 
@@ -96,25 +95,6 @@ function TextInput(props) {
     }
   };
 
-  // hovering over a changed input will show the old value
-  const showOldValue = event => {
-    const content = inputValue || '';
-    if (inputValue === templateValue) {
-      setOldStyle({ ...popupStyle, content });
-      return;
-    } else if (event.type === 'mouseover') {
-      const offset = RSB.EventTargetOffsetStyle(event);
-      setOldStyle({
-        ...popupStyle,
-        ...offset,
-        display: 'block',
-        content
-      });
-    } else if (event.type === 'mouseout') {
-      setOldStyle({ ...popupStyle });
-    }
-  };
-
   /// RENDER ///
 
   // conditional flags based on templateValue =value || defValue;
@@ -136,8 +116,6 @@ function TextInput(props) {
       onKeyDown={handleEnterKey}
       onBlur={submitToSettings}
       onChange={handleTyping}
-      onMouseOver={showOldValue}
-      onMouseOut={showOldValue}
       disabled={!hasLock}
     />
   ) : (
@@ -156,10 +134,6 @@ function TextInput(props) {
       </label>
       {InputField}
       {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
-      <div style={oldStyle}>
-        <span style={{ opacity: 0.5 }}>old value: </span>
-        {inputValue}
-      </div>
     </div>
   );
 }
