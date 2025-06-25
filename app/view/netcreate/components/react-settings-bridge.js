@@ -259,7 +259,7 @@ function EventTargetOffsetStyle(event) {
     : { left: '0px', top: '0px' };
   return {
     left: `${rect.left - advRect.left}px`,
-    top: `${rect.top + window.scrollY + rect.height + 2}px`
+    top: `${rect.top - advRect.top + rect.height + 4}px`
   };
 }
 
