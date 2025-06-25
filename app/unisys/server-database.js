@@ -244,12 +244,11 @@ async function m_LoadTemplate() {
   console.log(PR, 'Template loaded', BL(TOMLPath));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Updated Migrate Template - WARNING
- *  The original m_MigrateTemplate() uses a lot of indirection and references
- *  an "unused" module called "template-schema.js" that wass very much used */
+/** Migrate the in-memory TEMPLATE object to latest schema version. These
+ *  changes are not persisted unless the template is saved through the UI. */
 function m_MigrateTemplate() {
   //
-  const T = TEMPLATE; // mirroring original hacky approach
+  const T = TEMPLATE;
   const EDF = T.edgeDefs;
   const NDF = T.nodeDefs;
   const nset = prop => prop === undefined;
@@ -322,14 +321,40 @@ function m_MigrateTemplate() {
 
   // Migrate 1.5 to 2.0 Template Version
   T._schemaVersion = '2.0';
+
+  // Migrate 2.0 to 2.1 - Add missing _ui defaults from _default.template.toml
+  // Load the default template to get _ui defaults
+  T._schemaVersion = '2.1';
+  const defaultTemplatePath = m_DefaultTemplatePath();
+  if (FSE.existsSync(defaultTemplatePath)) {
+    try {
+      const defaultTemplateContent = FSE.readFileSync(defaultTemplatePath, 'utf8');
+      const defaultTemplate = TOML.parse(defaultTemplateContent);
+
+      // Copy _ui defaults if they don't exist in current template
+      if (defaultTemplate._ui) {
+        if (nset(T._ui)) T._ui = {};
+
+        // Deep merge _ui section from default template
+        Object.keys(defaultTemplate._ui).forEach(key => {
+          if (nset(T._ui[key])) {
+            T._ui[key] = defaultTemplate._ui[key];
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(
+        PR,
+        'Failed to load default template for _ui migration:',
+        err.message
+      );
+    }
+  }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Validate Template File
-    Lazy check of template object definitions to make sure they are of
-    expected types and values so the UI doesn't choke and die. Throws an error
-    if property is missing.
- */
-// eslint-disable-next-line complexity
+/** Validate Template Object. This checks that the in-memory TEMPLATE object has
+ *  expected values and types and throws errors for showstopping discrepancies.
+ *  Note that this does not actually persist the template back to disk. */
 function m_ValidateTemplate() {
   try {
     // 1. Validate built-in fields
@@ -349,8 +374,8 @@ function m_ValidateTemplate() {
       throw 'Missing `edgeDefs.target` label=' + edgeDefs.target;
 
     // 2. Validate deprecated fields
-    //    `TEMPLATE.version` was added after 2.0.
-    if (!TEMPLATE.version) {
+    //    `TEMPLATE._schemaVersion` was added after 2.0.
+    if (!TEMPLATE._schemaVersion) {
       // nodeDefs
       if (nodeDefs.type === undefined)
         throw 'Missing `nodeDefs.type` type= ' + nodeDefs.type;
@@ -415,9 +440,28 @@ function m_ValidateTemplate() {
         throw 'Missing `edgeDefs.category` info=' + edgeDefs.category;
     } else {
       // Placeholder for future version checks
-      // if (TEMPLATE.version <= "2.0") {
+      // if (TEMPLATE._schemaVersion <= "2.0") {
       //   // do something
       // }
+    }
+
+    // 3. Validate _ui section (v2.1+)
+    if (TEMPLATE._ui === undefined) {
+      console.warn(
+        PR,
+        'Missing `_ui` section in template. UI field definitions will not be available.'
+      );
+    } else {
+      // Check for core _ui field definitions that should be present
+      const coreUIFields = ['name', 'description', 'secretKey', 'adminPassword'];
+      coreUIFields.forEach(field => {
+        if (TEMPLATE._ui[field] === undefined) {
+          console.warn(
+            PR,
+            `Missing _ui definition for core field '${field}'. Default UI behavior will be used.`
+          );
+        }
+      });
     }
   } catch (error) {
     const templateFileName = m_GetTemplateTOMLFilePath();
