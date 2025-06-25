@@ -86,7 +86,7 @@ function MURSettingsEditor() {
         Revert Changes
       </button>
       &nbsp;
-      <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
+      <button style={opBtnStyle} onClick={() => setShowToDo(!showToDo)}>
         {showToDo ? 'ShowWIP' : 'ShowToDo'}
       </button>
     </div>
