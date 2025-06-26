@@ -336,11 +336,16 @@ function m_MigrateTemplate() {
         if (nset(T._ui)) T._ui = {};
 
         // Deep merge _ui section from default template
-        Object.keys(defaultTemplate._ui).forEach(key => {
-          if (nset(T._ui[key])) {
-            T._ui[key] = defaultTemplate._ui[key];
-          }
-        });
+        const u_conditionalMerge = (target, source) => {
+          Object.keys(source).forEach(key => {
+            if (nset(target[key])) {
+              target[key] = source[key];
+            } else if (typeof source[key] === 'object' && typeof target[key] === 'object') {
+              u_conditionalMerge(target[key], source[key]);
+            }
+          });
+        };
+        u_conditionalMerge(T._ui, defaultTemplate._ui);
       }
     } catch (err) {
       console.warn(
