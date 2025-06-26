@@ -75,6 +75,26 @@ function EncodeDotProp(groupName, propName) {
   return Settings.EncodeDotProp(groupName, propName);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: Translate legacy definition properties to _ui format */
+function m_TranslateLegacyDefinition(setObj, groupName, propName, value) {
+  // handle legacy nodeDefs and edgeDefs
+  if (groupName === 'nodeDefs' || groupName === 'edgeDefs') {
+    const legacyProp = setObj[groupName][propName];
+    if (legacyProp && typeof legacyProp === 'object') {
+      return {
+        groupName,
+        propName,
+        value,
+        type: legacyProp.type || 'string',
+        label: legacyProp.displayLabel,
+        tooltip: legacyProp.help,
+        help: legacyProp.help
+      };
+    }
+  }
+  return null; // no translation available
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a settings object and dotProp, return all UI-relevant
  *  data. The settings object could be TEMPLATE or from React Context value.
  *  Since this is a legacy codebase, we don't have access to ?. operators */
@@ -82,18 +102,22 @@ function DecodeUIData(setObj, dotProp) {
   const fn = 'DecodeUIData:';
   if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
   if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
+
   const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
-  // determine value stored in the settings object
   const setUI = setObj._ui || setObj; // _ui is not present for legacy props
-  let value;
-  let uiData;
+
   if (groupName === undefined) {
     // case 1: no groupName, just propName
-    value = setObj[propName];
+    const value = setObj[propName];
     if (value === undefined) return { value, error: `no value for ${dotProp}` };
     if (!setUI || !setUI[propName])
-      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
-    uiData = setUI[propName];
+      return {
+        groupName: undefined,
+        propName,
+        value,
+        error: `no UI data for ${dotProp}`
+      };
+    const uiData = setUI[propName];
     return { value, ...uiData };
   } else {
     // case 2: groupName and propName
@@ -103,11 +127,19 @@ function DecodeUIData(setObj, dotProp) {
     ) {
       return { value: undefined, error: `no value for ${dotProp}` };
     }
-    value = setObj[groupName][propName];
+
+    const value = setObj[groupName][propName];
     if (!setUI || !setUI[groupName] || !setUI[groupName][propName]) {
+      const legacyTranslation = m_TranslateLegacyDefinition(
+        setObj,
+        groupName,
+        propName,
+        value
+      );
+      if (legacyTranslation) return legacyTranslation;
       return { groupName, propName, value, error: `no UI data for ${dotProp}` };
     }
-    uiData = setUI[groupName][propName];
+    const uiData = setUI[groupName][propName];
     return { groupName, propName, value, ...uiData };
   }
 }

@@ -179,6 +179,7 @@ includeInGraphTooltip = true
 hidden = false
 
 [nodeDefs.revision]
+type = "string"
 displayLabel = "Revision"
 exportLabel = "Revision"
 help = "Number of times this node has been revised"

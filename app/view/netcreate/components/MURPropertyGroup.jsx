@@ -56,7 +56,7 @@ function PropertyGroup(props) {
   }
   // for all other groups, just copy the uiData into propsData
   else {
-    propsData = uiData[groupName] || draft.template[groupName] || {};
+    propsData = { ...(uiData[groupName] || draft.template[groupName] || {}) };
     LOG(...PR(`PropertyGroup: groupName=${groupName}`, propsData));
     propsData._src = groupName;
     propNames = Object.keys(propsData).filter(p => p.startsWith('_') === false);
