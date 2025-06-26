@@ -50,7 +50,7 @@ tooltip = "Unique keys make tokens unique even with same group and project"
 help = "Change the key to make login tokens unique to a graph"
 
 [_ui.adminPassword]
-type = "password"
+type = "string"
 label = "Admin Password"
 tooltip = "Set the admin password for the graph"
 help = "This password protects access to the Advanced Settings Panel"
