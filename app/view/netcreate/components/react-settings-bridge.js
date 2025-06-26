@@ -76,23 +76,22 @@ function EncodeDotProp(groupName, propName) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Translate legacy definition properties to _ui format */
-function m_TranslateLegacyDefinition(setObj, groupName, propName, value) {
+function m_TranslateLegacyDefinition(setObj, groupName, propName) {
   // handle legacy nodeDefs and edgeDefs
   if (groupName === 'nodeDefs' || groupName === 'edgeDefs') {
     const legacyProp = setObj[groupName][propName];
-    if (legacyProp && typeof legacyProp === 'object') {
-      return {
-        groupName,
-        propName,
-        value,
-        type: legacyProp.type || 'string',
-        label: legacyProp.displayLabel,
-        tooltip: legacyProp.help,
-        help: legacyProp.help
-      };
-    }
+    if (typeof legacyProp !== 'object')
+      return { error: `${groupName}.${propName} not found` };
+    return {
+      groupName,
+      propName,
+      value: 'to-be-translated', // placeholder, not used in legacy
+      type: legacyProp.type || 'string',
+      label: legacyProp.displayLabel,
+      tooltip: legacyProp.help,
+      help: legacyProp.help
+    };
   }
-  return null; // no translation available
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a settings object and dotProp, return all UI-relevant
@@ -104,43 +103,42 @@ function DecodeUIData(setObj, dotProp) {
   if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
 
   const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
-  const setUI = setObj._ui || setObj; // _ui is not present for legacy props
+  const metaSource =
+    setObj._ui || // _ui metadata
+    setObj || // legacy settings only
+    {}; // safety fallback
 
   if (groupName === undefined) {
-    // case 1: no groupName, just propName
-    const value = setObj[propName];
-    if (value === undefined) return { value, error: `no value for ${dotProp}` };
-    if (!setUI || !setUI[propName])
+    /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+    if (!setObj[propName]) return { value, error: `no value for ${dotProp}` };
+    // metaSource might not have UIdata available for this propName, but return value
+    if (!metaSource[propName])
       return {
         groupName: undefined,
         propName,
-        value,
+        value: setObj[propName],
         error: `no UI data for ${dotProp}`
       };
-    const uiData = setUI[propName];
-    return { value, ...uiData };
+    // if it does, return the ui data!
+    const uiData = metaSource[propName];
+    return { value: setObj[propName], ...uiData };
   } else {
-    // case 2: groupName and propName
-    if (
-      setObj[groupName] === undefined ||
-      setObj[groupName][propName] === undefined
-    ) {
-      return { value: undefined, error: `no value for ${dotProp}` };
-    }
-
-    const value = setObj[groupName][propName];
-    if (!setUI || !setUI[groupName] || !setUI[groupName][propName]) {
-      const legacyTranslation = m_TranslateLegacyDefinition(
-        setObj,
+    /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
+    if (setObj[groupName] === undefined)
+      return { value: undefined, error: `group data missing for ${dotProp}` };
+    if (setObj[groupName][propName] === undefined)
+      return { value: undefined, error: `prop data missing for ${dotProp}` };
+    // in this case we have to check for uidata or legacy definitions
+    // is there uidata in metaSource?
+    if (metaSource[groupName] && metaSource[groupName][propName])
+      return {
         groupName,
         propName,
-        value
-      );
-      if (legacyTranslation) return legacyTranslation;
-      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
-    }
-    const uiData = setUI[groupName][propName];
-    return { groupName, propName, value, ...uiData };
+        value: setObj[groupName][propName],
+        ...metaSource[groupName][propName]
+      };
+    // otherwise, we're dealing with legacy definitions
+    return m_TranslateLegacyDefinition(setObj, groupName, propName);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
