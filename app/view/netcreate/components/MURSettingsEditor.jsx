@@ -39,7 +39,9 @@ function MURSettingsEditor() {
   const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
   const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
   const value = { hasLock, draft, dispatch };
+  // for use only by properties that use the _ui metadata
   const { globalsList, groupList } = RSB.GetUISettingsList(draft.template._ui);
+  const nodeDefGroup = draft.template.nodeDefs || {};
 
   /// LOCKING ///
 
@@ -95,7 +97,7 @@ function MURSettingsEditor() {
   );
 
   // note: template global settings not grouped, so prepend as special case group=""
-  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
+  const GroupList = [<PropertyGroup groupName="nodeDefs" key="nodeDefs" />];
   GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
 
   //

@@ -84,7 +84,7 @@ function DecodeUIData(setObj, dotProp) {
   if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
   const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
   // determine value stored in the settings object
-  const setUI = setObj._ui;
+  const setUI = setObj._ui || setObj; // _ui is not present for legacy props
   let value;
   let uiData;
   if (groupName === undefined) {

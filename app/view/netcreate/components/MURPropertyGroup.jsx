@@ -18,10 +18,10 @@ const PR = ConsoleStyler('PGroup', 'TagBlue');
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GroupHeader(props) {
-  const { label } = props;
+  const { propLabel } = props;
   return (
     <span>
-      <b>{label}</b>
+      <b>{propLabel}</b>
     </span>
   );
 }
@@ -51,36 +51,65 @@ function PropertyGroup(props) {
     if (uiData._editor && uiData._editor.global) {
       propsData._editor = uiData._editor.global;
     } else {
-      propsData._editor = { label: '<editor global>', description: '' };
+      propsData._editor = { propLabel: '<editor global>', description: '' };
     }
   }
   // for all other groups, just copy the uiData into propsData
   else {
-    propsData = uiData[groupName] || {};
+    propsData = uiData[groupName] || draft.template[groupName] || {};
+    LOG(...PR(`PropertyGroup: groupName=${groupName}`, propsData));
     propsData._src = groupName;
-    propNames = Object.keys(uobj).filter(RSB.IsUIGroup(uobj));
+    propNames = Object.keys(propsData).filter(p => p.startsWith('_') === false);
   }
 
   // look for title in propsData or _editor.global
   const metadata = propsData[groupName] || propsData._editor || {};
-  const grpTitle = metadata.label || groupName.toUpperCase() || '<title not set>';
+  const grpTitle = metadata.propLabel || groupName.toUpperCase() || '<title not set>';
   const grpDesc = metadata.description || '';
   const key = `pg-${groupName}`;
 
   /// RENDER ///
 
+  const PropertyList = propNames.map(p => {
+    const propDef = RSB.EncodeDotProp(groupName, p);
+    const inputKey = `in-${propDef}`;
+    const pd = propsData[p] || {};
+    const propType = pd.type || 'unknown';
+    if (propType === undefined) {
+      LOG(`%cpropDef=${propDef} is missing 'type' property`, 'color: red');
+    }
+    const propLabel = pd.propLabel || pd.displayLabel || 'unknown';
+    switch (propType) {
+      case 'text':
+      case 'string':
+        return <TextInput propDef={propDef} key={inputKey} />;
+      case 'number':
+      case 'integer':
+      case 'boolean':
+      case 'password':
+      case 'select':
+      case 'timestamp':
+        LOG(...PR(`Rendering ${propType} for property ${p}`), pd);
+        return (
+          <div key={inputKey}>
+            {propLabel}
+            <div style={{ float: 'right' }}>[input-{propType}]</div>
+          </div>
+        );
+      default:
+        LOG(...PR(`Unsupported type ${propType} for property ${p}`));
+        return <p key={inputKey}>Unsupported type: {propType}</p>;
+    }
+  });
+
   return (
     <div key={key} style={{ margin: '1rem' }}>
       <details open>
         <summary>
-          <GroupHeader label={grpTitle} />
+          <GroupHeader propLabel={grpTitle} />
         </summary>
         {grpDesc && <p style={{ color: 'gray', fontStyle: 'italic' }}>{grpDesc}</p>}
-        {propNames.map(p => {
-          const propDef = RSB.EncodeDotProp(groupName, p);
-          const inputKey = `in-${propDef}`;
-          return <TextInput propDef={propDef} key={inputKey} />;
-        })}
+        {PropertyList}
       </details>
     </div>
   );

@@ -52,7 +52,7 @@ import URPopover from './URPopover';
 const UDATAOwner = { name: 'NCAdvancedPanel' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const VIEWS = {
   template: 'Template',
   importexport: 'Import/Export',
