@@ -32,7 +32,8 @@ const MUR = require('ursys-min');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// When the DOM is loaded, initialize UNISYS
 document.addEventListener('DOMContentLoaded', () => {
-  console.groupCollapsed('init.jsx bootstrap');
+  // HACK MAKE SURE TO COLLAPSE BEFORE PR SUBMISSION
+  console.group('init.jsx bootstrap');
   console.log(
     '%cINIT %cDOMContentLoaded. Starting UNISYS Lifecycle!',
     'color:blue',
@@ -106,10 +107,6 @@ function m_SetLifecycleScope() {
 function m_RenderApp() {
   if (DBG)
     console.log('%cINIT %cReactDOM.render() begin', 'color:blue', 'color:auto');
-
-  // declare web components for MUR
-  MUR.ViewLib.DeclareComponents();
-  //
 
   return new Promise((resolve, reject) => {
     try {

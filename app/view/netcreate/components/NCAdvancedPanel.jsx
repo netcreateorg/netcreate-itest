@@ -64,8 +64,13 @@ const VIEWS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
+  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
+  // this completely bypasses the adminPassword checks //
   const [isOpen, setIsOpen] = useState(false);
   const [openTab, setOpenTab] = useState('importexport');
+  // const [isOpen, setIsOpen] = useState(true);
+  // const [openTab, setOpenTab] = useState('settings');
+  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
@@ -100,7 +105,16 @@ function NCAdvancedPanel() {
       );
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
-    setHasAdminPermissions(isAdmin);
+    if (!DBG) setHasAdminPermissions(isAdmin);
+    // HACK: disable admin password for prop-settings-2
+    else {
+      console.log(
+        '%c*** DBG Mode: AdminPassword Bypassed ***',
+        'color: red; font-weight: bold;'
+      );
+      setHasAdminPermissions(true);
+    }
+    // HACK END
 
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
     UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
@@ -154,9 +168,7 @@ function NCAdvancedPanel() {
   let adminStatus;
   if (hasAdminPermissions === undefined) {
     adminStatus = <span>Admin Mode Disabled</span>;
-    console.error(
-      '"adminPassword" has not been defined in template!  You will not be able to access admin features.  Add a "adminPassword" property to the template to enable admin features.'
-    );
+    console.log(`NOTE: "adminPassword" is not set (premature mount?)`);
   } else if (hasAdminPermissions === false)
     adminStatus = (
       <label>

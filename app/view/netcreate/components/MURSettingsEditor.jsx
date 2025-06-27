@@ -1,144 +1,110 @@
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Property Editor Panel
-  (test replacement `NCTemplate.jsx`)
+  (replacement for deprecated `NCTemplate.jsx`)
 
-  Requires that init.jsx has called UR.ViewLib.DeclareComponents() to make
-  custom web components available _before_ React renders anything.
+  Concept: This design assumes "Property Groups" that contain "Properties"
+  in a data object, which is different than how TEMPLATE is organized.
+  The MURSettingsEditor figures out what Property Groups are available,
+  and writes PropertyGroup components that themselves render the specific
+  Input components for each property.
+
+  Unfortunately, React itself does not lend itself to this kind of top-
+  down data sharing, so we have to jump through hoops to make it work
+  through various hooks and context providers.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
+// components
 const PropertyGroup = require('./MURPropertyGroup');
-const { diff } = require('deep-object-diff');
+const ToDoList = require('./MURSettingsToDo');
+const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const PR = ConsoleStyler('SetEdit', 'TagBlue');
+const PR = ConsoleStyler('SEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a react context object, providing access to the values prop of the
- *  SettingsProvider. It has to be defined within the React App root */
-const SettingsContext = RSB.GetSettingsContext(); // get the settings context
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
-  const api = RSB.useSettings();
-  const [oldState, saveOldState] = React.useState(api.lastSettingsUpdate);
-  const [showToDo, setShowToDo] = React.useState(true);
+  /// SETUP ///
 
-  function saveChanges() {
-    saveOldState(api.lastSettingsUpdate);
-    LOG(...PR('would save changes'));
-  }
+  const initialState = { template: RSB.GetTemplate() };
+  const [showToDo, setShowToDo] = React.useState(false);
+  const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
+  const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
+  const value = { hasLock, draft, dispatch };
+  const { globalsList, groupList } = RSB.GetUISettingsList(draft.template._ui);
+
+  /// LOCKING ///
+
+  React.useEffect(() => {
+    (async () => {
+      if (await RSB.LockTemplate()) {
+        setHasLock(true);
+        LOG(...PR('Locking template on mount'));
+      } else {
+        setHasLock(false);
+        LOG(...PR('Failed to lock template on mount'));
+      }
+    })();
+    return () => RSB.ReleaseTemplate();
+  }, []); // empty dependency array means this runs once on mount
+
+  /// HANDLERS ///
 
   function revertChanges() {
-    LOG(...PR('would revert changes'));
+    dispatch({ op: 'revert' });
   }
 
-  const propDefs = RSB.GetPropertyDefs();
-  const metaDefs = RSB.GetMetaDefs();
-  const { opBtnStyle, modColor } = RSB.GetStyles();
+  function submitChanges() {
+    dispatch({ op: 'submit', saveFunction: RSB.PersistTemplate });
+  }
 
-  const mod = api.lastSettingsUpdate !== oldState;
+  /// RENDER PREP ///
+
+  const { opBtnStyle, modColor } = RSB.GetStyles();
+  const mod = draft.isDirty;
   const backgroundColor = mod ? modColor : 'white';
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
-  const toDoList = (
-    <div>
-      <ul>
-        <li>graph name</li>
-        <li>graph description</li>
-        <li>secret key (for tokens)</li>
-        <li>admin password</li>
-        <li>
-          Node Definitions
-          <ul>
-            <li>
-              Node Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>Info -- label, type, hide</li>
-            <li>InfoSource -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Edge Definitions
-          <ul>
-            <li>
-              Edge Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>InfoOrigin -- label, type, hide</li>
-            <li>Citation -- label, type, hide</li>
-            <li>Category -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Comment Types
-          <ul>
-            <li>slug</li>
-            <li>label</li>
-            <li>
-              prompts
-              <ul>
-                <li>1: [format, prompt, help, feedback]</li>
-                <li>2: [format, prompt, help, feedback]</li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <p>NOTES: </p>
-      <ul>
-        <li>
-          `isProvenance` will place a field in the Proveannce tab. But we do not
-          expect teachers to need to change that.
-        </li>
-        <li>
-          Ideally teachers can add and remove new Node and Edge field definitions,
-          rather merely re-purposing existing fields. e.g. they might add an Event
-          Date field.
-        </li>
-      </ul>
-    </div>
-  );
 
-  return (
-    <SettingsContext.Provider value={api} modified={mod}>
-      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
+  /// RENDER ///
+
+  // save, revert, toggle
+  const ButtonBar = hasLock ? (
+    <div>
+      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
         Save Changes
       </button>
-      &nbsp;
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
         Revert Changes
       </button>
-      <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
+      &nbsp;
+      <button style={opBtnStyle} onClick={() => setShowToDo(!showToDo)}>
         {showToDo ? 'ShowWIP' : 'ShowToDo'}
       </button>
-      {!showToDo &&
-        Object.keys(propDefs).map(gn => (
-          <PropertyGroup
-            groupDef={{ [gn]: propDefs[gn] }}
-            metaDef={{ [gn]: metaDefs[gn] }}
-            key={gn}
-          />
-        ))}
-      {showToDo && toDoList}
+    </div>
+  ) : (
+    <p>Template is locked by another user.</p>
+  );
+
+  // note: template global settings not grouped, so prepend as special case group=""
+  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
+  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
+
+  //
+
+  return (
+    <SettingsContext.Provider value={value}>
+      {ButtonBar}
+      {!showToDo && GroupList}
+      {showToDo && ToDoList}
     </SettingsContext.Provider>
   );
 }

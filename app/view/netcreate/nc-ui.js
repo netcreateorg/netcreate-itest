@@ -48,7 +48,6 @@ MD.use(MDEMOJI);
 const MDPARSE = require('html-react-parser').default;
 const NCDialogInsertImageURL = require('./components/NCDialogInsertImageURL');
 import URDateField from './components/URDateField';
-import TEMPLATE_MGR from './template-mgr';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -218,10 +217,28 @@ function RenderTabSelectors(TABS, state, onclick) {
   );
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given Node or Edge definition, return array of key names that are
+ *  (1) has isProvenance set (2) doesn't include a field in the passed filter
+ *  array and (3) isn't hidden */
+function m_FilterProvenanceDefKeys(defs, filter_out) {
+  return Object.keys(defs).filter(
+    k => defs[k].isProvenance && !filter_out.includes(k) && !defs[k].hidden
+  );
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given Node or Edge definition, return array of key names that are
+ *  (1) has isProvenance NOT set (2) doesn't include a field in the passed filter
+ *  array and (3) isn't hidden */
+function m_FilteAttributeDefKeys(defs, BUILTIN_FIELDS) {
+  return Object.keys(defs).filter(
+    k => !BUILTIN_FIELDS.includes(k) && !defs[k].isProvenance && !defs[k].hidden
+  );
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RenderAttributesTabView(state, defs, BUILTIN_FIELDS) {
   const { attributes, degrees, weight, size } = state;
   const items = [];
-  const attributeDefKeys = TEMPLATE_MGR.GetAttributeDefKeys(defs, BUILTIN_FIELDS);
+  const attributeDefKeys = m_FilteAttributeDefKeys(defs, BUILTIN_FIELDS);
   attributeDefKeys.forEach(k => {
     const def = defs[k];
     items.push(RenderLabel(k, def.displayLabel, def.help));
@@ -264,7 +281,7 @@ function RenderAttributesTabView(state, defs, BUILTIN_FIELDS) {
 function RenderAttributesTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
   const { attributes, degrees, weight } = state;
   const items = [];
-  const attributeDefKeys = TEMPLATE_MGR.GetAttributeDefKeys(defs, BUILTIN_FIELDS);
+  const attributeDefKeys = m_FilteAttributeDefKeys(defs, BUILTIN_FIELDS);
   attributeDefKeys.forEach(k => {
     const def = defs[k];
     items.push(RenderLabel(k, def.displayLabel));
@@ -323,7 +340,7 @@ function RenderAttributesTabEdit(state, defs, onchange, BUILTIN_FIELDS) {
 function RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS) {
   const { provenance } = state;
   const items = [];
-  const provenanceDefKeys = TEMPLATE_MGR.GetProvenanceDefKeys(defs, BUILTIN_FIELDS);
+  const provenanceDefKeys = m_FilterProvenanceDefKeys(defs, BUILTIN_FIELDS);
   provenanceDefKeys.forEach(k => {
     const def = defs[k];
     items.push(RenderLabel(k, def.displayLabel, def.help));
@@ -353,7 +370,7 @@ function RenderProvenanceItemsView(state, defs, BUILTIN_FIELDS) {
 function RenderProvenanceItemsEdit(state, defs, onchange, BUILTIN_FIELDS) {
   const { provenance, degrees } = state;
   const items = [];
-  const provenanceDefKeys = TEMPLATE_MGR.GetProvenanceDefKeys(defs, BUILTIN_FIELDS);
+  const provenanceDefKeys = m_FilterProvenanceDefKeys(defs, BUILTIN_FIELDS);
   provenanceDefKeys.forEach(k => {
     const def = defs[k];
     items.push(RenderLabel(k, def.displayLabel));
