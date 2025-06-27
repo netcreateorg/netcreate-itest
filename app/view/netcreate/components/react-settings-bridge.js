@@ -75,71 +75,55 @@ function EncodeDotProp(groupName, propName) {
   return Settings.EncodeDotProp(groupName, propName);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: Translate legacy definition properties to _ui format */
-function m_TranslateLegacyDefinition(setObj, groupName, propName) {
-  // handle legacy nodeDefs and edgeDefs
-  if (groupName === 'nodeDefs' || groupName === 'edgeDefs') {
-    const legacyProp = setObj[groupName][propName];
-    if (typeof legacyProp !== 'object')
-      return { error: `${groupName}.${propName} not found` };
-    return {
-      groupName,
-      propName,
-      value: 'to-be-translated', // placeholder, not used in legacy
-      type: legacyProp.type || 'string',
-      label: legacyProp.displayLabel,
-      tooltip: legacyProp.help,
-      help: legacyProp.help
-    };
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a settings object and dotProp, return all UI-relevant
  *  data. The settings object could be TEMPLATE or from React Context value.
  *  Since this is a legacy codebase, we don't have access to ?. operators */
-function DecodeUIData(setObj, dotProp) {
-  const fn = 'DecodeUIData:';
+function GetUIData(setObj, dotProp) {
+  const fn = 'GetUIData:';
   if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
   if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
-
   const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
-  const metaSource =
-    setObj._ui || // _ui metadata
-    setObj || // legacy settings only
-    {}; // safety fallback
+  if (typeof propName !== 'string')
+    return { error: `${fn} invalid propName (string required)` };
+  if (typeof setObj._ui !== 'object')
+    return { error: `${fn} metaSource _ui is not available` };
 
-  if (groupName === undefined) {
-    /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+  // got this far, we have a valid setObj and setObj._ui
+  let metaSource = setObj._ui; // _ui is the metadata source
+
+  /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+  if (groupName === undefined || groupName === '') {
     if (!setObj[propName]) return { value, error: `no value for ${dotProp}` };
-    // metaSource might not have UIdata available for this propName, but return value
-    if (!metaSource[propName])
-      return {
-        groupName: undefined,
-        propName,
-        value: setObj[propName],
-        error: `no UI data for ${dotProp}`
-      };
-    // if it does, return the ui data!
-    const uiData = metaSource[propName];
-    return { value: setObj[propName], ...uiData };
-  } else {
-    /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
-    if (setObj[groupName] === undefined)
-      return { value: undefined, error: `group data missing for ${dotProp}` };
-    if (setObj[groupName][propName] === undefined)
-      return { value: undefined, error: `prop data missing for ${dotProp}` };
-    // in this case we have to check for uidata or legacy definitions
-    // is there uidata in metaSource?
-    if (metaSource[groupName] && metaSource[groupName][propName])
+    if (metaSource[propName] !== undefined)
       return {
         groupName,
         propName,
-        value: setObj[groupName][propName],
-        ...metaSource[groupName][propName]
+        propMeta: { ...metaSource[propName] },
+        propData: setObj[propName]
       };
-    // otherwise, we're dealing with legacy definitions
-    return m_TranslateLegacyDefinition(setObj, groupName, propName);
+    return {
+      groupName: undefined,
+      propName,
+      error: `no UI data for ${dotProp}`
+    };
   }
+  /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
+  metaSource = metaSource[groupName][propName];
+  if (metaSource === undefined)
+    return {
+      error: `group ${groupName} no metadata for ${propName}`
+    };
+  // if got this far, metaSource now has a object keys for each type of
+  // "editable setting" which can have multiple properties:
+  //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
+  // and each key in the id setting look like this:
+  //   displayLabel = { control, labelKey, helpKey }
+  return {
+    groupName,
+    propName,
+    propMeta: { ...metaSource },
+    propData: setObj[groupName][propName]
+  };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: determine if passed object is a ui object which has a type */
@@ -302,7 +286,7 @@ module.exports = {
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
-  DecodeUIData, // setObj, dotProp => { value, ...uiData }
+  GetUIData, // setObj, dotProp => { groupName, propName, propMeta, propData }
   GetUISettingsList, // uiData => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
   // Locking API

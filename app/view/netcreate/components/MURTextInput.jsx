@@ -20,9 +20,38 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** quote a string or return as-is number */
-function $(strOrNum) {
-  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+/** extract text input specific data from propData and propMeta */
+function u_DecodeUIData(uiData) {
+  if (typeof uiData !== 'object')
+    return { error: `arg1 must be an object, got ${typeof uiData}` };
+  // extra data from propData and propMeta
+  const { groupName, propName, propMeta, propData } = uiData;
+  const { control, label, tooltip, help } = propMeta;
+  const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
+
+  // resolve useful ui data
+  let fValue, fLabel, fHelp, fTooltip;
+
+  if (valueKey) fValue = propData[valueKey];
+  if (fValue === undefined) fValue = propData.value || propData[propName] || propData;
+
+  if (labelKey) fLabel = propData[labelKey];
+  if (!fLabel) fLabel = label || propName;
+
+  if (helpKey) fHelp = propData[helpKey];
+  if (!fHelp) fHelp = help || '';
+
+  if (tooltipKey) fTooltip = propData[tooltipKey];
+  if (!fTooltip) fTooltip = tooltip || '';
+
+  return {
+    groupName,
+    propName,
+    value: fValue,
+    label: fLabel,
+    tooltip: fTooltip,
+    help: fHelp
+  };
 }
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
@@ -31,9 +60,9 @@ function $(strOrNum) {
 function TextInput(props) {
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
-  const data = RSB.DecodeUIData(draft.template, propDef);
-  const { name, value, default: defValue } = data;
-  const { label, tooltip, help, placeholder } = data;
+  const uiData = RSB.GetUIData(draft.template, propDef);
+  const { name, label, tooltip, help, placeholder, value } = u_DecodeUIData(uiData);
+  const defValue = undefined; // TODO: handle default values
 
   // declare reactive render state
   // note that this only runs on the FIRST render, which is why
@@ -47,8 +76,9 @@ function TextInput(props) {
   // retention with hooks, and other bullshit.
   React.useEffect(() => {
     if (!draft.pending) {
-      const data = RSB.DecodeUIData(draft.template, propDef);
-      setInputValue(data.value || data.default);
+      const uiData = RSB.GetUIData(draft.template, propDef);
+      const { value } = u_DecodeUIData(uiData);
+      setInputValue(value || defValue);
     }
   }, [draft.pending]);
 
@@ -116,7 +146,6 @@ function TextInput(props) {
       onKeyDown={handleEnterKey}
       onBlur={submitToSettings}
       onChange={handleTyping}
-      disabled={!hasLock}
     />
   ) : (
     <p>{inputValue}</p>

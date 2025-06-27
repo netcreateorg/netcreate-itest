@@ -33,39 +33,37 @@ function GroupHeader(props) {
 function PropertyGroup(props) {
   const groupName = props.groupName || ''; // e.g. 'graphSettings'
   const { draft } = React.useContext(RSB.SettingsContext);
-  const uiData = draft.template._ui || {};
+  const metaSource = draft.template._ui || {};
 
   // editable properties are in propsData and propNames
-  // which are derived by scanning uiData which is the metadata
+  // which are derived by scanning metaSource which is the groupmeta
   // dictionary that determines what the UI should display
 
   let propNames; // array of property names to display
   let propsData = {}; // related
 
-  // handle a blank groupName as the special case where all the
-  // ungrouped settings in the TEMPLATE are considered "globalsList"
   if (groupName === '') {
-    propNames = RSB.GetUISettingsList(uiData).globalsList || [];
-    propNames.forEach(p => (propsData[p] = uiData[p]));
+    /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+    propNames = RSB.GetUISettingsList(metaSource).globalsList || [];
+    propNames.forEach(p => (propsData[p] = metaSource[p]));
     propsData._src = '';
-    if (uiData._editor && uiData._editor.global) {
-      propsData._editor = uiData._editor.global;
+    if (metaSource._editor && metaSource._editor.global) {
+      propsData._editor = metaSource._editor.global;
     } else {
       propsData._editor = { propLabel: '<editor global>', description: '' };
     }
-  }
-  // for all other groups, just copy the uiData into propsData
-  else {
-    propsData = { ...(uiData[groupName] || draft.template[groupName] || {}) };
+  } else {
+    /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
+    propsData = { ...(metaSource[groupName] || draft.template[groupName] || {}) };
     LOG(...PR(`PropertyGroup: groupName=${groupName}`, propsData));
     propsData._src = groupName;
     propNames = Object.keys(propsData).filter(p => p.startsWith('_') === false);
   }
 
   // look for title in propsData or _editor.global
-  const metadata = propsData[groupName] || propsData._editor || {};
-  const grpTitle = metadata.propLabel || groupName.toUpperCase() || '<title not set>';
-  const grpDesc = metadata.description || '';
+  const groupmeta = propsData[groupName] || propsData._editor || {};
+  const grpTitle = groupmeta.label || groupName.toUpperCase() || '<title not set>';
+  const grpDesc = groupmeta.description || '';
   const key = `pg-${groupName}`;
 
   /// RENDER ///
@@ -96,6 +94,14 @@ function PropertyGroup(props) {
             <div style={{ float: 'right' }}>[input-{propType}]</div>
           </div>
         );
+      case 'group':
+        LOG(
+          ...PR(
+            `dereferencing error: a 'group' contains the child controls you want to render`
+          ),
+          pd
+        );
+        break;
       default:
         LOG(...PR(`Unsupported type ${propType} for property ${p}`));
         return <p key={inputKey}>Unsupported type: {propType}</p>;
