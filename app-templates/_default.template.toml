@@ -25,6 +25,35 @@ nodeDefaultTransparency = 1
 edgeDefaultTransparency = 0.7
 searchColor = "#008800"
 sourceColor = "#FFa500"
+_schemaVersion = "2.1"
+
+[_ui._editor.global]
+label = "Global Settings"
+description = "Project-wide settings"
+
+[_ui.name]
+type = "string"
+label = "Graph Name"
+tooltip = "Enter a name for this graph project"
+help = "Pick a short meaningful unique name"
+
+[_ui.description]
+type = "string"
+label = "Graph Description"
+tooltip = "Add descriptive text about this graph"
+help = "Short meaningful description text"
+
+[_ui.secretKey]
+type = "string"
+label = "Unique Key"
+tooltip = "Unique keys make tokens unique even with same group and project"
+help = "Change the key to make login tokens unique to a graph"
+
+[_ui.adminPassword]
+type = "password"
+label = "Admin Password"
+tooltip = "Set the admin password for the graph"
+help = "This password protects access to the Advanced Settings Panel"
 
 [citation]
 text = "No citation set"

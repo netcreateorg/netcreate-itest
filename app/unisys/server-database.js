@@ -16,7 +16,7 @@ const DBG = false;
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 const Loki = require('lokijs');
 const PATH = require('path');
-const FS = require('fs-extra');
+const FSE = require('fs-extra');
 const TOML = require('@iarna/toml');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -47,10 +47,11 @@ let NODES; // loki "nodes" collection
 let EDGES; // loki "edges" collection
 let COMMENTS; // loki "comments" collection
 let READBY; // loki "readby" collection
+let TEMPLATE;
 let m_locked_nodes; // map key = nodeID, value = uaddr initiating the lock
 let m_locked_edges; // map key = edgeID, value = uaddr initiating the lock
 let m_locked_comments; // map key = commentID, value = uaddr initiating the lock
-let TEMPLATE;
+let m_template_locks; // set of uaddr that have locks on template setting editing
 let m_open_editors = []; // array of template, node, or edge editors
 /// formatting
 const BL = s => `\x1b[1;34m${s}\x1b[0m`;
@@ -65,14 +66,14 @@ let DB = {};
     Used by PKT_MergeDatabase to clone the db before importing.
     Saves the db in the runtime folder with a timestamp suffix. */
 function m_BackupDatabase() {
-  FS.ensureDirSync(PATH.dirname(db_file));
-  if (FS.existsSync(db_file)) {
+  FSE.ensureDirSync(PATH.dirname(db_file));
+  if (FSE.existsSync(db_file)) {
     const timestamp = new Date().toISOString().replace(/:/g, '.');
     const backupDBFilePath = m_GetValidDBFilePath(
       BACKUPPATH + NC_CONFIG.dataset + '_' + timestamp
     );
     console.log(PR, 'Saving database backup to', backupDBFilePath);
-    FS.copySync(db_file, backupDBFilePath);
+    FSE.copySync(db_file, backupDBFilePath);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -82,11 +83,11 @@ function m_DefaultTemplatePath() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Initialize the database */
-DB.InitializeDatabase = function (options = {}) {
+DB.InitializeDataset = function (options = {}) {
   let dataset = NC_CONFIG.dataset;
   db_file = m_GetValidDBFilePath(dataset);
-  FS.ensureDirSync(PATH.dirname(db_file));
-  if (!FS.existsSync(db_file)) {
+  FSE.ensureDirSync(PATH.dirname(db_file));
+  if (!FSE.existsSync(db_file)) {
     console.log(
       PR,
       YL(`NOTICE: NO EXISTING DATABASE ${db_file}, so creating BLANK DATABASE...`)
@@ -95,7 +96,7 @@ DB.InitializeDatabase = function (options = {}) {
   // console.log(PR, YL(`loading dataset`), `${BL(db_file)}...`);
   let ropt = {
     autoload: true,
-    autoloadCallback: f_DatabaseInitialize,
+    autoloadCallback: async_DatabaseInitialize,
     autosave: true,
     autosaveCallback: f_AutosaveStatus,
     autosaveInterval: 4000 // save every four seconds
@@ -111,7 +112,7 @@ DB.InitializeDatabase = function (options = {}) {
       nothing to do with the database :|
   /*/
 
-  async function f_DatabaseInitialize() {
+  async function async_DatabaseInitialize() {
     // on the first load of (non-existent database), we will have no
     // collections so we can detect the absence of our collections and
     // add (and configure) them now.
@@ -181,7 +182,7 @@ DB.InitializeDatabase = function (options = {}) {
     }
     console.log(
       PR,
-      'dataset loaded',
+      'graph data loaded',
       BL(db_file),
       `m_max_nodeID '${m_max_nodeID}', m_max_edgeID '${m_max_edgeID}'`
     );
@@ -204,10 +205,12 @@ DB.InitializeDatabase = function (options = {}) {
 
     m_db.saveDatabase();
 
+    // load non-database assets from dataset.toml, creating
+    // it if necessary
     await m_LoadTemplate();
     m_MigrateTemplate();
     m_ValidateTemplate();
-  } // end f_DatabaseInitialize
+  } // end async_DatabaseInitialize
 
   // UTILITY FUNCTION
   function f_AutosaveStatus() {
@@ -220,56 +223,32 @@ DB.InitializeDatabase = function (options = {}) {
       `AUTOSAVING! ${nodeCount} NODES / ${edgeCount} EDGES / ${commentCount} COMMENTS / ${readbyCount} READBY <3`
     );
   }
-}; // InitializeDatabase()
+}; // InitializeDataset()
+
+/// TEMPLATE LOADER ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Loads a *.template.toml file from the server. */
-function m_LoadTOMLTemplate(templateFilePath) {
-  return new Promise((resolve, reject) => {
-    const templateFile = FS.readFile(templateFilePath, 'utf8', (err, data) => {
-      if (err) throw err;
-      const json = TOML.parse(data);
-      TEMPLATE = json;
-      console.log(PR, 'template loaded', BL(templateFilePath));
-      resolve({ Loaded: true });
-    });
-  });
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Load Template
-    1. Tries to load a TOML template
-    2. If it can't be found, tries to load the JSON template and convert it
-    3. If that fails, clone the default TOML template and load it
-    Called by
-    * DB.InitializeDatabase
-    * DB.WriteTemplateTOML
- */
+/** Load Template */
 async function m_LoadTemplate() {
   const TOMLPath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLPath));
-  /*/ SRI NOTE
-      ripping out the json template conversion to simplify loading and
-      avoid wasting time validating this poorly structured code
-  /*/
-  // Does the TOML template exist?
-  if (FS.existsSync(TOMLPath)) {
-    // 1. If TOML exists, load it
-    await m_LoadTOMLTemplate(TOMLPath);
-  } else {
-    // clone _default.template.toml
-    console.log(PR, `NO EXISTING TEMPLATE ${TOMLPath}`);
-    FS.copySync(m_DefaultTemplatePath(), TOMLPath);
-    // then load it
-    await m_LoadTOMLTemplate(TOMLPath);
+  FSE.ensureDirSync(PATH.dirname(TOMLPath));
+  if (!FSE.existsSync(TOMLPath)) {
+    console.log(PR, `Cloning default template to ${TOMLPath}`);
+    FSE.copySync(m_DefaultTemplatePath(), TOMLPath);
   }
-}
+  const data = FSE.readFileSync(TOMLPath, 'utf8');
+  const json = TOML.parse(data);
+  TEMPLATE = json;
+  // don't clear the locks of a reload of template happens post-init
+  if (m_template_locks === undefined) m_template_locks = new Set();
 
+  console.log(PR, 'Template loaded', BL(TOMLPath));
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Updated Migrate Template - WARNING
- *  The original m_MigrateTemplate() uses a lot of indirection and references
- *  an "unused" module called "template-schema.js" that wass very much used */
+/** Migrate the in-memory TEMPLATE object to latest schema version. These
+ *  changes are not persisted unless the template is saved through the UI. */
 function m_MigrateTemplate() {
   //
-  const T = TEMPLATE; // mirroring original hacky approach
+  const T = TEMPLATE;
   const EDF = T.edgeDefs;
   const NDF = T.nodeDefs;
   const nset = prop => prop === undefined;
@@ -342,15 +321,40 @@ function m_MigrateTemplate() {
 
   // Migrate 1.5 to 2.0 Template Version
   T._schemaVersion = '2.0';
-}
 
+  // Migrate 2.0 to 2.1 - Add missing _ui defaults from _default.template.toml
+  // Load the default template to get _ui defaults
+  T._schemaVersion = '2.1';
+  const defaultTemplatePath = m_DefaultTemplatePath();
+  if (FSE.existsSync(defaultTemplatePath)) {
+    try {
+      const defaultTemplateContent = FSE.readFileSync(defaultTemplatePath, 'utf8');
+      const defaultTemplate = TOML.parse(defaultTemplateContent);
+
+      // Copy _ui defaults if they don't exist in current template
+      if (defaultTemplate._ui) {
+        if (nset(T._ui)) T._ui = {};
+
+        // Deep merge _ui section from default template
+        Object.keys(defaultTemplate._ui).forEach(key => {
+          if (nset(T._ui[key])) {
+            T._ui[key] = defaultTemplate._ui[key];
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(
+        PR,
+        'Failed to load default template for _ui migration:',
+        err.message
+      );
+    }
+  }
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Validate Template File
-    Lazy check of template object definitions to make sure they are of
-    expected types and values so the UI doesn't choke and die. Throws an error
-    if property is missing.
- */
-// eslint-disable-next-line complexity
+/** Validate Template Object. This checks that the in-memory TEMPLATE object has
+ *  expected values and types and throws errors for showstopping discrepancies.
+ *  Note that this does not actually persist the template back to disk. */
 function m_ValidateTemplate() {
   try {
     // 1. Validate built-in fields
@@ -370,8 +374,8 @@ function m_ValidateTemplate() {
       throw 'Missing `edgeDefs.target` label=' + edgeDefs.target;
 
     // 2. Validate deprecated fields
-    //    `TEMPLATE.version` was added after 2.0.
-    if (!TEMPLATE.version) {
+    //    `TEMPLATE._schemaVersion` was added after 2.0.
+    if (!TEMPLATE._schemaVersion) {
       // nodeDefs
       if (nodeDefs.type === undefined)
         throw 'Missing `nodeDefs.type` type= ' + nodeDefs.type;
@@ -436,21 +440,39 @@ function m_ValidateTemplate() {
         throw 'Missing `edgeDefs.category` info=' + edgeDefs.category;
     } else {
       // Placeholder for future version checks
-      // if (TEMPLATE.version <= "2.0") {
+      // if (TEMPLATE._schemaVersion <= "2.0") {
       //   // do something
       // }
+    }
+
+    // 3. Validate _ui section (v2.1+)
+    if (TEMPLATE._ui === undefined) {
+      console.warn(
+        PR,
+        'Missing `_ui` section in template. UI field definitions will not be available.'
+      );
+    } else {
+      // Check for core _ui field definitions that should be present
+      const coreUIFields = ['name', 'description', 'secretKey', 'adminPassword'];
+      coreUIFields.forEach(field => {
+        if (TEMPLATE._ui[field] === undefined) {
+          console.warn(
+            PR,
+            `Missing _ui definition for core field '${field}'. Default UI behavior will be used.`
+          );
+        }
+      });
     }
   } catch (error) {
     const templateFileName = m_GetTemplateTOMLFilePath();
     console.error('Error loading template `', templateFileName, '`::::', error);
   }
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: load database
- *  note: InitializeDatabase() was already called on system initialization
+ *  note: InitializeDataset() was already called on system initialization
  *  to populate the NODES and EDGES structures */
-DB.PKT_GetDatabase = function (pkt) {
+DB.PKT_GetDataset = function (pkt) {
   let nodes = NODES.chain().data({ removeMeta: false });
   let edges = EDGES.chain().data({ removeMeta: false });
   let comments = COMMENTS.chain().data();
@@ -458,7 +480,7 @@ DB.PKT_GetDatabase = function (pkt) {
   if (DBG)
     console.log(
       PR,
-      `PKT_GetDatabase ${pkt.Info()} (loaded ${nodes.length} nodes, ${
+      `PKT_GetDataset ${pkt.Info()} (loaded ${nodes.length} nodes, ${
         edges.length
       } edges)`
     );
@@ -490,7 +512,7 @@ DB.PKT_SetDatabase = function (pkt) {
   READBY.insert(readby);
   console.log(PR, `PKT_SetDatabase complete. Data available on next get.`);
   m_db.close();
-  DB.InitializeDatabase();
+  DB.InitializeDataset();
   LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
   return { OK: true };
 };
@@ -513,7 +535,7 @@ DB.PKT_InsertDatabase = function (pkt) {
   READBY.insert(readby);
   console.log(PR, `PKT_InsertDatabase complete. Data available on next get.`);
   m_db.close();
-  DB.InitializeDatabase();
+  DB.InitializeDataset();
   LOGGER.WriteRLog(pkt.InfoObj(), `setdatabase`);
   return { OK: true };
 };
@@ -560,7 +582,7 @@ DB.PKT_MergeDatabase = function (pkt) {
   return new Promise((resolve, reject) =>
     m_db.saveDatabase(err => {
       if (err) reject(new Error('rejected'));
-      DB.InitializeDatabase();
+      DB.InitializeDataset();
       LOGGER.WriteRLog(pkt.InfoObj(), `mergedatabase`);
       resolve({ OK: true });
     })
@@ -623,6 +645,8 @@ DB.PKT_ReplaceDatabase = function (pkt) {
   LOGGER.WriteRLog(pkt.InfoObj(), `replacedatabase`);
   return { OK: true };
 };
+
+/// ID HELPER FUNCTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// WARN: Side Effect: Changes `m_max_nodeID`
 function m_CalculateMaxNodeID() {
@@ -719,6 +743,8 @@ function m_CalculateMaxCommentID() {
   }
   return m_max_commentID;
 }
+
+/// NODE LOCKING METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockNode = function (pkt) {
   let { nodeID } = pkt.Data();
@@ -730,7 +756,7 @@ DB.PKT_RequestLockNode = function (pkt) {
     return m_MakeLockError(`nodeID ${nodeID} is already locked`);
   // SUCCESS
   // single matching node exists and is not yet locked, so lock it
-  m_locked_nodes.set(nodeID, uaddr);
+  m_locked_nodes.add(uaddr);
   return { nodeID, locked: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -778,6 +804,8 @@ function m_IsInvalidNode(nodeID) {
 function m_MakeLockError(info) {
   return { NOP: `ERR`, INFO: info };
 }
+
+/// EDGE LOCKING METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockEdge = function (pkt) {
   let { edgeID } = pkt.Data();
@@ -833,6 +861,8 @@ function m_IsInvalidEdge(edgeID) {
   // no retval is no error!
   return undefined;
 }
+
+/// COMMENT LOCKING ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestLockComment = function (pkt) {
   let { commentID } = pkt.Data();
@@ -864,6 +894,8 @@ DB.PKT_IsCommentLocked = function (pkt) {
   const isLocked = m_locked_comments.has(commentID);
   return { commentID, locked: isLocked };
 };
+
+/// UNLOCK ALL METHODS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.PKT_RequestUnlockAllNodes = function (pkt) {
   m_locked_nodes = new Map();
@@ -890,9 +922,11 @@ DB.PKT_RequestUnlockAll = function (pkt) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** called by server-network when a client disconnects we want to unlock any
  *  nodes and edges they had locked. */
-DB.RequestUnlock = function (uaddr) {
+DB.UnlockByUADDR = function (uaddr) {
   m_locked_nodes.forEach((value, key) => {
-    if (value === uaddr) m_locked_nodes.delete(key);
+    if (value === uaddr) {
+      m_locked_nodes.delete(key);
+    }
   });
   m_locked_edges.forEach((value, key) => {
     if (value === uaddr) m_locked_edges.delete(key);
@@ -900,7 +934,13 @@ DB.RequestUnlock = function (uaddr) {
   m_locked_comments.forEach((value, key) => {
     if (value === uaddr) m_locked_comments.delete(key);
   });
+  if (m_template_locks.has(uaddr)) {
+    console.log(PR, `template lock ${uaddr}' released`);
+    m_template_locks.delete(uaddr);
+  }
 };
+
+/// NODE, EDGE, COMMENT UPDATE METHODS ////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // eslint-disable-next-line complexity
 DB.PKT_Update = function (pkt) {
@@ -1383,7 +1423,7 @@ function m_CommentUpdate(comment, pkt) {
     retval = { op: 'error-multinodeid' };
   }
   return retval;
-} // if comment
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CommentRemove(commentID, pkt) {
   if (DBG) console.log(PR, `PKT_Update ${pkt.Info()} DELETE commentID ${commentID}`);
@@ -1409,6 +1449,7 @@ DB.AppendNodeLog = function (node, pkt) {
     console.log(PR, 'nodelog', out);
   }
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DB.FilterNodeLog = function (node) {
   let newNode = Object.assign({}, node);
   Reflect.deleteProperty(newNode, '_nlog');
@@ -1436,6 +1477,7 @@ DB.FilterEdgeLog = function (edge) {
   Reflect.deleteProperty(newEdge, '_elog');
   return newEdge;
 };
+
 /// COMMENT ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the comment before writing
@@ -1457,6 +1499,7 @@ DB.FilterCommentLog = function (comment) {
   Reflect.deleteProperty(newComment, '_nlog');
   return newComment;
 };
+
 /// READBY ANNOTATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** write/remove packet SourceGroupID() information into the readby before writing
@@ -1504,9 +1547,9 @@ DB.WriteDbJSON = function (filePath) {
         let data = { nodes, edges, comments, readby };
         let json = JSON.stringify(data);
         if (DBG) console.log(PR, `ensuring DIR ${PATH.dirname(filePath)}`);
-        FS.ensureDirSync(PATH.dirname(filePath));
+        FSE.ensureDirSync(PATH.dirname(filePath));
         if (DBG) console.log(PR, `writing file ${filePath}`);
-        FS.writeFileSync(filePath, json);
+        FSE.writeFileSync(filePath, json);
         console.log(PR, `*** WROTE JSON DATABASE ${filePath}`);
       } else {
         console.log(PR, `ERR path ${filePath} must be a pathname`);
@@ -1514,9 +1557,47 @@ DB.WriteDbJSON = function (filePath) {
     }
   });
 };
+
+/// TEMPLATE LOCKING METHODS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** called by Template Editor and DB.WriteTemplateTOML
- */
+/** called by SRV_REQ_TEMPLATE_LOCK. Returns { error, success, uaddr,
+ *  lockedBy } */
+DB.PKT_RequestLockTemplate = pkt => {
+  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  const uaddr = pkt.s_uaddr;
+  if (m_template_locks.size > 0) {
+    const uaddrs = [...m_template_locks.keys()];
+    if (uaddrs.includes(pkt.s_uaddr)) return { success: true, uaddr: pkt.s_uaddr };
+    else
+      return {
+        error: `template already locked by ${uaddrs}`,
+        lockedBy: uaddrs,
+        uaddr
+      };
+  }
+  // if we're not locked, lock it!
+  m_template_locks.add(uaddr);
+  console.log(PR, `${uaddr} locked template`);
+  return { success: true, uaddr };
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called by SRV_REQ_TEMPLATE_UNLOCK. Returns { error, success, uaddr,
+ *  lockedBy } */
+DB.PKT_RequestUnlockTemplate = pkt => {
+  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  const uaddr = pkt.s_uaddr;
+  if (m_template_locks.has(uaddr)) {
+    m_template_locks.delete(uaddr);
+    console.log(PR, `${uaddr} unlocked template`);
+    return { success: true, uaddr };
+  }
+  const uaddrs = [...m_template_locks.keys()];
+  return { error: `template not locked by ${uaddr}`, lockedBy: uaddrs, uaddr };
+};
+
+/// TEMPLATE READ+WRITE METHODS ///////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called by Template Editor and DB.WriteTemplateTOML */
 function m_GetTemplateTOMLFileName() {
   return NC_CONFIG.dataset + TEMPLATE_EXT;
 }
@@ -1540,27 +1621,25 @@ DB.WriteTemplateTOML = pkt => {
   if (pkt.data === undefined)
     throw 'DB.WriteTemplateTOML pkt received with no `data`';
   const templateFilePath = pkt.data.path || m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(templateFilePath));
-  // Does the template exist?  If so, rename the old version with curren timestamp.
-  if (FS.existsSync(templateFilePath)) {
+  FSE.ensureDirSync(PATH.dirname(templateFilePath));
+  // first back-up the old template file
+  if (FSE.existsSync(templateFilePath)) {
     const timestamp = new Date().toISOString().replace(/:/g, '.');
     const backupFilePath =
       RUNTIMEPATH + NC_CONFIG.dataset + '_' + timestamp + TEMPLATE_EXT;
-    FS.copySync(templateFilePath, backupFilePath);
+    FSE.copySync(templateFilePath, backupFilePath);
     console.log(PR, 'Backed up template to', backupFilePath);
   }
+  // write the new template file
   const toml = TOML.stringify(pkt.data.template);
-  return FS.outputFile(templateFilePath, toml)
-    .then(data => {
-      console.log(PR, 'Saved template to', templateFilePath);
-      // reload template
-      m_LoadTemplate();
-      return { OK: true, info: templateFilePath };
-    })
-    .catch(err => {
-      console.log(PR, 'Failed trying to save', templateFilePath, err);
-      return { OK: false, info: 'Failed trying to save', templateFilePath };
-    });
+  try {
+    FSE.outputFileSync(templateFilePath, toml);
+    m_LoadTemplate();
+    return { OK: true, info: templateFilePath };
+  } catch (err) {
+    console.error(PR, 'Failed trying to save', templateFilePath, err);
+    return { OK: false, info: 'Failed trying to save', templateFilePath };
+  }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Clones the existing toml template
@@ -1570,12 +1649,12 @@ DB.WriteTemplateTOML = pkt => {
  */
 DB.CloneTemplateTOML = function (filePath) {
   const TOMLPath = m_GetTemplateTOMLFilePath();
-  FS.ensureDirSync(PATH.dirname(TOMLPath));
+  FSE.ensureDirSync(PATH.dirname(TOMLPath));
   // Does the template exist?
-  if (!FS.existsSync(TOMLPath)) {
+  if (!FSE.existsSync(TOMLPath)) {
     console.error(PR, `ERR could not find template ${TOMLPath}`);
   } else {
-    FS.copySync(TOMLPath, filePath);
+    FSE.copySync(TOMLPath, filePath);
     console.log(PR, `*** COPIED TEMPLATE ${TOMLPath} to ${filePath}`);
   }
 };
@@ -1607,7 +1686,7 @@ DB.RegenerateDefaultTemplate = () => {
     edited or data is being imported, any editor that is opened registers
     as an OPENEDITOR.  The UI will also pre-emptively disable edit buttons
     whenever the open editors have been updated via a broacast of the
-    `EDIT_PERMISSIONS_UPDATE` message by server.js.
+    `CLI_UPDATE_LOCKSTATE` message by server.js.
 
     * When a Template editor is open, "Import", "Node Edit", "Edge Edit",
       "Add New Node", and "Add New Edge" buttons are all disabled.
@@ -1630,7 +1709,7 @@ DB.RegenerateDefaultTemplate = () => {
     UI elements query `GetEditStatus` to figure out what they should
     enable or disable.
 
-    UI elements should also listen to `EDIT_PERMISSIONS_UPDATE` to
+    UI elements should also listen to `CLI_UPDATE_LOCKSTATE` to
     enable or disable elements.
 
     Note that multiple `node` and `edge` editors can be open at the same
@@ -1688,22 +1767,41 @@ DB.GetEditStatus = pkt => {
  */
 DB.RequestEditLock = pkt => {
   m_open_editors.push(pkt.Data().editor);
+  console.log(PR, `RequestEditLock: ${pkt.Data().editor} added to open editors`);
   return DB.GetEditStatus(pkt);
 };
 /**
- * Deregister a template, import, node or edge as being actively edited.
+ * Deregister a import, node or edge as being actively edited.
  * @param {Object} pkt
  * @param {string} pkt.editor - 'template', 'importer', 'node', 'edge', or 'comment'
  * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean }
+ * NOTE: 'template' is no longer handled here
  */
 DB.ReleaseEditLock = pkt => {
-  const i = m_open_editors.findIndex(e => e === pkt.Data().editor);
-  if (i > -1) m_open_editors.splice(i, 1);
+  const { editor } = pkt.Data();
+  const i = m_open_editors.findIndex(e => e === editor);
+  if (i > -1) {
+    if (DBG)
+      console.log(
+        PR,
+        `ReleaseEditLock: ${editor} found in open editors`,
+        m_open_editors
+      );
+    m_open_editors.splice(i, 1);
+    if (DBG) console.log(PR, `ReleaseEditLock: open editors is now`, m_open_editors);
+  } else {
+    if (DBG)
+      console.warn(
+        PR,
+        `ReleaseEditLock: ${editor} not found in open editors`,
+        m_open_editors
+      );
+  }
   return DB.GetEditStatus(pkt);
 };
 
-/// UTILITIES FOR LOADING DATA ///
-
+/// HELPER UTILITIES FOR LOADING DATA /////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Migrates old network data to new formats based on the template defintion.
  *  This will automatically migrate any field/property that is marked `isRequired`
  *  and has a `defaultValue` defined.

@@ -235,7 +235,7 @@ function m_ResetPongTimer(uaddr) {
       PR,
       'pong not received before time ran out -- CLIENT CONNECTION DEAD!'
     );
-    DB.RequestUnlock(uaddr);
+    DB.UnlockByUADDR(uaddr);
   }, DEFS.SERVER_HEARTBEAT_INTERVAL * 2);
 }
 ///	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -479,7 +479,7 @@ function m_SocketDelete(socket) {
     });
   }
   // Unlock everything if the socket is being removed
-  DB.RequestUnlock(uaddr);
+  DB.UnlockByUADDR(uaddr);
   // console list
   if (DBG) m_ListSockets(`del ${socket.UADDR}`);
 }

@@ -1,9 +1,0 @@
-# metadata
-_schemaVersion: '2.0'
-_schemaLayer: PropertyDefs
-
-# Defaults for project metadata
-projectMeta:
-  description:
-    type: string
-    default: 'Project Description'

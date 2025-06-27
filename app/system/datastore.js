@@ -302,7 +302,7 @@ DSTOR.PromiseTOMLFile = function (tomlFile) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load D3 Database
  */
-DSTOR.PromiseD3Data = function () {
+DSTOR.PromiseDataset = function () {
   // UDATA.Call() returns a promise
   return UDATA.Call('SRV_DBGET', {}); // server.js
 };

@@ -20,8 +20,8 @@
   - lock-mgr makes to request to the server
   - server passes the call to server-database.GetEditStatus
   - server-database returns the new value
-  - server sends EDIT_PERMISSIONS_UPDATE to all clients
-  - EDIT_PERMISSIONS_UPDATE tells lock-mgr to update the LOCKMGR state
+  - server sends CLI_UPDATE_LOCKSTATE to all clients
+  - CLI_UPDATE_LOCKSTATE tells lock-mgr to update the LOCKMGR state
 
   Used by:
   - NCNode
@@ -37,6 +37,7 @@ const { EDITORTYPE } = require('system/util/enum');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'lock-mgr: ';
+const LOG = console.log.bind(console);
 
 /// MODULE INITIALIZATION /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,7 +52,7 @@ const UDATA = UNISYS.NewDataLink(MOD);
 /*/
 MOD.Hook('INITIALIZE', () => {
   m_Init();
-  UDATA.HandleMessage('EDIT_PERMISSIONS_UPDATE', m_UpdateLockState);
+  UDATA.HandleMessage('CLI_UPDATE_LOCKSTATE', m_UpdateLockState);
   UDATA.HandleMessage('COMMENT_UPDATE_PERMISSIONS', m_UpdateLockState);
 }); // end UNISYS_INIT
 
@@ -111,26 +112,77 @@ function RequestUnlockEdge(edgeId, cb) {
     if (typeof cb === 'function') cb(data.locked);
   });
 }
+
+/// NEW TEMPLATE LOCKING SYSTEM ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RequestEditLock(editorType, cb) {
-  if (cb)
-    UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: editorType }).then(data => {
-      if (typeof cb === 'function') cb(data);
-    });
-  else UDATA.NetSignal('SRV_REQ_EDIT_LOCK', { editor: editorType });
+/** API: Request a lock on the template being edited if it's available,
+ *  using new lock manager system added in 2025. */
+async function RequestTemplateLock() {
+  const lockState = await UDATA.Call('SRV_REQ_TEMPLATE_LOCK');
+  const { success, uaddr, error, lockedBy } = lockState;
+  if (error) {
+    LOG(PR, 'LockTemplate failed:', lockState);
+    m_UpdateLockState({ templateBeingEdited: false });
+  } else if (success) {
+    LOG(PR, 'LockTemplate succeeded:', lockState);
+    m_UpdateLockState({ templateBeingEdited: true });
+  } else {
+    LOG(PR, 'LockTemplate returned unexpected state:', lockState);
+  }
+  return lockState;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RequestEditUnlock(editorType, cb) {
-  if (cb)
-    UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: editorType }).then(data => {
-      if (typeof cb === 'function') cb(data.locked);
-    });
-  else UDATA.NetSignal('SRV_RELEASE_EDIT_LOCK', { editor: editorType });
+/** API: Release the lock on the template being edited using new lock manager
+ *  system added in 2025. */
+async function RequestTemplateUnlock() {
+  const lockState = await UDATA.Call('SRV_REQ_TEMPLATE_UNLOCK');
+  const { success, error } = lockState;
+  LOG(PR, 'RequestTemplateUnlock returned:', lockState);
+  if (error) {
+    LOG(PR, `error: ${error}`);
+    return lockState;
+  }
+  if (success) {
+    LOG(PR, 'UnlockTemplate succeeded:', lockState);
+    m_UpdateLockState({ templateBeingEdited: false });
+    return lockState;
+  }
+  LOG(PR, 'UnlockTemplate returned unexpected state:', lockState);
+  return lockState;
+}
+
+/// OLD TERRIBLE CALLS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Generic Lock Request: editor types is defined in system/util/enum.js.
+ *  For this call, 'template' or 'importer' are expected. */
+async function RequestEditLock(editor) {
+  if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
+    return {
+      error: `Skipped invalid editor ${editor} for edit lock request`
+    };
+  }
+  const status = await UDATA.Call('SRV_REQ_EDIT_LOCK', { editor });
+
+  return status;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Generic Unlock Request: editorType is defined in system/util/enum.js.
+ *  For this call, 'template' or 'importer' are expected. */
+async function RequestEditUnlock(editor) {
+  if (editor !== EDITORTYPE.TEMPLATE && editor != EDITORTYPE.IMPORTER) {
+    return {
+      error: `Skipped invalid editor ${editor} for edit lock release`
+    };
+  }
+  const status = await UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor });
+  return status;
 }
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
+  RequestTemplateLock,
+  RequestTemplateUnlock,
   RequestLockNode,
   RequestUnlockNode,
   RequestLockEdge,

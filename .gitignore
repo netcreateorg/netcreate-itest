@@ -51,4 +51,8 @@ npm-debug.log
 .settings
 .tmproj
 nbproject
-Thumbs.db 
+Thumbs.db
+
+# Ignore AI agent files
+CLAUDE.md
+.claude
