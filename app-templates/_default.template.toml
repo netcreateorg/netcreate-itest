@@ -60,14 +60,14 @@ label = "Node Definitions"
 description = "Define the properties that nodes can have"
 
 [_ui.nodeDefs.id]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.label]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 exportLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
@@ -75,7 +75,7 @@ hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.type]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 exportLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
@@ -84,7 +84,7 @@ includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", hel
 options = { control = "in-array", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.notes]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 exportLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
@@ -92,7 +92,7 @@ hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.info]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 exportLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
@@ -100,7 +100,7 @@ hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.infoSource]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 exportLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
@@ -109,42 +109,42 @@ includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", hel
 isProvenance = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.degrees]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.created]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.createdBy]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.updated]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.updatedBy]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 includeInGraphTooltip = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
 
 [_ui.nodeDefs.revision]
-type = "group"
+control = "composite"
 displayLabel = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 help = { control = "in-string", labelKey = "displayLabel", helpKey = "help" }
 hidden = { control = "in-boolean", labelKey = "displayLabel", helpKey = "help" }
