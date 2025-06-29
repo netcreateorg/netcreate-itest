@@ -47,34 +47,44 @@ const EM = new EventMachine('settings_client');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: simple decoder for a valid dotProp string. If there is only one
  *  prop (without a dot), then it will assume it's a propName and will
- *  return [ undefined, propName ]. Otherwise it will return [groupID, propID] */
+ *  return [ undefined, propName ]. Otherwise it will return [groupID, propID]
+ *  or [groupID, propID, fieldID */
 function DecodeDotProp(propDef: string) {
   if (typeof propDef !== 'string')
-    throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
+    throw Error(`Invalid propDef ${propDef}, expected dotted string`);
   if (propDef.length === 0)
-    throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  const [groupID, propID, ...extra] = propDef.split('.');
+    throw Error(`Invalid propDef ${propDef}, expected dotted string`);
+  const [groupID, propID, fieldID, ...extra] = propDef.split('.');
   if (extra.length > 0)
     throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  if (propID === undefined) return [undefined, groupID];
-  return [groupID, propID];
+  if (propID === undefined) return [undefined, groupID, undefined];
+  return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: simple encoder for a valid dotProp string. If there is only one
  *  prop (without a dot), then it will return just the propName. Otherwise
- * it will return 'groupID.propID' */
-function EncodeDotProp(groupID: string | undefined, propID: string): string {
+ * it will return 'groupID.propID' or 'groupID.propID.fieldID' */
+function EncodeDotProp(
+  groupID: string | undefined,
+  propID: string,
+  fieldID?: string | undefined
+): string {
   const fn = 'EncodeDotProp:';
   // single arg? then assume it's a propID
   const gidOK =
     groupID !== undefined && typeof groupID === 'string' && groupID.length > 0;
   const pidOK =
     propID !== undefined && typeof propID === 'string' && propID.length > 0;
+  const fldOK =
+    fieldID !== undefined && typeof fieldID === 'string' && fieldID.length > 0;
+  // if (groupID, propID) then return 'groupID.propID
   if (propID === undefined && gidOK) return groupID;
   // if (undefined, propID) then return propID
   if (pidOK && !gidOK) return propID;
-  // got this far, ppropID should be a string
-  if (!pidOK) throw Error(`${fn} bad propID ${propID}`);
+  if (!gidOK && !pidOK)
+    throw Error(`${fn} bad groupID ${groupID} or propID ${propID}`);
+  // got this far, so we have a groupID and propID
+  if (fldOK) return `${groupID}.${propID}.${fieldID}`;
   return `${groupID}.${propID}`;
 }
 
@@ -93,7 +103,7 @@ function GetDispatcher() {
   enableMapSet(); // enable Map and Set support in immer
   m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
     const { op, propDef, value, saveFunction } = action;
-    let group, prop;
+    let group, prop, field;
     switch (op) {
       // update is called by individual property editors like TextInput
       case 'update':
@@ -103,7 +113,8 @@ function GetDispatcher() {
           draft.isDirty = false;
           draft.changeSet = new Set();
         }
-        [group, prop] = DecodeDotProp(propDef);
+        [group, prop, field] = DecodeDotProp(propDef);
+        // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
         // groupless properties are at the top level of the template
         if (group === undefined) {
           if (DBG) LOG(...PR('update no group'), { prop, value });
@@ -118,7 +129,24 @@ function GetDispatcher() {
           } else if (DBG) LOG(...PR('- no change for', prop));
           if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
         }
-        // grouped properties are nested in the template
+        // three-level properties for composite field updates (group.prop.field)
+        else if (field !== undefined) {
+          if (DBG) LOG(...PR('update composite field'), { group, prop, field, value });
+          if (draft.pending[group] === undefined) {
+            throw Error(`${fn} invalid group referenced in ${propDef}`);
+          }
+          if (draft.pending[group][prop] === undefined) {
+            throw Error(`${fn} invalid prop referenced in ${propDef}`);
+          }
+          const orig = current(draft).template[group][prop][field];
+          const curr = current(draft).pending[group][prop][field];
+          if (curr !== value) {
+            draft.pending[group][prop][field] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        }
+        // two-level grouped properties are nested in the template
         else {
           if (DBG) LOG(...PR('update with group'), { group, prop, value });
           if (draft.pending[group] === undefined) {

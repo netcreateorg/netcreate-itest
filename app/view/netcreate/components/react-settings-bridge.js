@@ -71,8 +71,8 @@ function DecodeDotProp(dotProp) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: create a dotProp string from groupName and propName */
-function EncodeDotProp(groupName, propName) {
-  return Settings.EncodeDotProp(groupName, propName);
+function EncodeDotProp(groupName, propName, propField) {
+  return Settings.EncodeDotProp(groupName, propName, propField);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a settings object and dotProp, return all UI-relevant
@@ -82,7 +82,8 @@ function GetUIData(setObj, dotProp) {
   const fn = 'GetUIData:';
   if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
   if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
-  const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
+  const [groupName, propName, propField] = DecodeDotProp(dotProp); // throws error if not valid
+  // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
   if (typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
   if (typeof setObj._ui !== 'object')
@@ -107,7 +108,33 @@ function GetUIData(setObj, dotProp) {
       error: `no UI data for ${dotProp}`
     };
   }
-  /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
+  /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
+  if (propField !== undefined) {
+    if (metaSource[groupName] === undefined)
+      return { error: `no UI metadata for group ${groupName}` };
+    if (metaSource[groupName][propName] === undefined)
+      return { error: `group ${groupName} no metadata for ${propName}` };
+    if (metaSource[groupName][propName][propField] === undefined)
+      return {
+        error: `composite ${groupName}.${propName} no metadata for field ${propField}`
+      };
+
+    const propData =
+      setObj[groupName] && setObj[groupName][propName]
+        ? setObj[groupName][propName][propField]
+        : undefined;
+
+    LOG(...PR(`propData for ${dotProp}`, propData));
+
+    return {
+      groupName,
+      propName,
+      propField,
+      propMeta: { ...metaSource[groupName][propName][propField] },
+      propData
+    };
+  }
+  /// CASE 3: TWO-LEVEL GROUP NAME AND PROP NAME AVAILABLE ///
   metaSource = metaSource[groupName][propName];
   if (metaSource === undefined)
     return {

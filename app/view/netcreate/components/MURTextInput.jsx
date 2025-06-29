@@ -25,28 +25,34 @@ function u_DecodeUIData(uiData) {
   if (typeof uiData !== 'object')
     return { error: `arg1 must be an object, got ${typeof uiData}` };
   // extra data from propData and propMeta
-  const { groupName, propName, propMeta, propData } = uiData;
-  const { control, label, tooltip, help } = propMeta;
+  const { groupName, propName, propField, propMeta, propData } = uiData;
+
+  const { label, tooltip, help } = propMeta;
   const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
 
   // resolve useful ui data
   let fValue, fLabel, fHelp, fTooltip;
 
+  // special case ... this is always a propData extraction
   if (valueKey) fValue = propData[valueKey];
-  if (fValue === undefined) fValue = propData.value || propData[propName] || propData;
+  if (fValue === undefined) fValue = propData[propName] || propData;
 
+  // if labelKey exists, use it. Otherwise meta has to provide a label
   if (labelKey) fLabel = propData[labelKey];
-  if (!fLabel) fLabel = label || propName;
+  if (!fLabel) fLabel = label || 'label not set';
 
+  // if helpKey exists, use it. Otherwise meta has to provide a help text
   if (helpKey) fHelp = propData[helpKey];
   if (!fHelp) fHelp = help || '';
 
+  // if tooltipKey exists, use it. Otherwise meta has to provide a tooltip
   if (tooltipKey) fTooltip = propData[tooltipKey];
   if (!fTooltip) fTooltip = tooltip || '';
 
   return {
     groupName,
     propName,
+    propField,
     value: fValue,
     label: fLabel,
     tooltip: fTooltip,

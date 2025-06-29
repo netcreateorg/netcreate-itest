@@ -7,6 +7,7 @@
 const React = require('react');
 const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
+import CompositeInput from './MURCompositeInput';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -24,6 +25,39 @@ function GroupHeader(props) {
       <b>{propLabel}</b>
     </span>
   );
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** extract UI data for property group rendering */
+function u_DecodeUIData(uiData) {
+  if (typeof uiData !== 'object')
+    return { error: `arg1 must be an object, got ${typeof uiData}` };
+
+  const { groupName, propName, propMeta, propData } = uiData;
+  const { control, label, tooltip, help } = propMeta;
+  const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
+
+  // resolve useful ui data using fallthrough assignment
+  let fControl, fLabel, fHelp, fTooltip;
+
+  fControl = control || '<missing control type>';
+
+  if (labelKey) fLabel = propData[labelKey];
+  if (!fLabel) fLabel = label || propName || '<no label found>';
+
+  if (helpKey) fHelp = propData[helpKey];
+  if (!fHelp) fHelp = help || '';
+
+  if (tooltipKey) fTooltip = propData[tooltipKey];
+  if (!fTooltip) fTooltip = tooltip || '';
+
+  return {
+    groupName,
+    propName,
+    control: fControl,
+    label: fLabel,
+    tooltip: fTooltip,
+    help: fHelp
+  };
 }
 
 /// COMPONENTS ////////////////////////////////////////////////////////////////
@@ -71,13 +105,34 @@ function PropertyGroup(props) {
   const PropertyList = propNames.map(p => {
     const propDef = RSB.EncodeDotProp(groupName, p);
     const inputKey = `in-${propDef}`;
-    const pd = propsData[p] || {};
-    const propType = pd.type || 'unknown';
-    if (propType === undefined) {
-      LOG(`%cpropDef=${propDef} is missing 'type' property`, 'color: red');
+
+    // Get structured UI data using RSB.GetUIData
+    const uiData = RSB.GetUIData(draft.template, propDef);
+    const { control, label } = u_DecodeUIData(uiData);
+
+    if (control === 'unknown') {
+      LOG(`%cpropDef=${propDef} is missing control/type property`, 'color: red');
     }
-    const propLabel = pd.propLabel || pd.displayLabel || 'unknown';
-    switch (propType) {
+
+    // Switch on control type from _ui metadata
+    switch (control) {
+      case 'in-string':
+      case 'in-text':
+        return <TextInput propDef={propDef} key={inputKey} />;
+      case 'in-number':
+      case 'in-integer':
+      case 'in-boolean':
+      case 'in-password':
+      case 'in-select':
+      case 'in-timestamp':
+        LOG(...PR(`Rendering ${control} for property ${p}`), { uiData });
+        return (
+          <div key={inputKey}>
+            {label}
+            <div style={{ float: 'right' }}>[{control}]</div>
+          </div>
+        );
+      // Fallback to legacy data types for backward compatibility
       case 'text':
       case 'string':
         return <TextInput propDef={propDef} key={inputKey} />;
@@ -87,24 +142,18 @@ function PropertyGroup(props) {
       case 'password':
       case 'select':
       case 'timestamp':
-        LOG(...PR(`Rendering ${propType} for property ${p}`), pd);
         return (
           <div key={inputKey}>
-            {propLabel}
-            <div style={{ float: 'right' }}>[input-{propType}]</div>
+            {label}
+            <div style={{ float: 'right' }}>[input-{control}]</div>
           </div>
         );
-      case 'group':
-        LOG(
-          ...PR(
-            `dereferencing error: a 'group' contains the child controls you want to render`
-          ),
-          pd
-        );
-        break;
+      case 'composite':
+        // return <CompositeInput propDef={propDef} key={inputKey} />;
+        return <div key={inputKey}>Composite Input for {p}</div>;
       default:
-        LOG(...PR(`Unsupported type ${propType} for property ${p}`));
-        return <p key={inputKey}>Unsupported type: {propType}</p>;
+        LOG(...PR(`Unsupported control type ${control} for property ${p}`));
+        return <p key={inputKey}>Unsupported control: {control}</p>;
     }
   });
 
