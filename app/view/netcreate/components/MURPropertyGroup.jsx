@@ -104,7 +104,7 @@ function PropertyGroup(props) {
 
   const PropertyList = propNames.map(p => {
     const propDef = RSB.EncodeDotProp(groupName, p);
-    const inputKey = `in-${propDef}`;
+    const inputKey = `in_${propDef}`;
 
     // Get structured UI data using RSB.GetUIData
     const uiData = RSB.GetUIData(draft.template, propDef);
@@ -116,15 +116,15 @@ function PropertyGroup(props) {
 
     // Switch on control type from _ui metadata
     switch (control) {
-      case 'in-string':
-      case 'in-text':
+      case 'in_string':
+      case 'in_text':
         return <TextInput propDef={propDef} key={inputKey} />;
-      case 'in-number':
-      case 'in-integer':
-      case 'in-boolean':
-      case 'in-password':
-      case 'in-select':
-      case 'in-timestamp':
+      case 'in_number':
+      case 'in_integer':
+      case 'in_boolean':
+      case 'in_password':
+      case 'in_select':
+      case 'in_timestamp':
         LOG(...PR(`Rendering ${control} for property ${p}`), { uiData });
         return (
           <div key={inputKey}>
@@ -132,25 +132,9 @@ function PropertyGroup(props) {
             <div style={{ float: 'right' }}>[{control}]</div>
           </div>
         );
-      // Fallback to legacy data types for backward compatibility
-      case 'text':
-      case 'string':
-        return <TextInput propDef={propDef} key={inputKey} />;
-      case 'number':
-      case 'integer':
-      case 'boolean':
-      case 'password':
-      case 'select':
-      case 'timestamp':
-        return (
-          <div key={inputKey}>
-            {label}
-            <div style={{ float: 'right' }}>[input-{control}]</div>
-          </div>
-        );
       case 'composite':
-        // return <CompositeInput propDef={propDef} key={inputKey} />;
-        return <div key={inputKey}>Composite Input for {p}</div>;
+        return <CompositeInput propDef={propDef} key={inputKey} />;
+      // return <div key={inputKey}>Composite Input for {p}</div>;
       default:
         LOG(...PR(`Unsupported control type ${control} for property ${p}`));
         return <p key={inputKey}>Unsupported control: {control}</p>;

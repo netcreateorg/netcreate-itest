@@ -18,6 +18,7 @@ const Loki = require('lokijs');
 const PATH = require('path');
 const FSE = require('fs-extra');
 const TOML = require('@iarna/toml');
+const TemplateUtil = require('./server-template-util');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -208,8 +209,14 @@ DB.InitializeDataset = function (options = {}) {
     // load non-database assets from dataset.toml, creating
     // it if necessary
     await m_LoadTemplate();
-    m_MigrateTemplate();
-    m_ValidateTemplate();
+    // const { templateOK, report } = TemplateUtil.GetValidationReport(TEMPLATE);
+    // if (!templateOK) {
+    //   console.error(PR, `Template validation failed for ${dataset}:\n`);
+    //   console.error(report);
+    //   process.exit(1);
+    // }
+    // deprecated_MigrateTemplate();
+    // deprecated_ValidateTemplate();
   } // end async_DatabaseInitialize
 
   // UTILITY FUNCTION
@@ -229,24 +236,50 @@ DB.InitializeDataset = function (options = {}) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Load Template */
 async function m_LoadTemplate() {
+  // make sure default template exists and is valid
+  const defaultTemplatePath = m_DefaultTemplatePath();
+  if (!FSE.existsSync(defaultTemplatePath)) {
+    console.error(PR, `Default template not found at ${defaultTemplatePath}`);
+    process.exit(1);
+  }
+  // validate the default template, as this is our single source of truth
+  const [defaultOk, defaultReport] =
+    TemplateUtil.ValidateTOMLTemplate(defaultTemplatePath);
+  if (!defaultOk) {
+    console.error(PR, RD('Invalid default template'), `'${defaultTemplatePath}'`);
+    console.error(PR, YL(`Correct and restart server. Report follows:\n`));
+    console.error(defaultReport);
+    process.exit(1);
+  } else {
+    console.log(PR, `Default template ${defaultTemplatePath} ${BL('validated')}`);
+  }
   const TOMLPath = m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(TOMLPath));
   if (!FSE.existsSync(TOMLPath)) {
     console.log(PR, `Cloning default template to ${TOMLPath}`);
-    FSE.copySync(m_DefaultTemplatePath(), TOMLPath);
+    FSE.copySync(defaultTemplatePath, TOMLPath);
   }
   const data = FSE.readFileSync(TOMLPath, 'utf8');
   const json = TOML.parse(data);
   TEMPLATE = json;
+  // validate the loaded template
+  const [templateOK, report] = TemplateUtil.ValidateTemplateObject(TEMPLATE);
+  if (!templateOK) {
+    console.error(PR, RD('Invalid dataset template'), `'${TOMLPath}'`);
+    console.error(PR, YL(`Correct and restart server. Report follows:\n`));
+    console.error(report);
+    process.exit(1);
+  } else {
+    console.log(PR, `Template ${TOMLPath} ${BL('validated')}`);
+  }
+
   // don't clear the locks of a reload of template happens post-init
   if (m_template_locks === undefined) m_template_locks = new Set();
-
-  console.log(PR, 'Template loaded', BL(TOMLPath));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Migrate the in-memory TEMPLATE object to latest schema version. These
  *  changes are not persisted unless the template is saved through the UI. */
-function m_MigrateTemplate() {
+function deprecated_MigrateTemplate() {
   //
   const T = TEMPLATE;
   const EDF = T.edgeDefs;
@@ -340,7 +373,10 @@ function m_MigrateTemplate() {
           Object.keys(source).forEach(key => {
             if (nset(target[key])) {
               target[key] = source[key];
-            } else if (typeof source[key] === 'object' && typeof target[key] === 'object') {
+            } else if (
+              typeof source[key] === 'object' &&
+              typeof target[key] === 'object'
+            ) {
               u_conditionalMerge(target[key], source[key]);
             }
           });
@@ -360,97 +396,117 @@ function m_MigrateTemplate() {
 /** Validate Template Object. This checks that the in-memory TEMPLATE object has
  *  expected values and types and throws errors for showstopping discrepancies.
  *  Note that this does not actually persist the template back to disk. */
-function m_ValidateTemplate() {
+function deprecated_ValidateTemplate() {
+  const errors = [];
+
   try {
     // 1. Validate built-in fields
     // nodeDefs
     let nodeDefs = TEMPLATE.nodeDefs;
     if (nodeDefs === undefined) {
-      throw 'Missing `nodeDefs` nodeDefs=' + nodeDefs;
+      errors.push('Missing `nodeDefs` section');
+    } else {
+      if (nodeDefs.label === undefined) errors.push('Missing `nodeDefs.label`');
     }
-    if (nodeDefs.label === undefined)
-      throw 'Missing `nodeDefs.label` label=' + nodeDefs.label;
+
     // edgeDefs
     let edgeDefs = TEMPLATE.edgeDefs;
-    if (edgeDefs === undefined) throw 'Missing `edgeDefs` edgeDefs=' + edgeDefs;
-    if (edgeDefs.source === undefined)
-      throw 'Missing `edgeDefs.source` source=' + edgeDefs.source;
-    if (edgeDefs.target === undefined)
-      throw 'Missing `edgeDefs.target` label=' + edgeDefs.target;
+    if (edgeDefs === undefined) {
+      errors.push('Missing `edgeDefs` section');
+    } else {
+      if (edgeDefs.source === undefined) errors.push('Missing `edgeDefs.source`');
+      if (edgeDefs.target === undefined) errors.push('Missing `edgeDefs.target`');
+    }
 
-    // 2. Validate deprecated fields
+    // 2. Validate all required nodeDefs properties from default template
+    if (nodeDefs) {
+      const requiredNodeDefProps = [
+        'id',
+        'label',
+        'type',
+        'notes',
+        'info',
+        'infoSource',
+        'degrees',
+        'created',
+        'createdBy',
+        'updated',
+        'updatedBy',
+        'revision'
+      ];
+      requiredNodeDefProps.forEach(prop => {
+        if (nodeDefs[prop] === undefined) {
+          errors.push(`Missing required nodeDefs property '${prop}'`);
+        }
+      });
+    }
+
+    // 3. Validate all required edgeDefs properties from default template
+    if (edgeDefs) {
+      const requiredEdgeDefProps = [
+        'id',
+        'source',
+        'target',
+        'type',
+        'notes',
+        'weight',
+        'infoOrigin',
+        'citation',
+        'category',
+        'created',
+        'createdBy',
+        'updated',
+        'updatedBy',
+        'revision'
+      ];
+      requiredEdgeDefProps.forEach(prop => {
+        if (edgeDefs[prop] === undefined) {
+          errors.push(`Missing required edgeDefs property '${prop}'`);
+        }
+      });
+    }
+
+    // 4. Validate deprecated fields
     //    `TEMPLATE._schemaVersion` was added after 2.0.
     if (!TEMPLATE._schemaVersion) {
-      // nodeDefs
-      if (nodeDefs.type === undefined)
-        throw 'Missing `nodeDefs.type` type= ' + nodeDefs.type;
+      // nodeDefs legacy validation
       if (
-        nodeDefs.type.options === undefined ||
-        !Array.isArray(nodeDefs.type.options)
+        nodeDefs &&
+        nodeDefs.type &&
+        (nodeDefs.type.options === undefined || !Array.isArray(nodeDefs.type.options))
       ) {
-        throw (
-          'Missing or bad `nodeDefs.type.options` options=' + nodeDefs.type.options
-        );
+        errors.push('Missing or bad `nodeDefs.type.options` - must be an array');
       }
-      if (nodeDefs.notes === undefined)
-        throw 'Missing `nodeDefs.notes` notes=' + nodeDefs.notes;
-      if (nodeDefs.info === undefined)
-        throw 'Missing `nodeDefs.info` info=' + nodeDefs.info;
-      // Version 1.5+ Fields
-      // if (nodeDefs.provenance === undefined) // v2 provenance removed
-      //   throw 'Missing `nodeDefs.provenance` provenance=' + nodeDefs.provenance;
-      if (nodeDefs.provenance)
-        // v2 provenance removed
+
+      // edgeDefs legacy validation
+      if (
+        edgeDefs &&
+        edgeDefs.type &&
+        (edgeDefs.type.options === undefined || !Array.isArray(edgeDefs.type.options))
+      ) {
+        errors.push('Missing or bad `edgeDefs.type.options` - must be an array');
+      }
+
+      // Check for deprecated provenance fields
+      if (nodeDefs && nodeDefs.provenance) {
         console.log(
           RD(
             'Template is using deprecated node definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
           ),
           JSON.stringify(nodeDefs.provenance, null, 2)
         );
-      if (nodeDefs.comments === undefined)
-        throw 'Missing `nodeDefs.comments` comments=' + nodeDefs.comments;
-
-      // edgeDefs
-      if (edgeDefs.type === undefined)
-        throw 'Missing `edgeDefs.type` type= ' + edgeDefs.type;
-      if (
-        edgeDefs.type.options === undefined ||
-        !Array.isArray(edgeDefs.type.options)
-      ) {
-        throw (
-          'Missing or bad `edgeDefs.type.options` options=' + edgeDefs.type.options
-        );
       }
-      if (edgeDefs.notes === undefined)
-        throw 'Missing `edgeDefs.notes` notes=' + edgeDefs.notes;
-      if (edgeDefs.info === undefined)
-        throw 'Missing `edgeDefs.info` info=' + edgeDefs.info;
-      // Version 1.5+ Fields
-      // if (edgeDefs.provenance === undefined) // v2 provenance removed
-      //   throw 'Missing `edgeDefs.provenance` provenance=' + edgeDefs.provenance;
-      if (edgeDefs.provenance)
-        // v2 provenance removed
+      if (edgeDefs && edgeDefs.provenance) {
         console.log(
           RD(
             'Template is using deprecated edge definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
           ),
           JSON.stringify(edgeDefs.provenance, null, 2)
         );
-      if (edgeDefs.comments === undefined)
-        throw 'Missing `edgeDefs.comments` comments=' + edgeDefs.comments;
-      // -- End 1.5+
-      if (edgeDefs.citation === undefined)
-        throw 'Missing `edgeDefs.citation` info=' + edgeDefs.citation;
-      if (edgeDefs.category === undefined)
-        throw 'Missing `edgeDefs.category` info=' + edgeDefs.category;
-    } else {
-      // Placeholder for future version checks
-      // if (TEMPLATE._schemaVersion <= "2.0") {
-      //   // do something
-      // }
+      }
     }
 
-    // 3. Validate _ui section (v2.1+)
+    // 5. Validate _ui section (v2.1+)
     if (TEMPLATE._ui === undefined) {
       console.warn(
         PR,
@@ -467,6 +523,19 @@ function m_ValidateTemplate() {
           );
         }
       });
+    }
+
+    // Report all collected errors at once
+    if (errors.length > 0) {
+      const templateFileName = m_GetTemplateTOMLFilePath();
+      const errorReport = errors.map((err, i) => `  ${i + 1}. ${err}`).join('\n');
+      console.error(
+        PR,
+        `Template validation failed for '${templateFileName}':\n${errorReport}\n\nPlease fix these issues and restart the server.`
+      );
+      throw new Error(
+        `Template validation failed with ${errors.length} error(s). See console for details.`
+      );
     }
   } catch (error) {
     const templateFileName = m_GetTemplateTOMLFilePath();

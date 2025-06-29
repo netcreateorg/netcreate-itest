@@ -22,17 +22,46 @@ function u_DecodeCompositeData(uiData) {
     return { error: `arg1 must be an object, got ${typeof uiData}` };
 
   const { groupName, propName, propMeta, propData } = uiData;
-  const { control, label } = propMeta;
+  if (propData === undefined) {
+    LOG(`%cNo propData found for ${groupName}.${propName}`, 'color: red');
+    return [];
+  }
 
   // For composite controls, we need to look for child controls
-  // which look like { [settingName]: { control: 'in-string', labelKey: 'displayLabel' } }
+  // which look like { [settingName]: { control: 'in_string', labelKey: 'displayLabel' } }
   const settings = [];
-  Object.keys(propMeta).forEach(setn => {
-    if (setn === 'control') return;
-    settings.push({ settingKey: setn, ...propMeta[setn] });
+  Object.keys(propMeta).forEach(propField => {
+    if (propField === 'control') return;
+
+    const fieldMeta = propMeta[propField];
+    const { control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
+      fieldMeta;
+
+    // NOTE: This normalizing code could be moved into a common RSB helper
+    // resolve useful ui data using fallthrough assignment pattern
+    let fLabel, fHelp, fTooltip;
+
+    if (labelKey) fLabel = propData[labelKey];
+    if (!fLabel) fLabel = label || propField;
+
+    if (helpKey) fHelp = propData[helpKey];
+    if (!fHelp) fHelp = help || '';
+
+    if (tooltipKey) fTooltip = propData[tooltipKey];
+    if (!fTooltip) fTooltip = tooltip || '';
+
+    settings.push({
+      propField,
+      groupName,
+      propName,
+      control,
+      label: fLabel,
+      help: fHelp,
+      tooltip: fTooltip
+    });
   });
 
-  return settings; // array of { settingKey, meta }
+  return settings; // return both settings array and composite label
 }
 
 /// COMPOSITE INPUT COMPONENT /////////////////////////////////////////////////
@@ -44,29 +73,23 @@ function CompositeInput(props) {
 
   // Get UI data for the composite property
   const uiData = RSB.GetUIData(draft.template, propDef);
-  const uiSettings = u_DecodeCompositeData(uiData);
-
-  LOG(...PR(`CompositeInput for ${propDef}:`, uiSettings));
+  const settings = u_DecodeCompositeData(uiData);
 
   // Render child inputs
-  const ChildInputs = uiSettings.forEach(setUI => {
-    const { control, ...childMeta } = setUI;
+  const ChildInputs = settings.map(fieldUI => {
+    const { propField, groupName, propName, control } = fieldUI;
+    const childPropDef = RSB.EncodeDotProp(groupName, propName, propField);
+    const childKey = `field-${propField}`;
+
     switch (control) {
-      case 'in-string':
-      case 'in-text':
+      case 'in_string':
+      case 'in_text':
         return <TextInput propDef={childPropDef} key={childKey} />;
       default:
         return (
-          <div
-            key={childKey}
-            style={{
-              margin: '0.5rem 0',
-              padding: '0.5rem',
-              border: '1px dashed #ccc'
-            }}
-          >
-            <span>{childProp}: </span>
-            <span style={{ color: 'gray' }}>[{childControl}]</span>
+          <div key={childKey}>
+            <span>{propField}: </span>
+            <span style={{ color: 'gray' }}>[{control}]</span>
           </div>
         );
     }
@@ -75,14 +98,11 @@ function CompositeInput(props) {
   return (
     <div
       style={{
-        margin: '1rem 0',
-        padding: '1rem',
-        border: '2px solid #e0e0e0',
-        borderRadius: '4px'
+        margin: '1rem 0'
       }}
     >
       <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: '#666' }}>
-        {label} (composite)
+        {uiData.propName} (composite)
       </div>
       {ChildInputs}
     </div>
