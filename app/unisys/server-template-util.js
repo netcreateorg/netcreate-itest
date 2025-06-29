@@ -21,6 +21,18 @@ const CONTROL_TYPES = {
   },
   in_boolean: {
     label: 'string',
+    tooltip: 'string',
+    help: 'string'
+  },
+  in_number: {
+    label: 'string',
+    tooltip: 'string',
+    help: 'string'
+  },
+  in_array: {
+    _type: 'string',
+    label: 'string',
+    tooltip: 'string',
     help: 'string'
   },
   composite: {}
@@ -352,7 +364,7 @@ function m_ValidateUIProperties(uiObj, path) {
       const expectedFields = CONTROL_TYPES[controlType];
       m_ValidateProperty(uiObj, path, expectedFields);
     } else {
-      EXTRA.push(`${path}.control:unknown-type`);
+      EXTRA.push(`${path}.control : unknown-type ${controlType}`);
     }
   }
   // Check for composite controls with nested fields
@@ -380,24 +392,24 @@ function m_Validate(template) {
   // NEXT: Validate _ui metadata structure
   if (template._ui) {
     // Validate _ui structure
-    // for (const [groupName, groupDef] of Object.entries(template._ui)) {
-    //   const uiPath = `_ui.${groupName}`;
-    //   if (groupName.startsWith('_editor')) {
-    //     // Editor group metadata - just validate it exists
-    //     VALID.push(uiPath);
-    //   } else if (typeof groupDef === 'object' && groupDef.control) {
-    //     // Direct UI property definition
-    //     m_ValidateUIProperties(groupDef, uiPath);
-    //   } else if (typeof groupDef === 'object') {
-    //     // Nested group (like nodeDefs, edgeDefs)
-    //     for (const [propName, propDef] of Object.entries(groupDef)) {
-    //       const propPath = `${uiPath}.${propName}`;
-    //       if (typeof propDef === 'object' && propDef.control) {
-    //         m_ValidateUIProperties(propDef, propPath);
-    //       }
-    //     }
-    //   }
-    // }
+    for (const [groupName, groupDef] of Object.entries(template._ui)) {
+      const uiPath = `_ui.${groupName}`;
+      if (groupName.startsWith('_editor')) {
+        // Editor group metadata - just validate it exists
+        VALID.push(uiPath);
+      } else if (typeof groupDef === 'object' && groupDef.control) {
+        // Direct UI property definition
+        m_ValidateUIProperties(groupDef, uiPath);
+      } else if (typeof groupDef === 'object') {
+        // Nested group (like nodeDefs, edgeDefs)
+        for (const [propName, propDef] of Object.entries(groupDef)) {
+          const propPath = `${uiPath}.${propName}`;
+          if (typeof propDef === 'object' && propDef.control) {
+            m_ValidateUIProperties(propDef, propPath);
+          }
+        }
+      }
+    }
   } else {
     MISSING.push('_ui : missing UI metadata');
     console.log('template', template);

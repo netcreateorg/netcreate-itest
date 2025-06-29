@@ -246,12 +246,12 @@ async function m_LoadTemplate() {
   const [defaultOk, defaultReport] =
     TemplateUtil.ValidateTOMLTemplate(defaultTemplatePath);
   if (!defaultOk) {
-    console.error(PR, RD('Invalid default template'), `'${defaultTemplatePath}'`);
+    console.error(PR, RD(`Invalid default template`), `'${defaultTemplatePath}'`);
     console.error(PR, YL(`Correct and restart server. Report follows:\n`));
     console.error(defaultReport);
     process.exit(1);
   } else {
-    console.log(PR, `Default template ${defaultTemplatePath} ${BL('validated')}`);
+    console.log(PR, BL('Default template validated'), `'${defaultTemplatePath}'`);
   }
   const TOMLPath = m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(TOMLPath));
@@ -265,12 +265,12 @@ async function m_LoadTemplate() {
   // validate the loaded template
   const [templateOK, report] = TemplateUtil.ValidateTemplateObject(TEMPLATE);
   if (!templateOK) {
-    console.error(PR, RD('Invalid dataset template'), `'${TOMLPath}'`);
+    console.error(PR, RD(`Invalid dataset template`), `'${TOMLPath}'`);
     console.error(PR, YL(`Correct and restart server. Report follows:\n`));
     console.error(report);
     process.exit(1);
   } else {
-    console.log(PR, `Template ${TOMLPath} ${BL('validated')}`);
+    console.log(PR, BL(`Dataset template validated`), TOMLPath);
   }
 
   // don't clear the locks of a reload of template happens post-init
