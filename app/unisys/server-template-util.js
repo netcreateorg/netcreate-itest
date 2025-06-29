@@ -37,13 +37,16 @@ const CONTROL_TYPES = {
   },
   composite: {}
 };
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// Special types used in the template schema, used for arrays of object types
+/// like in `commentTypes`, `nodeDefs.types`, and `edgeDefs.types`.
 const SPECIAL_TYPES = {
   commentType: { slug: 'string', label: 'string', prompts: 'string[]' },
   nodeType: { label: 'string', color: 'string' },
   edgeType: { label: 'string', color: 'string' }
 };
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+///
 const NODEDEFS_20 = {
   id: {
     type: 'string',
@@ -267,11 +270,11 @@ const EDGEDEFS_20 = {
     hidden: 'boolean'
   }
 };
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Templates _schemaVersion "2.0" have these required keys and types
 const KEYS_20 = {
   // global keys
-  version: 'number',
+  _schemaVersion: 'string',
   name: 'string',
   description: 'string',
   secretKey: 'string',
@@ -298,12 +301,11 @@ const KEYS_20 = {
   edgeDefaultTransparency: 'number',
   searchColor: 'string',
   sourceColor: 'string',
-  _schemaVersion: 'string',
   citation: { text: 'string', hidden: 'boolean' },
   // composite keys
   commentTypes: 'commentType[]',
-  nodeDefs: { ...NODEDEFS_20 },
-  edgeDefs: { ...EDGEDEFS_20 }
+  nodeDefs: NODEDEFS_20,
+  edgeDefs: EDGEDEFS_20
 };
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
