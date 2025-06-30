@@ -58,6 +58,9 @@ help = "This password protects access to the Advanced Settings Panel"
 label = "Node Definitions"
 description = "Define the properties that nodes can have"
 
+[_ui.nodeDefs]
+control = "composite"
+
 [_ui.nodeDefs.id]
 control = "composite"
 displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }

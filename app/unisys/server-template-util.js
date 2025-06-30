@@ -271,7 +271,7 @@ const EDGEDEFS_20 = {
   }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Templates _schemaVersion "2.0" have these required keys and types
+/// Templates have these requires keys
 const KEYS_20 = {
   // global keys
   _schemaVersion: 'string',
@@ -359,22 +359,91 @@ function m_ValidateProperty(tObj, path, expected) {
 /** Recursively validate UI properties in the _ui metadata, pushing
  *  any issues to the respective arrays. This checks for control types
  *  and their required fields, as well as nested composite controls. */
-function m_ValidateUIProperties(uiObj, path) {
-  if (uiObj.control) {
-    const controlType = uiObj.control;
-    if (CONTROL_TYPES[controlType]) {
-      const expectedFields = CONTROL_TYPES[controlType];
-      m_ValidateProperty(uiObj, path, expectedFields);
-    } else {
-      EXTRA.push(`${path}.control : unknown-type ${controlType}`);
+function m_ValidateUIProperties(uiObj, path = '') {
+  // walk all the top-level keys of _ui
+  for (const [key, uiDef] of Object.entries(uiObj)) {
+    // these are the top-level keys from _ui
+    // check if this key is actually in the schema
+    if (key.startsWith('_')) continue; // skip internal keys
+    if (!KEYS_20[key]) {
+      console.log(`extra key in _ui: ${key}`);
+      EXTRA.push(`${path}${key} : unknown key in _ui`);
+      continue;
     }
-  }
-  // Check for composite controls with nested fields
-  if (uiObj.control === 'composite') {
-    for (const [fieldName, fieldDef] of Object.entries(uiObj)) {
-      if (fieldName !== 'control' && typeof fieldDef === 'object') {
-        m_ValidateUIProperties(fieldDef, `${path}.${fieldName}`);
+    // we have a valid ui key, now check its control type
+    if (!uiDef.control) {
+      console.log(`invalid control type in _ui.${key}`);
+      INVALID.push(`${path}${key} : missing control type in _ui.${key}`);
+      continue;
+    }
+    // check if the control type is valid
+    if (!CONTROL_TYPES[uiDef.control]) {
+      console.log(`invalid control type in _ui.${key}`);
+      INVALID.push(
+        `${path}${key} : invalid control type '${uiDef.control}' in _ui.${key}`
+      );
+      continue;
+    }
+    // make sure this isn't a composite control
+    if (uiDef.control === 'composite') {
+      console.log(PR, `Composite control found in _ui.${key}, skipping validation`);
+      continue;
+    }
+    // if we got here, get in_string: { label, tooltip, help }
+    const controlProps = CONTROL_TYPES[uiDef.control];
+    // these are the UI form elements, not the data itself
+    // a general idea is that if the controlProp property names
+    // end with 'key', they are a reference to something in the
+    // template, not the UI metadata itself.
+    const keys = Object.keys(controlProps);
+    for (const prop of keys) {
+      if (prop.endsWith('key')) {
+        // see if it exists in template schema
+        const propName = prop.slice(0, -3); // remove 'key'
+        if (!KEYS_20[key][propName]) {
+          console.log(`_ui.${key}: ${prop} does not exist in template schema`);
+          INVALID.push(
+            `${path}${key}.${prop} : missing property '${propName}' in template schema`
+          );
+          continue;
+        }
+        console.log('valid key prop', `${path}${key}.${prop}`);
+        VALID.push(`${path}${key}.${prop}`);
+        continue;
       }
+      // if got here, prop doesn't end with 'key' so check ui data
+      if (uiDef[prop] === undefined) {
+        console.log(`missing property in _ui.${key}: ${prop}`);
+        MISSING.push(`${path}${key}.${prop} : missing property in _ui.${key}`);
+        continue;
+      }
+      // if got here, uiDef[prop] exists so check type
+      const expectedType = controlProps[prop];
+      const actualType = u_type(uiDef[prop]);
+      if (expectedType.endsWith('[]')) {
+        // expected an array, so check if it's an array
+        if (actualType !== 'array') {
+          console.log(`expected array definition in _ui.${key}.${prop}`);
+          INVALID.push(
+            `${path}${key}.${prop} : expected ${expectedType}, got ${actualType}`
+          );
+        } else {
+          console.log('valid array', `${path}${key}.${prop}`);
+          VALID.push(`${path}${key}.${prop}`);
+        }
+        continue;
+      }
+      // if got here, expectedType is a simple type
+      if (actualType !== expectedType) {
+        console.log(`expected ${expectedType} in _ui.${key}.${prop}`);
+        INVALID.push(
+          `${path}${key}.${prop} : expected ${expectedType}, got ${actualType}`
+        );
+        continue;
+      }
+      // if got here, it's a valid simple property
+      console.log('valid simple prop', `${path}${key}.${prop}`);
+      VALID.push(`${path}${key}.${prop}`);
     }
   }
 }
@@ -393,25 +462,7 @@ function m_Validate(template) {
 
   // NEXT: Validate _ui metadata structure
   if (template._ui) {
-    // Validate _ui structure
-    for (const [groupName, groupDef] of Object.entries(template._ui)) {
-      const uiPath = `_ui.${groupName}`;
-      if (groupName.startsWith('_editor')) {
-        // Editor group metadata - just validate it exists
-        VALID.push(uiPath);
-      } else if (typeof groupDef === 'object' && groupDef.control) {
-        // Direct UI property definition
-        m_ValidateUIProperties(groupDef, uiPath);
-      } else if (typeof groupDef === 'object') {
-        // Nested group (like nodeDefs, edgeDefs)
-        for (const [propName, propDef] of Object.entries(groupDef)) {
-          const propPath = `${uiPath}.${propName}`;
-          if (typeof propDef === 'object' && propDef.control) {
-            m_ValidateUIProperties(propDef, propPath);
-          }
-        }
-      }
-    }
+    m_ValidateUIProperties(template._ui, '');
   } else {
     MISSING.push('_ui : missing UI metadata');
     console.log('template', template);
@@ -432,6 +483,10 @@ function ValidateTemplateObject(template) {
   }
   m_Validate(template);
   let report = '';
+  if (VALID.length > 0) {
+    report += `*** VALID TEMPLATE KEYS ***\n`;
+    report += `    ${VALID.length} valid keys found\n\n`;
+  }
   if (INVALID.length > 0) {
     report += `*** INVALID TEMPLATE KEYS ***\n`;
     report += `    ${INVALID.join('\n    ')}\n\n`;
@@ -444,12 +499,12 @@ function ValidateTemplateObject(template) {
     report += `*** MISSING TEMPLATE KEYS ***\n`;
     report += `    ${MISSING.join('\n    ')}\n\n`;
   }
-  if (VALID.length > 0) {
-    report += `*** VALID TEMPLATE KEYS ***\n`;
-    report += `    ${VALID.length} valid keys found\n`;
-  }
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
+
+  console.log(PR, 'Template validation report:');
+  console.log(report);
+
   return [templateOK, report];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
