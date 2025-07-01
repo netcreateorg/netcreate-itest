@@ -39,6 +39,11 @@ function $bl(string) {
 function $yl(string) {
   return `\x1b[1;33m${string}\x1b[0m`;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return bright white string with bright blue background */
+function $wh(string) {
+  return `\x1b[1;37;44m(${string})\x1b[0m`;
+}
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,11 +63,12 @@ LOG($yl('Use -v, -vv, or -vvv to adjust verbosity of reporting.'));
 LOG('');
 
 LOG('---');
-LOG(`Validating ${$bl('default template')}: '${$short(defaultPath)}'`);
+LOG(`${$wh(1)} Validating ${$bl('DEFAULT')} template: '${$short(defaultPath)}'`);
 if (m_verbosity >= 1) LOG($yl(`verbosity level: ${m_verbosity}`));
 LOG('');
 
 const [defaultOK, defaultReport, defaultResults] = ValidateTOMLTemplate(defaultPath);
+const dt_num = defaultResults.valid.length;
 
 if (defaultOK) {
   LOG(`✅ Template '${$short(defaultPath)}' passed validation`);
@@ -86,11 +92,12 @@ if (m_verbosity >= 2) {
 }
 
 LOG('---');
-LOG(`Validating ${$bl('dataset template')}: '${$short(datasetPath)}'`);
+LOG(`${$wh(2)} Validating ${$bl('DATASET')} template: '${$short(datasetPath)}'`);
 if (m_verbosity >= 1) LOG($yl(`verbosity level: ${m_verbosity}`));
 LOG('');
 
 const [datasetOK, datasetReport, datasetResults] = ValidateTOMLTemplate(datasetPath);
+const ds_num = datasetResults.valid.length;
 
 if (datasetOK) {
   LOG(`✅ Template '${$short(datasetPath)}' passed validation`);
@@ -113,4 +120,11 @@ if (m_verbosity >= 2) {
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
 }
 
+if (dt_num !== ds_num) {
+  const dt = $yl(dt_num);
+  const ds = $yl(ds_num);
+  const warn = `valid keys count mismatch: default ${dt} !== ${ds} dataset`;
+  LOG('');
+  LOG($yl('WARNING:'), warn);
+}
 LOG('');

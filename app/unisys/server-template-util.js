@@ -14,6 +14,13 @@ const PR = PROMPTS.Pad('Template');
 const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const GRY = '\x1b[90m'; // grey
+const RED = '\x1b[1;31m'; // red
+const CRT = '\x1b[1;37;41m'; // critical
+const NRM = '\x1b[0m'; // nrm
+const _err = str => `${RED}* ${str}${NRM}`; // bad
+const _ok = str => `${GRN}. ${str}${NRM}`; // good
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// UI metadata control types have specifi ui properties. These properties are
 /// used to render the UI form elements as defined by:
 /// { [fieldName]:{ control, ...ui_properties }}
@@ -47,11 +54,28 @@ const CHECK_CONTROLS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Special types used in the template schema, used for arrays of object types
 /// like in `commentTypes`, `nodeDefs.types`, and `edgeDefs.types`.
-const CHECK_TYPES20 = {
+const CHECK_OBJS20 = {
   commentType: { slug: 'string', label: 'string', prompts: 'string[]' },
   nodeType: { label: 'string', color: 'string' },
   edgeType: { label: 'string', color: 'string' }
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// Basic types used in the template schema for 'type' fields in template
+const T_ALLOWED20 = [
+  // basic types
+  'string',
+  'number',
+  'boolean',
+  // extended types
+  'select',
+  'timestamp',
+  'weight',
+  'infoOrigin',
+  'node'
+];
+/// extended types used in the template schema
+T_ALLOWED20.push(...Object.keys(CHECK_OBJS20));
+T_ALLOWED20.push(...Object.keys(CHECK_OBJS20).map(key => `${key}[]`));
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ///
 const CHECK_NODES20 = {
@@ -346,11 +370,9 @@ function get_checkType(checkObj) {
       const itemType = checkObj.slice(0, -2); // remove '[]'
       return ['array', itemType];
     }
-    // checkObj is a simple type
-    return [checkObj];
   }
-  // if checkObj is anything else, return [] because it's invalid
-  return [typeof checkObj, ''];
+  // if checkObj is anything else return the found type
+  return [u_typeof(checkObj)];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Validate a single property against the checkObj type or structure
@@ -363,74 +385,90 @@ function get_checkType(checkObj) {
  */
 function m_ValidateProperty(tKey, tObj, checkObj) {
   // simple value types can be checked directly
+  if (DBG) {
+    const jst = JSON.stringify(tObj).substring(0, 20);
+    const cst = JSON.stringify(checkObj).substring(0, 20);
+    // console.log(`${GRY}Validating '${tKey}' ${NRM}${jst}${GRY}  type ${NRM}${cst}`);
+  }
   const tobjType = u_typeof(tObj);
   const [checkType, itemType] = get_checkType(checkObj);
+  if (checkType === undefined) {
+    const err = `! ${tKey} : checkObj is undefined!`;
+    throw Error(`unexpected undefined checking object passed to validator`);
+  }
+
+  // (1) first handle simple value types in the template
   if (is_valueType(tObj)) {
     if (tObj === undefined) {
-      const err = `* ${tKey} :undefined (sub)template object`;
-      if (DBG) LOG(err);
-      MISSING.push(err);
-      return;
-    }
-    // tObj is a simple value type, so check against checkObj
-    if (tobjType === 'string') {
-      if (checkType === 'array') {
-        const err = `* ${tKey}: expected ${itemType}[], not ${tobjType}`;
-        if (DBG) LOG(err);
-        INVALID.push(err);
-        return;
-      }
-      const ok = `. ${tKey}: valid array of ${itemType}`;
-      if (DBG) LOG(ok);
-      VALID.push(ok);
-      return;
-    }
-    // got here? then it's just a number, or boolean
-    if (tobjType !== checkType) {
-      const err = `* ${tKey}: expected ${checkType}, not ${tobjType}`;
+      const err = `* ${tKey} : undefined value`;
       if (DBG) LOG(err);
       INVALID.push(err);
       return;
     }
-    // if got here, it's a valid simple value type
-    const ok = `. ${tKey}: valid ${checkType}`;
+    // special case for 'type' keys
+    if (tKey === 'type') {
+      if (tobjType !== 'string') {
+        const err = `* ${tKey} : expected 'string', not <${tObjType}>`;
+        if (DBG) LOG(err);
+        INVALID.push(err);
+        return;
+      }
+      if (!T_ALLOWED20.includes(tObj)) {
+        const err = `* ${tKey} : unknown template type "${tObj}". Check T_ALLOWED20`;
+        if (DBG) LOG(err);
+        INVALID.push(err);
+        return;
+      }
+    }
+    // got here? then it's just a number, or boolean
+    const ok = `. ${tKey} : valid simple value <${u_typeof(tObj)}>`;
     if (DBG) LOG(ok);
     VALID.push(ok);
     return;
   }
-  // if tObj is array, compare to checkObj, itemType defined above
+
+  // (2) it's an array type
   if (tobjType === 'array') {
-    const checkArray = CHECK_TYPES20[itemType];
-    LOG(`skipping '${tKey}' array check against:`, checkArray);
-    LOG(`data to check:`, tObj);
+    if (itemType === undefined) {
+      const cTypes = Object.keys(CHECK_OBJS20)
+        .map(key => CHECK_OBJS20[key] + '[]')
+        .join(' | ');
+      const err = `* ${tKey} : array types must be one of ${cTypes.join(', ')}`;
+      if (DBG) LOG(err);
+      INVALID;
+      return;
+    }
+    const checkArray = CHECK_OBJS20[itemType];
+    LOG(`${GRY}TODO '${tKey}' array check vs:`, checkArray, NRM);
+    // LOG(`data to check:`, JSON.stringify(tObj));
     return;
   }
 
-  // by now, we expect that tObj is an iterable object
+  // (3) by now, we expect that tObj is an iterable object
   if (tobjType !== 'object') {
-    const err = `* ${tKey}: expected object, not ${tobjType}`;
+    const err = `* ${tKey} : expected object, not ${tobjType}`;
     if (DBG) LOG(err);
     INVALID.push(err);
     return;
   }
-  // if we got here, so recursively check the object, skipping meta keys
+  // if we got here recurse the keys of the tObj
   const tobjKeys = Object.keys(tObj).filter(key => !key.startsWith('_'));
   tobjKeys.forEach(key => {
     const subcheck = checkObj[key];
     if (subcheck === undefined) {
-      const err = `* ${tKey}.${key}: key not found in template schema`;
+      const err = `* ${tKey}.${key} : key not found in template schema`;
       if (DBG) LOG(err);
       EXTRA.push(err);
       return;
     }
     const subtobj = tObj[key];
     if (subtobj === undefined) {
-      const err = `* ${tKey}.${key}: property not found in template`;
+      const err = `* ${tKey}.${key} : property not found in template`;
       if (DBG) LOG(err);
       MISSING.push(err);
       return;
     }
-    // if we got here, we have a valid object to recursively check
+    // sub check passed, so recurse!
     m_ValidateProperty(key, subtobj, subcheck);
   });
 }
@@ -438,37 +476,38 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
 /** Recursively validate UI properties in the _ui metadata, pushing
  *  any issues to the respective arrays. This checks for control types
  *  and their required fields, as well as nested composite controls. */
-function m_ValidateUIProperties(uiObj, path = '_ui') {
+function m_ValidateUIProperties(uiObj, tKey = '_ui') {
   // walk all the top-level keys of _ui
   for (const [key, uiDef] of Object.entries(uiObj)) {
     // skip internal keys
     if (key.startsWith('_')) continue;
-    const pkey = path ? `${path}.${key}` : key;
+    const pkey = tKey ? `${tKey}.${key}` : key;
     // check if this key is actually in the schema
-    if (!KEYS_20[key]) {
-      console.log(`- ui extra key in _ui: ${key}`);
-      EXTRA.push(`${pkey} : unknown key in _ui`);
+    if (!CHECK20[key]) {
+      const err = `* ${pkey} : unknown key in _ui`;
+      if (DBG) LOG(err);
+      EXTRA.push(err);
       continue;
     }
     // we have a valid ui key, now check its control type
     if (!uiDef.control) {
-      console.log(`- ui invalid control type in _ui.${key}`);
+      if (DBG) LOG(`* ui invalid control type in _ui.${key}`);
       INVALID.push(`${pkey} : missing control type in _ui.${key}`);
       continue;
     }
     // check if the control type is valid
-    if (!CONTROL_TYPES[uiDef.control]) {
-      console.log(`- ui invalid control type in _ui.${key}`);
+    if (!CHECK_CONTROLS[uiDef.control]) {
+      if (DBG) LOG(`* ui invalid control type in _ui.${key}`);
       INVALID.push(`${pkey} : invalid control type '${uiDef.control}' in _ui.${key}`);
       continue;
     }
     // make sure this isn't a composite control
     if (uiDef.control === 'composite') {
-      console.log(`- ui Composite control found in _ui.${key}, skipping validation`);
+      if (DBG) LOG(`> ui Composite control found in _ui.${key}, skipping validation`);
       continue;
     }
     // if we got here, get in_string: { label, tooltip, help }
-    const controlProps = CONTROL_TYPES[uiDef.control];
+    const controlProps = CHECK_CONTROLS[uiDef.control];
     // these are the UI form elements, not the data itself
     // a general idea is that if the controlProp property names
     // end with 'key', they are a reference to something in the
@@ -478,44 +517,44 @@ function m_ValidateUIProperties(uiObj, path = '_ui') {
       if (prop.endsWith('key')) {
         // see if it exists in template schema
         const propName = prop.slice(0, -3); // remove 'key'
-        if (!KEYS_20[key][propName]) {
-          console.log(`- ui ${key}: ${prop} does not exist in template schema`);
+        if (!CHECK20[key][propName]) {
+          if (DBG) LOG(`* ui ${key} : ${prop} does not exist in template schema`);
           INVALID.push(
-            `${path}${key}.${prop} : missing property '${propName}' in template schema`
+            `${tKey}${key}.${prop} : missing property '${propName}' in template schema`
           );
           continue;
         }
-        console.log('- ui valid key prop', `${path}${key}.${prop}`);
-        VALID.push(`${path}${key}.${prop}`);
+        if (DBG) LOG('. ui valid key prop', `${tKey}${key}.${prop}`);
+        VALID.push(`${tKey}${key}.${prop}`);
         continue;
       }
       // if got here, prop doesn't end with 'key' so check ui data
       if (uiDef[prop] === undefined) {
-        console.log(`- ui missing property in _ui.${key}: ${prop}`);
-        MISSING.push(`${path}${key}.${prop} : missing property in _ui.${key}`);
+        if (DBG) LOG(`* ui missing property in _ui.${key} : ${prop}`);
+        MISSING.push(`${tKey}${key}.${prop} : missing property in _ui.${key}`);
         continue;
       }
       // if got here, uiDef[prop] exists so check type
       const expectedType = controlProps[prop];
-      const actualType = u_type(uiDef[prop]);
+      const actualType = u_typeof(uiDef[prop]);
       if (expectedType.endsWith('[]')) {
-        // expected an array, so check if it's an array
+        // checkObj an array, so check if it's an array
         if (actualType !== 'array') {
-          console.log(`- ui expected array definition in _ui.${key}.${prop}`);
+          if (DBG) LOG(`* ui checkObj array definition in _ui.${key}.${prop}`);
           INVALID.push(
-            `${path}${key}.${prop} : expected ${expectedType}, got ${actualType}`
+            `${tKey}${key}.${prop} : checkObj ${expectedType}, got ${actualType}`
           );
         } else {
-          console.log('- ui valid array', `${path}${key}.${prop}`);
-          VALID.push(`${path}${key}.${prop}`);
+          if (DBG) LOG('* ui valid array', `${tKey}${key}.${prop}`);
+          VALID.push(`${tKey}${key}.${prop}`);
         }
         continue;
       }
       // if got here, expectedType is a simple type
       if (actualType !== expectedType) {
-        console.log(`- ui expected ${expectedType} in _ui.${key}.${prop}`);
+        if (DBG) LOG(`* ui checkObj ${expectedType} in _ui.${key}.${prop}`);
         INVALID.push(
-          `${path}${key}.${prop} : expected ${expectedType}, got ${actualType}`
+          `${tKey}${key}.${prop} : checkObj ${expectedType}, got ${actualType}`
         );
         continue;
       }
@@ -543,7 +582,7 @@ function m_Validate(template) {
     m_ValidateUIProperties(template._ui, '');
   } else {
     MISSING.push('_ui : missing UI metadata');
-    console.log('template', template);
+    console.log(`${CRT}* missing _ui metadata in template${NRM}`);
   }
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
