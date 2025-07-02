@@ -1,0 +1,14 @@
+{
+  "name": "netcreate-tools",
+  "version": "1.0.0",
+  "description": "Build tools for NetCreate utilities",
+  "scripts": {
+    "build:nc-validate": "node build-nc-validate.js",
+    "install-deps": "npm install"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  },
+  "author": "Inquirium LLC",
+  "license": "MIT"
+}
