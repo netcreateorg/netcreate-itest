@@ -25,7 +25,7 @@ const _ok = str => `${GRN}. ${str}${NRM}`; // good
 /// used to render the UI form elements as defined by:
 /// { [fieldName]:{ control, ...ui_properties }}
 /// the 'control' property is excluded from the check
-const CHECK_CONTROLS = {
+const CONTROL_SCHEMA = {
   in_string: {
     label: 'string',
     tooltip: 'string',
@@ -54,14 +54,20 @@ const CHECK_CONTROLS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Special types used in the template schema, used for arrays of object types
 /// like in `commentTypes`, `nodeDefs.types`, and `edgeDefs.types`.
-const CHECK_OBJS20 = {
-  commentType: { slug: 'string', label: 'string', prompts: 'string[]' },
+const OBJS_SCHEMA20 = {
+  commentType: { slug: 'string', label: 'string', prompts: 'promptType[]' },
+  promptType: {
+    format: 'string',
+    prompt: 'string',
+    help: 'string',
+    feedback: 'string'
+  },
   nodeType: { label: 'string', color: 'string' },
   edgeType: { label: 'string', color: 'string' }
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Basic types used in the template schema for 'type' fields in template
-const T_ALLOWED20 = [
+const TYPES_SCHEMA20 = [
   // basic types
   'string',
   'number',
@@ -74,11 +80,11 @@ const T_ALLOWED20 = [
   'node'
 ];
 /// extended types used in the template schema
-T_ALLOWED20.push(...Object.keys(CHECK_OBJS20));
-T_ALLOWED20.push(...Object.keys(CHECK_OBJS20).map(key => `${key}[]`));
+TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20));
+TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20).map(key => `${key}[]`));
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ///
-const CHECK_NODES20 = {
+const NODES_SCHEMA20 = {
   id: {
     type: 'string',
     displayLabel: 'string',
@@ -184,7 +190,7 @@ const CHECK_NODES20 = {
     hidden: 'boolean'
   }
 };
-const CHECK_EDGES20 = {
+const EDGES_SCHEMA20 = {
   id: {
     type: 'string',
     displayLabel: 'string',
@@ -303,7 +309,7 @@ const CHECK_EDGES20 = {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Templates have these requires keys
-const CHECK20 = {
+const TEMPLATE_SCHEMA = {
   // global keys
   _schemaVersion: 'string',
   name: 'string',
@@ -336,8 +342,8 @@ const CHECK20 = {
   citation: { text: 'string', hidden: 'boolean' },
   // composite keys
   commentTypes: 'commentType[]',
-  nodeDefs: CHECK_NODES20,
-  edgeDefs: CHECK_EDGES20
+  nodeDefs: NODES_SCHEMA20,
+  edgeDefs: EDGES_SCHEMA20
 };
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -413,8 +419,8 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
         INVALID.push(err);
         return;
       }
-      if (!T_ALLOWED20.includes(tObj)) {
-        const err = `* ${tKey} : unknown template type "${tObj}". Check T_ALLOWED20`;
+      if (!TYPES_SCHEMA20.includes(tObj)) {
+        const err = `* ${tKey} : unknown template type "${tObj}". Check TYPES_SCHEMA20`;
         if (DBG) LOG(err);
         INVALID.push(err);
         return;
@@ -424,30 +430,80 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
     const ok = `. ${tKey} : valid simple value <${u_typeof(tObj)}>`;
     if (DBG) LOG(ok);
     VALID.push(ok);
-    return;
+    return; // if we got here, we validated the simple value so exit clause!!!
   }
 
   // (2) it's an array type
   if (tobjType === 'array') {
     if (itemType === undefined) {
-      const cTypes = Object.keys(CHECK_OBJS20)
-        .map(key => CHECK_OBJS20[key] + '[]')
+      const cTypes = Object.keys(OBJS_SCHEMA20)
+        .map(key => OBJS_SCHEMA20[key] + '[]')
         .join(' | ');
       const err = `* ${tKey} : array types must be one of ${cTypes.join(', ')}`;
-      if (DBG) LOG(err);
-      INVALID;
+      LOG(err);
+      INVALID.push(err);
       return;
     }
-    const checkArray = CHECK_OBJS20[itemType];
-    LOG(`${GRY}TODO '${tKey}' array check vs:`, checkArray, NRM);
-    // LOG(`data to check:`, JSON.stringify(tObj));
-    return;
+    // get the schema for this array type
+    let arraySchema;
+    arraySchema = OBJS_SCHEMA20[itemType]; // complex object type
+
+    // check if it's a simple type array (e.g. string, number, boolean)
+    if (arraySchema === undefined && TYPES_SCHEMA20.includes(itemType)) {
+      // validate each item in the simple type array
+      tObj.forEach((item, index) => {
+        if (item === undefined) {
+          const err = `* ${tKey}[${index}] : undefined item in array`;
+          LOG(err);
+          INVALID.push(err);
+          return;
+        }
+        const actualType = u_typeof(item);
+        if (actualType !== itemType) {
+          const err = `* ${tKey}[${index}] : expected ${itemType}, got ${actualType}`;
+          LOG(err);
+          INVALID.push(err);
+        } else {
+          const ok = `. ${tKey}[${index}] : valid ${itemType}`;
+          VALID.push(ok);
+        }
+      });
+      return; // if we got here, we validated the simple type array items so exit clause!!!
+    }
+
+    // if we got here and arraySchema is still undefined, we need to handle it
+    if (arraySchema === undefined) {
+      const err = `* ${tKey} : unknown array type '${itemType}'`;
+      LOG(err);
+      INVALID.push(err);
+      return;
+    }
+
+    // got valid schema object, iterate over the tobj array and validate each item
+    tObj.forEach((item, index) => {
+      if (item === undefined) {
+        const err = `* ${tKey}[${index}] : undefined item in array`;
+        LOG(err);
+        INVALID.push(err);
+        return;
+      }
+      // recursively validate each item in the array
+      LOG(
+        'validating item',
+        JSON.stringify(item).substring(0, 20),
+        'against',
+        JSON.stringify(arraySchema).substring(0, 20)
+      );
+      m_ValidateProperty('', item, arraySchema);
+      return;
+    });
+    return; // if we got here, we validated the array items so exit clause!!!
   }
 
   // (3) by now, we expect that tObj is an iterable object
   if (tobjType !== 'object') {
     const err = `* ${tKey} : expected object, not ${tobjType}`;
-    if (DBG) LOG(err);
+    LOG(err);
     INVALID.push(err);
     return;
   }
@@ -483,7 +539,7 @@ function m_ValidateUIProperties(uiObj, tKey = '_ui') {
     if (key.startsWith('_')) continue;
     const pkey = tKey ? `${tKey}.${key}` : key;
     // check if this key is actually in the schema
-    if (!CHECK20[key]) {
+    if (!TEMPLATE_SCHEMA[key]) {
       const err = `* ${pkey} : unknown key in _ui`;
       if (DBG) LOG(err);
       EXTRA.push(err);
@@ -496,7 +552,7 @@ function m_ValidateUIProperties(uiObj, tKey = '_ui') {
       continue;
     }
     // check if the control type is valid
-    if (!CHECK_CONTROLS[uiDef.control]) {
+    if (!CONTROL_SCHEMA[uiDef.control]) {
       if (DBG) LOG(`* ui invalid control type in _ui.${key}`);
       INVALID.push(`${pkey} : invalid control type '${uiDef.control}' in _ui.${key}`);
       continue;
@@ -507,7 +563,7 @@ function m_ValidateUIProperties(uiObj, tKey = '_ui') {
       continue;
     }
     // if we got here, get in_string: { label, tooltip, help }
-    const controlProps = CHECK_CONTROLS[uiDef.control];
+    const controlProps = CONTROL_SCHEMA[uiDef.control];
     // these are the UI form elements, not the data itself
     // a general idea is that if the controlProp property names
     // end with 'key', they are a reference to something in the
@@ -517,7 +573,7 @@ function m_ValidateUIProperties(uiObj, tKey = '_ui') {
       if (prop.endsWith('key')) {
         // see if it exists in template schema
         const propName = prop.slice(0, -3); // remove 'key'
-        if (!CHECK20[key][propName]) {
+        if (!TEMPLATE_SCHEMA[key][propName]) {
           if (DBG) LOG(`* ui ${key} : ${prop} does not exist in template schema`);
           INVALID.push(
             `${tKey}${key}.${prop} : missing property '${propName}' in template schema`
@@ -575,7 +631,7 @@ function m_Validate(template) {
   MISSING = [];
 
   // FIRST: Validate global keys
-  m_ValidateProperty('', template, CHECK20);
+  m_ValidateProperty('', template, TEMPLATE_SCHEMA);
 
   // NEXT: Validate _ui metadata structure
   if (template._ui) {
