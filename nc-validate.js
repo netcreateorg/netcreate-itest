@@ -86,9 +86,13 @@ if (m_verbosity >= 2) {
   const invalid = defaultResults.invalid.join('\n  ') || '.';
   const extra = defaultResults.extra.join('\n  ') || '.';
   const missing = defaultResults.missing.join('\n  ') || '.';
+  const warnings = defaultResults.warnings
+    ? defaultResults.warnings.join('\n  ') || '.'
+    : '.';
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
+  if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
 LOG('---');
@@ -115,16 +119,19 @@ if (m_verbosity >= 2) {
   const invalid = datasetResults.invalid.join('\n  ') || '.';
   const extra = datasetResults.extra.join('\n  ') || '.';
   const missing = datasetResults.missing.join('\n  ') || '.';
+  const warnings = datasetResults.warnings
+    ? datasetResults.warnings.join('\n  ') || '.'
+    : '.';
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
+  if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
 if (dt_num !== ds_num) {
   const dt = $yl(dt_num);
   const ds = $yl(ds_num);
   const warn = `valid keys count mismatch: default ${dt} !== ${ds} dataset`;
-  LOG('');
   LOG($yl('WARNING:'), warn);
 }
 LOG('');

@@ -83,6 +83,12 @@ const TYPES_SCHEMA20 = [
 TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20));
 TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20).map(key => `${key}[]`));
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// Known runtime properties that are not in the schema but are expected
+const EXTRAS20 = {
+  nodeDefs: ['comments'],
+  edgeDefs: ['info', 'comments', 'sourceLabel', 'targetLabel']
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ///
 const NODES_SCHEMA20 = {
   id: {
@@ -352,6 +358,7 @@ let VALID = []; // valid keys found in the template
 let INVALID = []; // invalid keys found in the template
 let EXTRA = []; // extra keys found in the template that are not in the schema
 let MISSING = []; // missing keys in the template that are required by the schema
+let WARNINGS = []; // warnings for runtime properties that are not in the schema
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** extended typeof to handle arrays */
 function u_typeof(obj) {
@@ -464,8 +471,9 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
           LOG(err);
           INVALID.push(err);
         } else {
-          const ok = `. ${tKey}[${index}] : valid ${itemType}`;
-          VALID.push(ok);
+          // Don't count array items as individual valid keys since arrays are variable
+          // const ok = `. ${tKey}[${index}] : valid ${itemType}`;
+          // VALID.push(ok);
         }
       });
       return; // if we got here, we validated the simple type array items so exit clause!!!
@@ -487,13 +495,13 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
         INVALID.push(err);
         return;
       }
-      // recursively validate each item in the array
-      LOG(
-        'validating item',
-        JSON.stringify(item).substring(0, 20),
-        'against',
-        JSON.stringify(arraySchema).substring(0, 20)
-      );
+      // recursively validate each item in the array (but don't count as separate keys)
+      // LOG(
+      //   'validating item',
+      //   JSON.stringify(item).substring(0, 20),
+      //   'against',
+      //   JSON.stringify(arraySchema).substring(0, 20)
+      // );
       m_ValidateProperty('', item, arraySchema);
       return;
     });
@@ -508,18 +516,32 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
     return;
   }
   // if we got here recurse the keys of the tObj
-  const tobjKeys = Object.keys(tObj).filter(key => !key.startsWith('_'));
+  // Filter out keys starting with '_' except for _schemaVersion which is required
+  const tobjKeys = Object.keys(tObj).filter(
+    key => !key.startsWith('_') || key === '_schemaVersion'
+  );
   tobjKeys.forEach(key => {
     const subcheck = checkObj[key];
+    const fullPath = tKey ? `${tKey}.${key}` : key;
+
     if (subcheck === undefined) {
-      const err = `* ${tKey}.${key} : key not found in template schema`;
+      // Check if this is a known runtime property before treating as EXTRA
+      const parentType = tKey; // 'nodeDefs' or 'edgeDefs'
+      if (EXTRAS20[parentType] && EXTRAS20[parentType].includes(key)) {
+        const warn = `? ${tKey}.${key} : non-schema property detected in dataset template (legacy?)`;
+        if (DBG) LOG(warn);
+        WARNINGS.push(warn);
+        return;
+      }
+
+      const err = `* ${tKey}.${key} : extra property in template: not defined in schema`;
       if (DBG) LOG(err);
       EXTRA.push(err);
       return;
     }
     const subtobj = tObj[key];
     if (subtobj === undefined) {
-      const err = `* ${tKey}.${key} : property not found in template`;
+      const err = `* ${tKey}.${key} : required property: not found in dataset template`;
       if (DBG) LOG(err);
       MISSING.push(err);
       return;
@@ -629,6 +651,7 @@ function m_Validate(template) {
   INVALID = [];
   EXTRA = [];
   MISSING = [];
+  WARNINGS = [];
 
   // FIRST: Validate global keys
   m_ValidateProperty('', template, TEMPLATE_SCHEMA);
@@ -642,7 +665,7 @@ function m_Validate(template) {
   }
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
-  return { VALID, INVALID, EXTRA, MISSING, templateOK };
+  return { VALID, INVALID, EXTRA, MISSING, WARNINGS, templateOK };
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -662,15 +685,23 @@ function ValidateTemplateObject(template) {
   }
   if (INVALID.length > 0) {
     report += `### INVALID TEMPLATE KEYS ###\n`;
+    report += `    ${INVALID.length} invalid keys found\n`;
     report += `    ${INVALID.join('\n    ')}\n`;
   }
   if (EXTRA.length > 0) {
     report += `### EXTRA TEMPLATE KEYS ###\n`;
+    report += `    ${EXTRA.length} extra keys found\n`;
     report += `    ${EXTRA.join('\n    ')}\n`;
   }
   if (MISSING.length > 0) {
     report += `### MISSING TEMPLATE KEYS ###\n`;
+    report += `    ${MISSING.length} missing keys found\n`;
     report += `    ${MISSING.join('\n    ')}\n`;
+  }
+  if (WARNINGS.length > 0) {
+    report += `### WARNINGS ###\n`;
+    report += `    ${WARNINGS.length} warnings found\n`;
+    report += `    ${WARNINGS.join('\n    ')}\n`;
   }
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
@@ -678,7 +709,13 @@ function ValidateTemplateObject(template) {
   return [
     templateOK,
     report,
-    { valid: VALID, invalid: INVALID, extra: EXTRA, missing: MISSING }
+    {
+      valid: VALID,
+      invalid: INVALID,
+      extra: EXTRA,
+      missing: MISSING,
+      warnings: WARNINGS
+    }
   ];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
