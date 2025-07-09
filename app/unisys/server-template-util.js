@@ -403,6 +403,8 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
     const cst = JSON.stringify(checkObj).substring(0, 20);
     // console.log(`${GRY}Validating '${tKey}' ${NRM}${jst}${GRY}  type ${NRM}${cst}`);
   }
+
+  // (0) tobjType is used to determine how to process the tObj
   const tobjType = u_typeof(tObj);
   const [checkType, itemType] = get_checkType(checkObj);
   if (checkType === undefined) {
@@ -418,7 +420,7 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
       INVALID.push(err);
       return;
     }
-    // special case for 'type' keys
+    // (1A) special case for 'type' keys
     if (tKey === 'type') {
       if (tobjType !== 'string') {
         const err = `* ${tKey} : expected 'string', not <${tObjType}>`;
@@ -433,14 +435,15 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
         return;
       }
     }
-    // got here? then it's just a number, or boolean
+    // (1B) This is a simple value type like number, string, boolean
     const ok = `. ${tKey} : valid simple value <${u_typeof(tObj)}>`;
     if (DBG) LOG(ok);
     VALID.push(ok);
-    return; // if we got here, we validated the simple value so exit clause!!!
+    // (1C) finished validating simple value type, exit validator
+    return;
   }
 
-  // (2) it's an array type
+  // (2) This is an array property, so check its items
   if (tobjType === 'array') {
     if (itemType === undefined) {
       const cTypes = Object.keys(OBJS_SCHEMA20)
@@ -452,11 +455,10 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
       return;
     }
     // get the schema for this array type
-    let arraySchema;
-    arraySchema = OBJS_SCHEMA20[itemType]; // complex object type
+    const itemSchema = OBJS_SCHEMA20[itemType]; // complex object type
 
-    // check if it's a simple type array (e.g. string, number, boolean)
-    if (arraySchema === undefined && TYPES_SCHEMA20.includes(itemType)) {
+    // (2A) It's a simple array of recognized value types (e.g. string, number)
+    if (itemSchema === undefined && TYPES_SCHEMA20.includes(itemType)) {
       // validate each item in the simple type array
       tObj.forEach((item, index) => {
         if (item === undefined) {
@@ -479,15 +481,15 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
       return; // if we got here, we validated the simple type array items so exit clause!!!
     }
 
-    // if we got here and arraySchema is still undefined, we need to handle it
-    if (arraySchema === undefined) {
+    // (2B) It's an unrecognized array of value types, so log an error
+    if (itemSchema === undefined) {
       const err = `* ${tKey} : unknown array type '${itemType}'`;
       LOG(err);
       INVALID.push(err);
       return;
     }
 
-    // got valid schema object, iterate over the tobj array and validate each item
+    // (2C) It's an array of objects that should match itemSchema, so iterate over the items
     tObj.forEach((item, index) => {
       if (item === undefined) {
         const err = `* ${tKey}[${index}] : undefined item in array`;
@@ -495,37 +497,35 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
         INVALID.push(err);
         return;
       }
-      // recursively validate each item in the array (but don't count as separate keys)
-      // LOG(
-      //   'validating item',
-      //   JSON.stringify(item).substring(0, 20),
-      //   'against',
-      //   JSON.stringify(arraySchema).substring(0, 20)
-      // );
-      m_ValidateProperty('', item, arraySchema);
-      return;
+      // recursively validate each item in the array against the expected schema
+      m_ValidateProperty('', item, itemSchema);
+      return; // exit the forEach loop
     });
-    return; // if we got here, we validated the array items so exit clause!!!
+    // (2D) if we got here, we validated the array items so exit validator
+    return;
   }
 
-  // (3) by now, we expect that tObj is an iterable object
+  // (3) tObj should be a valid object type, otherwise something messed up
   if (tobjType !== 'object') {
     const err = `* ${tKey} : expected object, not ${tobjType}`;
     LOG(err);
     INVALID.push(err);
     return;
   }
-  // if we got here recurse the keys of the tObj
-  // Filter out keys starting with '_' except for _schemaVersion which is required
+
+  // (3A) it's a valid object, so remove any keys that start with '_' except for _schemaVersion
   const tobjKeys = Object.keys(tObj).filter(
     key => !key.startsWith('_') || key === '_schemaVersion'
   );
-  tobjKeys.forEach(key => {
-    const subcheck = checkObj[key];
-    const fullPath = tKey ? `${tKey}.${key}` : key;
 
-    if (subcheck === undefined) {
-      // Check if this is a known runtime property before treating as EXTRA
+  // (3B) check keys of the object
+  tobjKeys.forEach(key => {
+    const checkProp = checkObj[key];
+    const checkPath = tKey ? `${tKey}.${key}` : key;
+
+    // (3C) see if the prop was found in the schema for this object
+    if (checkProp === undefined) {
+      // is this an old legacy property or runtime property that snuck into template data?
       const parentType = tKey; // 'nodeDefs' or 'edgeDefs'
       if (EXTRAS20[parentType] && EXTRAS20[parentType].includes(key)) {
         const warn = `? ${tKey}.${key} : non-schema property detected in dataset template (legacy?)`;
@@ -534,20 +534,24 @@ function m_ValidateProperty(tKey, tObj, checkObj) {
         return;
       }
 
+      // if not, then it's an unrecognized property that's not in the schema
       const err = `* ${tKey}.${key} : extra property in template: not defined in schema`;
       if (DBG) LOG(err);
       EXTRA.push(err);
       return;
     }
-    const subtobj = tObj[key];
-    if (subtobj === undefined) {
+
+    // (3D) this is unlikely, because key was derived from the tObj itself
+    const objProp = tObj[key];
+    if (objProp === undefined) {
       const err = `* ${tKey}.${key} : required property: not found in dataset template`;
       if (DBG) LOG(err);
       MISSING.push(err);
       return;
     }
-    // sub check passed, so recurse!
-    m_ValidateProperty(key, subtobj, subcheck);
+    // (3E) we have the key and the contents of the tObj[key], so check it against the schema
+    m_ValidateProperty(key, objProp, checkProp);
+    return;
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
