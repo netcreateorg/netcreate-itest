@@ -69,6 +69,7 @@ LOG('');
 
 const [defaultOK, defaultReport, defaultResults] = ValidateTOMLTemplate(defaultPath);
 const dt_num = defaultResults.valid.length;
+const dt_vari = defaultResults.varies.length;
 
 if (defaultOK) {
   LOG(`✅ Template '${$short(defaultPath)}' passed validation`);
@@ -86,12 +87,15 @@ if (m_verbosity >= 2) {
   const invalid = defaultResults.invalid.join('\n  ') || '.';
   const extra = defaultResults.extra.join('\n  ') || '.';
   const missing = defaultResults.missing.join('\n  ') || '.';
+  const varies = defaultResults.varies.join('\n  ') || '.';
   const warnings = defaultResults.warnings
     ? defaultResults.warnings.join('\n  ') || '.'
     : '.';
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
+  if (varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
+  // Note: 'warnings' is optional, so we check if it exists before logging
   if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
@@ -102,6 +106,7 @@ LOG('');
 
 const [datasetOK, datasetReport, datasetResults] = ValidateTOMLTemplate(datasetPath);
 const ds_num = datasetResults.valid.length;
+const ds_vari = datasetResults.varies.length;
 
 if (datasetOK) {
   LOG(`✅ Template '${$short(datasetPath)}' passed validation`);
@@ -119,19 +124,25 @@ if (m_verbosity >= 2) {
   const invalid = datasetResults.invalid.join('\n  ') || '.';
   const extra = datasetResults.extra.join('\n  ') || '.';
   const missing = datasetResults.missing.join('\n  ') || '.';
+  const varies = datasetResults.varies.join('\n  ') || '.';
   const warnings = datasetResults.warnings
     ? datasetResults.warnings.join('\n  ') || '.'
     : '.';
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
+  if (varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
   if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
 if (dt_num !== ds_num) {
   const dt = $yl(dt_num);
   const ds = $yl(ds_num);
+  const dv = $yl(dt_vari);
+  const sv = $yl(ds_vari);
   const warn = `valid keys count mismatch: default ${dt} !== ${ds} dataset`;
   LOG($yl('WARNING:'), warn);
+  const diff = Math.abs(dt_num - ds_num);
+  LOG(`Default template has ${dv} vs ${sv} dataset variable keys (${diff})`);
 }
 LOG('');
