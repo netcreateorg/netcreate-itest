@@ -7,6 +7,13 @@
 const TOML = require('@iarna/toml');
 const FSE = require('fs-extra');
 const PROMPTS = require('../system/util/prompts');
+const {
+  CONTROL_SCHEMA,
+  OBJS_SCHEMA20,
+  TYPES_SCHEMA20,
+  EXTRAS20,
+  TEMPLATE_SCHEMA
+} = require('./server-template-schema');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,336 +28,7 @@ const NRM = '\x1b[0m'; // nrm
 const _err = str => `${RED}* ${str}${NRM}`; // bad
 const _ok = str => `${GRN}. ${str}${NRM}`; // good
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// UI metadata control types have specifi ui properties. These properties are
-/// used to render the UI form elements as defined by:
-/// { [fieldName]:{ control, ...ui_properties }}
-/// the 'control' property is excluded from the check
-const CONTROL_SCHEMA = {
-  in_string: {
-    label: 'string',
-    tooltip: 'string',
-    help: 'string'
-  },
-  in_boolean: {
-    label: 'string',
-    tooltip: 'string',
-    help: 'string'
-  },
-  in_number: {
-    label: 'string',
-    tooltip: 'string',
-    help: 'string'
-  },
-  in_select: {
-    label: 'string',
-    tooltip: 'string',
-    help: 'string',
-    options: 'object[]'
-  },
-  // contains a composite control with nested fields
-  // { control:'composite', [fieldName]:{ control, ...ui_properties }}
-  composite: {}
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Special types used in the template schema, used for arrays of object types
-/// like in `commentTypes`, `nodeDefs.types`, and `edgeDefs.types`.
-const OBJS_SCHEMA20 = {
-  commentType: { slug: 'string', label: 'string', prompts: 'promptType[]' },
-  promptType: {
-    format: 'string',
-    prompt: 'string',
-    help: 'string',
-    feedback: 'string'
-  },
-  nodeType: { label: 'string', color: 'string' },
-  edgeType: { label: 'string', color: 'string' }
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Basic types used in the template schema for 'type' fields in template
-const TYPES_SCHEMA20 = [
-  // basic types
-  'string',
-  'number',
-  'boolean',
-  // extended types
-  'select',
-  'timestamp',
-  'weight',
-  'infoOrigin',
-  'node'
-];
-/// extended types used in the template schema
-TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20));
-TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20).map(key => `${key}[]`));
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Known runtime properties that are not in the schema but are expected
-const EXTRAS20 = {
-  nodeDefs: ['comments'],
-  edgeDefs: ['info', 'comments', 'sourceLabel', 'targetLabel']
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-///
-const NODES_SCHEMA20 = {
-  id: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  label: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  type: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean',
-    options: 'nodeType[]'
-  },
-  notes: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  info: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  infoSource: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  degrees: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  created: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    hidden: 'boolean'
-  },
-  createdBy: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    hidden: 'boolean'
-  },
-  updated: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    hidden: 'boolean'
-  },
-  updatedBy: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    hidden: 'boolean'
-  },
-  revision: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    hidden: 'boolean'
-  }
-};
-const EDGES_SCHEMA20 = {
-  id: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  source: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  target: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    hidden: 'boolean'
-  },
-  type: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean',
-    options: 'edgeType[]'
-  },
-  notes: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  weight: {
-    type: 'string',
-    defaultValue: 'number',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isRequired: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  infoOrigin: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  citation: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  category: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  created: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
-    help: 'string',
-    hidden: 'boolean'
-  },
-  createdBy: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
-    help: 'string',
-    hidden: 'boolean'
-  },
-  updated: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
-    help: 'string',
-    hidden: 'boolean'
-  },
-  updatedBy: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
-    help: 'string',
-    hidden: 'boolean'
-  },
-  revision: {
-    displayLabel: 'string',
-    exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
-    help: 'string',
-    hidden: 'boolean'
-  }
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Templates have these requires keys
-const TEMPLATE_SCHEMA = {
-  // global keys
-  _schemaVersion: 'string',
-  name: 'string',
-  description: 'string',
-  secretKey: 'string',
-  adminPassword: 'string',
-  requireLogin: 'boolean',
-  hideDeleteNodeButton: 'boolean',
-  allowLoggedInUserToImport: 'boolean',
-  nodeSizeDefault: 'number',
-  nodeSizeMax: 'number',
-  edgeSizeDefault: 'number',
-  edgeSizeMax: 'number',
-  filterFade: 'string',
-  filterFadeHelp: 'string',
-  filterReduce: 'string',
-  filterReduceHelp: 'string',
-  filterFocus: 'string',
-  filterFocusHelp: 'string',
-  duplicateWarning: 'string',
-  duplicationWarning: 'string',
-  nodeIsLockedMessage: 'string',
-  edgeIsLockedMessage: 'string',
-  templateIsLockedMessage: 'string',
-  importIsLockedMessage: 'string',
-  nodeDefaultTransparency: 'number',
-  edgeDefaultTransparency: 'number',
-  searchColor: 'string',
-  sourceColor: 'string',
-  citation: { text: 'string', hidden: 'boolean' },
-  // composite keys
-  commentTypes: 'commentType[]',
-  nodeDefs: NODES_SCHEMA20,
-  edgeDefs: EDGES_SCHEMA20
-};
+/// Template schema definitions are imported from server-template-schema.js
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -360,6 +38,8 @@ let EXTRA = []; // extra keys found in the template that are not in the schema
 let MISSING = []; // missing keys in the template that are required by the schema
 let WARNINGS = []; // warnings for runtime properties that are not in the schema
 let VARIES = []; // keys that don't need to match exactly (saved array items)
+let TEMPLATE_KEYS = new Map(); // keys found in the template object
+let SCHEMA_KEYS = new Map(); // keys found in the schema object
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** extended typeof to handle arrays */
 function u_typeof(obj) {
@@ -401,16 +81,16 @@ function get_checkType(checkObj) {
  *  The keyMap property is the working context for this recursive function,
  *  which has the desirable side effect of removing duplicate keys as we
  *  would find in variable options[] and prompts[] */
-function r_GatherTemplateKeys(obj, keyMap, basePath = '') {
+function r_GatherTemplateKeys(obj, basePath = '') {
   if (typeof obj === 'object' && obj !== null) {
     if (Array.isArray(obj)) {
       // Handle arrays - mark the array itself as found
       const arrayPath = basePath.slice(0, -1) + '[]';
-      keyMap.set(arrayPath, 'array');
+      TEMPLATE_KEYS.set(arrayPath, 'array');
 
       // Walk first item to find array item properties
       if (obj.length > 0) {
-        r_GatherTemplateKeys(obj[0], keyMap, arrayPath + '.');
+        r_GatherTemplateKeys(obj[0], arrayPath + '.');
       }
     } else {
       // Handle objects
@@ -419,10 +99,10 @@ function r_GatherTemplateKeys(obj, keyMap, basePath = '') {
         if (key.startsWith('_') && key !== '_schemaVersion') continue;
 
         const fullPath = basePath + key;
-        keyMap.set(fullPath, typeof value);
+        TEMPLATE_KEYS.set(fullPath, typeof value);
 
         if (typeof value === 'object' && value !== null) {
-          r_GatherTemplateKeys(value, keyMap, fullPath + '.');
+          r_GatherTemplateKeys(value, fullPath + '.');
         }
       }
     }
@@ -432,7 +112,7 @@ function r_GatherTemplateKeys(obj, keyMap, basePath = '') {
 /** Helper to recursively walk an object schema. It's similar to the
  *  r_GatherTemplateKeys method, generating a usefule data structure for
  *  comparison */
-function r_GatherSchemaKeys(obj, keyMap, basePath = '') {
+function r_GatherSchemaKeys(obj, basePath = '') {
   // strings are the format of a type declaration in the schema
   if (typeof obj === 'string') {
     // Handle array types like 'promptType[]'
@@ -440,21 +120,21 @@ function r_GatherSchemaKeys(obj, keyMap, basePath = '') {
       const itemType = obj.slice(0, -2);
       const cleanPath = u_noDot(basePath);
       const arrayPath = cleanPath + '[]';
-      keyMap.set(arrayPath, obj);
+      SCHEMA_KEYS.set(arrayPath, obj);
       // If it's a complex type, walk its properties
       if (OBJS_SCHEMA20[itemType]) {
-        r_GatherSchemaKeys(OBJS_SCHEMA20[itemType], keyMap, arrayPath + '.');
+        r_GatherSchemaKeys(OBJS_SCHEMA20[itemType], arrayPath + '.');
       }
     } else {
       // Simple type
-      keyMap.set(u_noDot(basePath), obj);
+      SCHEMA_KEYS.set(u_noDot(basePath), obj);
     }
   } else if (typeof obj === 'object' && obj !== null) {
     // Walk object properties
     for (const [key, value] of Object.entries(obj)) {
       const fullPath = basePath ? `${basePath}${key}` : key;
-      keyMap.set(u_noDot(fullPath), 'object');
-      r_GatherSchemaKeys(value, keyMap, fullPath + '.');
+      SCHEMA_KEYS.set(u_noDot(fullPath), 'object');
+      r_GatherSchemaKeys(value, fullPath + '.');
     }
   }
 }
@@ -631,115 +311,20 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Recursively validate UI properties in the _ui metadata, pushing
- *  any issues to the respective arrays. This checks for control types
- *  and their required fields, as well as nested composite controls. */
-function m_ValidateUIProperties(uiObj, tInfo = '_ui') {
-  // walk all the top-level keys of _ui
-  for (const [key, uiDef] of Object.entries(uiObj)) {
-    // skip internal keys
-    if (key.startsWith('_')) continue;
-    const pkey = tInfo ? `${tInfo}.${key}` : key;
-    // check if this key is actually in the schema
-    if (!TEMPLATE_SCHEMA[key]) {
-      const err = `* ${pkey} : unknown key in _ui`;
-      if (DBG) LOG(err);
-      EXTRA.push(err);
-      continue;
-    }
-    // we have a valid ui key, now check its control type
-    if (!uiDef.control) {
-      if (DBG) LOG(`* ui invalid control type in _ui.${key}`);
-      INVALID.push(`${pkey} : missing control type in _ui.${key}`);
-      continue;
-    }
-    // check if the control type is valid
-    if (!CONTROL_SCHEMA[uiDef.control]) {
-      if (DBG) LOG(`* ui invalid control type in _ui.${key}`);
-      INVALID.push(`${pkey} : invalid control type '${uiDef.control}' in _ui.${key}`);
-      continue;
-    }
-    // make sure this isn't a composite control
-    if (uiDef.control === 'composite') {
-      if (DBG) LOG(`> ui Composite control found in _ui.${key}, skipping validation`);
-      continue;
-    }
-    // if we got here, get in_string: { label, tooltip, help }
-    const controlProps = CONTROL_SCHEMA[uiDef.control];
-    // these are the UI form elements, not the data itself
-    // a general idea is that if the controlProp property names
-    // end with 'key', they are a reference to something in the
-    // template, not the UI metadata itself.
-    const keys = Object.keys(controlProps);
-    for (const prop of keys) {
-      if (prop.endsWith('key')) {
-        // see if it exists in template schema
-        const propName = prop.slice(0, -3); // remove 'key'
-        if (!TEMPLATE_SCHEMA[key][propName]) {
-          if (DBG) LOG(`* ui ${key} : ${prop} does not exist in template schema`);
-          INVALID.push(
-            `${tInfo}${key}.${prop} : missing property '${propName}' in template schema`
-          );
-          continue;
-        }
-        if (DBG) LOG('. ui valid key prop', `${tInfo}${key}.${prop}`);
-        if (tInfo.includes('[]')) {
-          LOG(`> array ${tInfo} is valid`);
-        } else VALID.push(`${tInfo}${key}.${prop}`);
-        continue;
-      }
-      // if got here, prop doesn't end with 'key' so check ui data
-      if (uiDef[prop] === undefined) {
-        if (DBG) LOG(`* ui missing property in _ui.${key} : ${prop}`);
-        MISSING.push(`${tInfo}${key}.${prop} : missing property in _ui.${key}`);
-        continue;
-      }
-      // if got here, uiDef[prop] exists so check type
-      const expectedType = controlProps[prop];
-      const actualType = u_typeof(uiDef[prop]);
-      if (expectedType.endsWith('[]')) {
-        // checkObj an array, so check if it's an array
-        if (actualType !== 'array') {
-          if (DBG) LOG(`* ui checkObj array definition in _ui.${key}.${prop}`);
-          INVALID.push(
-            `${tInfo}${key}.${prop} : checkObj ${expectedType}, got ${actualType}`
-          );
-        } else {
-          if (DBG) LOG('* ui valid array', `${tInfo}${key}.${prop}`);
-          VALID.push(`${tInfo}${key}.${prop}`);
-        }
-        continue;
-      }
-      // if got here, expectedType is a simple type
-      if (actualType !== expectedType) {
-        if (DBG) LOG(`* ui checkObj ${expectedType} in _ui.${key}.${prop}`);
-        INVALID.push(
-          `${tInfo}${key}.${prop} : checkObj ${expectedType}, got ${actualType}`
-        );
-        continue;
-      }
-      // if got here, it's a valid simple property
-      if (DBG) LOG('. ui valid simple prop', `${tInfo}${key}.${prop}`);
-      VALID.push(`${tInfo}${key}.${prop}`);
-    }
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Helper to find missing keys in the template object against the schema.
  *  It gathers all keys in the template and schema, then compares them.
  *  It prints the found keys side-by-side for easy comparison. */
 function m_FindMissingKeys(template) {
-  const templateKeys = new Map();
-  const schemaKeys = new Map();
-  r_GatherTemplateKeys(template, templateKeys);
-  r_GatherSchemaKeys(TEMPLATE_SCHEMA, schemaKeys);
-  for (const [schemaPath, schemaType] of schemaKeys) {
-    if (!templateKeys.has(schemaPath)) {
+  TEMPLATE_KEYS = new Map();
+  SCHEMA_KEYS = new Map();
+  r_GatherTemplateKeys(template);
+  r_GatherSchemaKeys(TEMPLATE_SCHEMA);
+  for (const [schemaPath, schemaType] of SCHEMA_KEYS) {
+    if (!TEMPLATE_KEYS.has(schemaPath)) {
       const err = `* ${schemaPath} : missing property (type: ${schemaType})`;
       MISSING.push(err);
     }
   }
-
   if (DBG) {
     // print the foundKeys side-by-side, using 80 column wide screen as reference
     // each column is 40 characters wide, and truncate the key length if longer then 38 chars
@@ -802,18 +387,28 @@ function Validate(template) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Return a report of validation results { templateOK, report } This is
  *  useful for logging or displaying in the UI. */
-function ValidateTemplateObject(template) {
+function GetValidation(template) {
   if (typeof template !== 'object' || template === null) {
-    console.log(PR, 'ValidateTemplateObject called with invalid template:', template);
+    console.log(PR, 'GetValidation called with invalid template:', template);
     return [false, 'Invalid template object'];
   }
   Validate(template);
-  let report = '';
+  let report = '### TEMPLATE VALIDATION REPORT ###\n';
   if (VALID.length > 0) {
-    report += `### VALID TEMPLATE KEYS ###\n`;
-    report += `    ${VALID.length} required keys found\n`;
+    report += `    ${VALID.length} keys validated\n`;
   }
-
+  if (INVALID.length > 0) {
+    report += `    ${INVALID.length} invalid keys found\n`;
+  }
+  if (EXTRA.length > 0) {
+    report += `    ${EXTRA.length} extra keys found\n`;
+  }
+  if (MISSING.length > 0) {
+    report += `    ${MISSING.length} missing keys detected\n`;
+  }
+  if (WARNINGS.length > 0) {
+    report += `    ${WARNINGS.length} warnings found\n`;
+  }
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
 
@@ -834,7 +429,7 @@ function ValidateTemplateObject(template) {
 /** API: Validate a TOML template file at the given tInfo. Returns [templateOK,
  *  report] where templateOK is a boolean and report is a string with validation
  *  results. */
-function ValidateTOMLTemplate(templatePath) {
+function GetTOMLValidation(templatePath) {
   let template;
   try {
     const content = FSE.readFileSync(templatePath, 'utf8');
@@ -843,13 +438,13 @@ function ValidateTOMLTemplate(templatePath) {
     console.error(`Error reading or parsing template at ${templatePath}:`, err);
     return [false, `Error reading template: ${err.message}`];
   }
-  return ValidateTemplateObject(template);
+  return GetValidation(template);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
   Validate, // templateObj => { VALID, INVALID, EXTRA, MISSING, WARNINGS, templateOK }
-  ValidateTOMLTemplate, // templatePath => [templateOK, report, logObject]
-  ValidateTemplateObject // templateObj => [templateOK, report, logObject]
+  GetTOMLValidation, // templatePath => [templateOK, report, logObject]
+  GetValidation // templateObj => [templateOK, report, logObject]
 };

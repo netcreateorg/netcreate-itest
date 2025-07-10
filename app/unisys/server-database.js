@@ -209,7 +209,7 @@ DB.InitializeDataset = function (options = {}) {
     // load non-database assets from dataset.toml, creating
     // it if necessary
     await m_LoadTemplate();
-    // const { templateOK, report } = TemplateUtil.GetValidationReport(TEMPLATE);
+    // const { templateOK, report } = TemplateUtil.GetValidation(TEMPLATE);
     // if (!templateOK) {
     //   console.error(PR, `Template validation failed for ${dataset}:\n`);
     //   console.error(report);
@@ -244,10 +244,13 @@ async function m_LoadTemplate() {
   }
   // validate the default template, as this is our single source of truth
   const [defaultOk, defaultReport] =
-    TemplateUtil.ValidateTOMLTemplate(defaultTemplatePath);
+    TemplateUtil.GetTOMLValidation(defaultTemplatePath);
   if (!defaultOk) {
     console.error(PR, RD(`Invalid default template`), `'${defaultTemplatePath}'`);
-    console.error(PR, YL(`Correct and restart server. Report follows:\n`));
+    console.error(
+      PR,
+      YL(`Correct using ${YL(`./nc-validate.js -vv`)}, then restart server.\n`)
+    );
     console.error(defaultReport);
     process.exit(1);
   } else {
@@ -263,10 +266,17 @@ async function m_LoadTemplate() {
   const json = TOML.parse(data);
   TEMPLATE = json;
   // validate the loaded template
-  const [templateOK, report] = TemplateUtil.ValidateTemplateObject(TEMPLATE);
+  const [templateOK, report] = TemplateUtil.GetValidation(TEMPLATE);
   if (!templateOK) {
+    const shortPath = PATH.basename(TOMLPath).split('.')[0];
     console.error(PR, RD(`Invalid dataset template`), `'${TOMLPath}'`);
-    console.error(PR, YL(`Correct and restart server. Report follows:\n`));
+    console.error(
+      PR,
+      `Correct using ${YL(
+        `./nc-validate.js ${shortPath} -vv`
+      )} script, then restart server.`
+    );
+    console.error(PR, `Report follows:\n`);
     console.error(report);
     process.exit(1);
   } else {

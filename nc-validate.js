@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const path = require('path');
-const { ValidateTOMLTemplate } = require('./app/unisys/server-template-util.js');
+const { GetTOMLValidation } = require('./app/unisys/server-template-util.js');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,8 +42,13 @@ function $yl(string) {
   return `\x1b[1;33m${string}\x1b[0m`;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return bright white string with bright blue background */
+/** return bright white string */
 function $wh(string) {
+  return `\x1b[1;37m${string}\x1b[0m`;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return bright white string with bright blue background */
+function $bb(string) {
   return `\x1b[1;37;44m(${string})\x1b[0m`;
 }
 
@@ -56,17 +61,22 @@ const defaultPath = path.join(__dirname, 'app-templates/_default.template.toml')
 const datasetPath = path.join(__dirname, 'runtime', `${dataset}.template.toml`);
 
 LOG('');
-LOG('This utility will validate both the default template and the dataset template.');
-LOG('For proper operation, both templates must be free of errors.');
-if (m_verbosity === 0)
-  LOG($yl('Use -v, -vv, or -vvv to adjust verbosity of reporting.'));
+LOG('This utility will validate the default template and a dataset template.');
+LOG('For proper NetCreate operation, both templates must be free of errors.');
+if (!dataset) {
+  LOG($yl('\nNo dataset specified, will only validate the default template.'));
+  LOG(
+    '\nSYNTAX:',
+    $wh('\n  nc-validate.js [-v|-vv|-vvv] [dataset-name-no-extension]')
+  );
+}
 LOG('');
 if (m_verbosity >= 1) LOG('[using', $yl(`verbosity level: ${m_verbosity}`), ']');
 
 LOG('---');
-LOG(`${$wh(1)} Validating ${$bl('DEFAULT')} template: '${$short(defaultPath)}'`);
+LOG(`${$bb(1)} Validating ${$bl('DEFAULT')} template: '${$short(defaultPath)}'`);
 
-const [defaultOK, defaultReport, defaultResults] = ValidateTOMLTemplate(defaultPath);
+const [defaultOK, defaultReport, defaultResults] = GetTOMLValidation(defaultPath);
 const dt_num = defaultResults.valid.length;
 const dt_vari = defaultResults.varies.length;
 
@@ -114,10 +124,10 @@ if (m_default_only) {
 /// DATASET TEMPLATE VALIDATION REPORT ///
 
 LOG('---');
-LOG(`${$wh(2)} Validating ${$bl('DATASET')} template: '${$short(datasetPath)}'`);
+LOG(`${$bb(2)} Validating ${$bl('DATASET')} template: '${$short(datasetPath)}'`);
 LOG('');
 
-const [datasetOK, datasetReport, datasetResults] = ValidateTOMLTemplate(datasetPath);
+const [datasetOK, datasetReport, datasetResults] = GetTOMLValidation(datasetPath);
 const ds_num = datasetResults.valid.length;
 const ds_vari = datasetResults.varies.length;
 
@@ -144,7 +154,7 @@ if (m_verbosity >= 2) {
     const ds = $yl(ds_num);
     const dv = $yl(dt_vari);
     const sv = $yl(ds_vari);
-    const warn = `? valided keys count mismatch: default ${dt} !== ${ds} dataset`;
+    const warn = `? validated keys count mismatch: default ${dt} !== ${ds} dataset`;
     datasetResults.warnings.push(warn);
   }
   const warnings = datasetResults.warnings
