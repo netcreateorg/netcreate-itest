@@ -15,6 +15,8 @@ const { ValidateTOMLTemplate } = require('./app/unisys/server-template-util.js')
 const args = process.argv.slice(2);
 const script = path.basename(process.argv[1]);
 let m_verbosity = 0;
+let m_default_only = false;
+//
 if (args.includes('-vvv')) m_verbosity = 3;
 else if (args.includes('-vv')) m_verbosity = 2;
 else if (args.includes('-v')) m_verbosity = 1;
@@ -47,11 +49,8 @@ function $wh(string) {
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if (!dataset) {
-  ERR('No dataset specified');
-  LOG(`Usage: ./${script} <dataset> [-v|-vv|-vvv]`);
-  process.exit(1);
-}
+if (!dataset) m_default_only = true;
+
 // Construct template file path
 const defaultPath = path.join(__dirname, 'app-templates/_default.template.toml');
 const datasetPath = path.join(__dirname, 'runtime', `${dataset}.template.toml`);
@@ -59,27 +58,34 @@ const datasetPath = path.join(__dirname, 'runtime', `${dataset}.template.toml`);
 LOG('');
 LOG('This utility will validate both the default template and the dataset template.');
 LOG('For proper operation, both templates must be free of errors.');
-LOG($yl('Use -v, -vv, or -vvv to adjust verbosity of reporting.'));
+if (m_verbosity === 0)
+  LOG($yl('Use -v, -vv, or -vvv to adjust verbosity of reporting.'));
 LOG('');
+if (m_verbosity >= 1) LOG('[using', $yl(`verbosity level: ${m_verbosity}`), ']');
 
 LOG('---');
 LOG(`${$wh(1)} Validating ${$bl('DEFAULT')} template: '${$short(defaultPath)}'`);
-if (m_verbosity >= 1) LOG($yl(`verbosity level: ${m_verbosity}`));
-LOG('');
 
 const [defaultOK, defaultReport, defaultResults] = ValidateTOMLTemplate(defaultPath);
 const dt_num = defaultResults.valid.length;
 const dt_vari = defaultResults.varies.length;
 
-if (defaultOK) {
-  LOG(`✅ Template '${$short(defaultPath)}' passed validation`);
-} else {
+/// DEFAULT TEMPLATE VALIDATION REPORT ///
+
+if (m_verbosity === 0 && !defaultOK) {
   LOG(`❌ Template '${$short(defaultPath)}' failed validation`);
+}
+if (m_verbosity > 0) LOG('');
+if (m_verbosity > 0) {
+  if (!defaultOK) LOG(`❌ Template '${$short(defaultPath)}' failed validation`);
+  else LOG(`✅ Template '${$short(defaultPath)}' passed validation`);
+  LOG('');
 }
 if (m_verbosity === 1) {
   LOG($yl('\nVALIDATION REPORT:'));
   LOG(defaultReport);
 }
+// extra logging for higher levels
 if (m_verbosity === 3) {
   LOG(`${$yl('VALID KEYS:')}\n  ${defaultResults.valid.join('\n  ')}`);
 }
@@ -94,14 +100,21 @@ if (m_verbosity >= 2) {
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
-  if (varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
+  if (m_verbosity > 2 && varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
   // Note: 'warnings' is optional, so we check if it exists before logging
   if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
+// if no dataset specified, exit after validating default template
+if (m_default_only) {
+  LOG('');
+  process.exit(0);
+}
+
+/// DATASET TEMPLATE VALIDATION REPORT ///
+
 LOG('---');
 LOG(`${$wh(2)} Validating ${$bl('DATASET')} template: '${$short(datasetPath)}'`);
-if (m_verbosity >= 1) LOG($yl(`verbosity level: ${m_verbosity}`));
 LOG('');
 
 const [datasetOK, datasetReport, datasetResults] = ValidateTOMLTemplate(datasetPath);
@@ -113,6 +126,7 @@ if (datasetOK) {
 } else {
   LOG(`❌ Template '${$short(datasetPath)}' failed validation`);
 }
+if (m_verbosity > 0) LOG('');
 if (m_verbosity === 1) {
   LOG($yl('\nVALIDATION REPORT:'));
   LOG(datasetReport);
@@ -125,24 +139,22 @@ if (m_verbosity >= 2) {
   const extra = datasetResults.extra.join('\n  ') || '.';
   const missing = datasetResults.missing.join('\n  ') || '.';
   const varies = datasetResults.varies.join('\n  ') || '.';
+  if (dt_num !== ds_num) {
+    const dt = $yl(dt_num);
+    const ds = $yl(ds_num);
+    const dv = $yl(dt_vari);
+    const sv = $yl(ds_vari);
+    const warn = `? valided keys count mismatch: default ${dt} !== ${ds} dataset`;
+    datasetResults.warnings.push(warn);
+  }
   const warnings = datasetResults.warnings
     ? datasetResults.warnings.join('\n  ') || '.'
     : '.';
   if (invalid) LOG(`${$yl('INVALID KEYS:')}\n  ${invalid}`);
   if (extra) LOG(`${$yl('EXTRA KEYS:')}\n  ${extra}`);
   if (missing) LOG(`${$yl('MISSING KEYS:')}\n  ${missing}`);
-  if (varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
+  if (m_verbosity > 2 && varies) LOG(`${$yl('VARIABLE KEYS:')}\n  ${varies}`);
   if (warnings && warnings !== '.') LOG(`${$yl('WARNINGS:')}\n  ${warnings}`);
 }
 
-if (dt_num !== ds_num) {
-  const dt = $yl(dt_num);
-  const ds = $yl(ds_num);
-  const dv = $yl(dt_vari);
-  const sv = $yl(ds_vari);
-  const warn = `valid keys count mismatch: default ${dt} !== ${ds} dataset`;
-  LOG($yl('WARNING:'), warn);
-  const diff = Math.abs(dt_num - ds_num);
-  LOG(`Default template has ${dv} vs ${sv} dataset variable keys (${diff})`);
-}
 LOG('');

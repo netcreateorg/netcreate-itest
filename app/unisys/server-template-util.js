@@ -376,6 +376,13 @@ function is_valueType(obj) {
   return value_types.includes(type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** remove trailing dot from path if exists */
+function u_noDot(path) {
+  // remove trailing dot if exists
+  if (path.endsWith('.')) return path.slice(0, -1);
+  return path;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return checkObj type as [u_typeof] or ['array','<itemType>'] */
 function get_checkType(checkObj) {
   if (typeof checkObj === 'string') {
@@ -389,6 +396,69 @@ function get_checkType(checkObj) {
   return [u_typeof(checkObj)];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Helper to recursively walk template and collect found keys. As template is
+ *  a Javascript object, the values stored as 'array' or typeof value type.
+ *  The keyMap property is the working context for this recursive function,
+ *  which has the desirable side effect of removing duplicate keys as we
+ *  would find in variable options[] and prompts[] */
+function r_GatherTemplateKeys(obj, keyMap, basePath = '') {
+  if (typeof obj === 'object' && obj !== null) {
+    if (Array.isArray(obj)) {
+      // Handle arrays - mark the array itself as found
+      const arrayPath = basePath.slice(0, -1) + '[]';
+      keyMap.set(arrayPath, 'array');
+
+      // Walk first item to find array item properties
+      if (obj.length > 0) {
+        r_GatherTemplateKeys(obj[0], keyMap, arrayPath + '.');
+      }
+    } else {
+      // Handle objects
+      for (const [key, value] of Object.entries(obj)) {
+        // Skip metadata keys starting with '_' except _schemaVersion
+        if (key.startsWith('_') && key !== '_schemaVersion') continue;
+
+        const fullPath = basePath + key;
+        keyMap.set(fullPath, typeof value);
+
+        if (typeof value === 'object' && value !== null) {
+          r_GatherTemplateKeys(value, keyMap, fullPath + '.');
+        }
+      }
+    }
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Helper to recursively walk an object schema. It's similar to the
+ *  r_GatherTemplateKeys method, generating a usefule data structure for
+ *  comparison */
+function r_GatherSchemaKeys(obj, keyMap, basePath = '') {
+  // strings are the format of a type declaration in the schema
+  if (typeof obj === 'string') {
+    // Handle array types like 'promptType[]'
+    if (obj.endsWith('[]')) {
+      const itemType = obj.slice(0, -2);
+      const cleanPath = u_noDot(basePath);
+      const arrayPath = cleanPath + '[]';
+      keyMap.set(arrayPath, obj);
+      // If it's a complex type, walk its properties
+      if (OBJS_SCHEMA20[itemType]) {
+        r_GatherSchemaKeys(OBJS_SCHEMA20[itemType], keyMap, arrayPath + '.');
+      }
+    } else {
+      // Simple type
+      keyMap.set(u_noDot(basePath), obj);
+    }
+  } else if (typeof obj === 'object' && obj !== null) {
+    // Walk object properties
+    for (const [key, value] of Object.entries(obj)) {
+      const fullPath = basePath ? `${basePath}${key}` : key;
+      keyMap.set(u_noDot(fullPath), 'object');
+      r_GatherSchemaKeys(value, keyMap, fullPath + '.');
+    }
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Validate a single property against the checkObj type or structure
  *  as a recursive function. Adds results to the global arrays:
  *  VALID, INVALID, EXTRA, and MISSING.
@@ -397,7 +467,7 @@ function get_checkType(checkObj) {
  *  @param {string|object} tObj - The template object found at key index
  *  @param {string|object} checkObj - the validation object
  */
-function m_ValidateProperty(tInfo, tObj, checkObj) {
+function r_ValidateProperty(tInfo, tObj, checkObj) {
   // simple value types can be checked directly
   if (DBG) {
     const jst = JSON.stringify(tObj).substring(0, 20);
@@ -503,7 +573,7 @@ function m_ValidateProperty(tInfo, tObj, checkObj) {
         return;
       }
       // recursively validate each item in the array against the expected schema
-      m_ValidateProperty(`${tInfo}[]`, item, itemSchema);
+      r_ValidateProperty(`${tInfo}[]`, item, itemSchema);
       return; // exit the forEach loop
     });
     // (2D) if we got here, we validated the array items so exit validator
@@ -556,7 +626,7 @@ function m_ValidateProperty(tInfo, tObj, checkObj) {
     }
     // (3E) we have the key and the contents of the tObj[key], so check it against the schema
     const info = tInfo ? `${tInfo}.${key}` : key;
-    m_ValidateProperty(info, objProp, checkProp);
+    r_ValidateProperty(info, objProp, checkProp);
     return;
   });
 }
@@ -655,18 +725,66 @@ function m_ValidateUIProperties(uiObj, tInfo = '_ui') {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Validate the TOML template structure against the schema. Return
+/** Helper to find missing keys in the template object against the schema.
+ *  It gathers all keys in the template and schema, then compares them.
+ *  It prints the found keys side-by-side for easy comparison. */
+function m_FindMissingKeys(template) {
+  const templateKeys = new Map();
+  const schemaKeys = new Map();
+  r_GatherTemplateKeys(template, templateKeys);
+  r_GatherSchemaKeys(TEMPLATE_SCHEMA, schemaKeys);
+  for (const [schemaPath, schemaType] of schemaKeys) {
+    if (!templateKeys.has(schemaPath)) {
+      const err = `* ${schemaPath} : missing property (type: ${schemaType})`;
+      MISSING.push(err);
+    }
+  }
+
+  if (DBG) {
+    // print the foundKeys side-by-side, using 80 column wide screen as reference
+    // each column is 40 characters wide, and truncate the key length if longer then 38 chars
+    const maxKeyLength = 38;
+    const maxColWidth = 40;
+    const col1 = foundTemplateKeys.map(key =>
+      key.padEnd(maxColWidth).slice(0, maxColWidth)
+    );
+    const col2 = foundSchemaKeys.map(key =>
+      key.padEnd(maxColWidth).slice(0, maxColWidth)
+    );
+    const col1Str = col1.join('\n');
+    const col2Str = col2.join('\n');
+    const col1Lines = col1Str.split('\n');
+    const col2Lines = col2Str.split('\n');
+    const maxLines = Math.max(col1Lines.length, col2Lines.length);
+    const col1Padded = col1Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
+    const col2Padded = col2Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
+    // print the keys side-by-side
+    LOG(`${PR}* SCHEMA KEYS vs FOUND TEMPLATE KEYS`);
+    for (let i = 0; i < maxLines; i++) {
+      const line1 = col1Padded[i] || ''.padEnd(maxColWidth + 1);
+      const line2 = col2Padded[i] || ''.padEnd(maxColWidth + 1);
+      LOG(`${line2}${line1}`);
+    }
+  }
+}
+
+/// MAIN API METHODS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Validate the TOML template structure against the schema. Return
  *  an object with arrays of valid, invalid, extra, and missing keys. */
-function m_Validate(template) {
-  // reset validation arrays
+function Validate(template) {
+  // reset global validation arrays
   VALID = [];
   INVALID = [];
   EXTRA = [];
-  MISSING = [];
   WARNINGS = [];
+  MISSING = [];
 
-  // FIRST: Validate global keys
-  m_ValidateProperty('', template, TEMPLATE_SCHEMA);
+  // (1) Validate key types and structure
+  r_ValidateProperty('', template, TEMPLATE_SCHEMA);
+
+  // (2) Gather all keys in the template object
+  m_FindMissingKeys(template, TEMPLATE_SCHEMA);
 
   // NEXT: Validate _ui metadata structure
   // if (template._ui) {
@@ -682,43 +800,18 @@ function m_Validate(template) {
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Return a report of validation results { templateOK, report }
- *  This is useful for logging or displaying in the UI. */
+/** API: Return a report of validation results { templateOK, report } This is
+ *  useful for logging or displaying in the UI. */
 function ValidateTemplateObject(template) {
   if (typeof template !== 'object' || template === null) {
     console.log(PR, 'ValidateTemplateObject called with invalid template:', template);
     return [false, 'Invalid template object'];
   }
-  m_Validate(template);
+  Validate(template);
   let report = '';
   if (VALID.length > 0) {
     report += `### VALID TEMPLATE KEYS ###\n`;
-    report += `    ${VALID.length} valid keys found\n`;
-  }
-  if (INVALID.length > 0) {
-    report += `### INVALID TEMPLATE KEYS ###\n`;
-    report += `    ${INVALID.length} invalid keys found\n`;
-    report += `    ${INVALID.join('\n    ')}\n`;
-  }
-  if (EXTRA.length > 0) {
-    report += `### EXTRA TEMPLATE KEYS ###\n`;
-    report += `    ${EXTRA.length} extra keys found\n`;
-    report += `    ${EXTRA.join('\n    ')}\n`;
-  }
-  if (MISSING.length > 0) {
-    report += `### MISSING TEMPLATE KEYS ###\n`;
-    report += `    ${MISSING.length} missing keys found\n`;
-    report += `    ${MISSING.join('\n    ')}\n`;
-  }
-  if (VARIES.length > 0) {
-    report += `### VARIABLE KEYS ###\n`;
-    report += `    ${VARIES.length} keys that can vary in template\n`;
-    report += `    ${VARIES.join('\n    ')}\n`;
-  }
-  if (WARNINGS.length > 0) {
-    report += `### WARNINGS ###\n`;
-    report += `    ${WARNINGS.length} warnings found\n`;
-    report += `    ${WARNINGS.join('\n    ')}\n`;
+    report += `    ${VALID.length} required keys found\n`;
   }
 
   const templateOK =
@@ -738,9 +831,9 @@ function ValidateTemplateObject(template) {
   ];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Validate a TOML template file at the given tInfo.
- *  Returns [templateOK, report] where templateOK is a boolean
- *  and report is a string with validation results. */
+/** API: Validate a TOML template file at the given tInfo. Returns [templateOK,
+ *  report] where templateOK is a boolean and report is a string with validation
+ *  results. */
 function ValidateTOMLTemplate(templatePath) {
   let template;
   try {
@@ -750,14 +843,13 @@ function ValidateTOMLTemplate(templatePath) {
     console.error(`Error reading or parsing template at ${templatePath}:`, err);
     return [false, `Error reading template: ${err.message}`];
   }
-  const [templateOK, report, logObject] = ValidateTemplateObject(template);
-  return [templateOK, report, logObject];
+  return ValidateTemplateObject(template);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
-  m_Validate,
-  ValidateTOMLTemplate,
-  ValidateTemplateObject
+  Validate, // templateObj => { VALID, INVALID, EXTRA, MISSING, WARNINGS, templateOK }
+  ValidateTOMLTemplate, // templatePath => [templateOK, report, logObject]
+  ValidateTemplateObject // templateObj => [templateOK, report, logObject]
 };
