@@ -1,7 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   Template Schema Definitions for NetCreate Template Validation
-  
+
   This module contains all the schema definitions and reference data
   structures used for validating TOML template files.
 
