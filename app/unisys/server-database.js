@@ -571,7 +571,7 @@ DB.PKT_RequestLockNode = function (pkt) {
     return m_MakeLockError(`nodeID ${nodeID} is already locked`);
   // SUCCESS
   // single matching node exists and is not yet locked, so lock it
-  m_locked_nodes.add(uaddr);
+  m_locked_nodes.set(uaddr);
   return { nodeID, locked: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
