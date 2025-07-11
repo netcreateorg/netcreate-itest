@@ -11,6 +11,7 @@
 /* eslint-disable no-unused-vars */
 
 const DBG = false;
+const USE_VALIDATOR = true;
 
 /// LOAD LIBRARIES ////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -257,22 +258,25 @@ async function m_LoadTemplate() {
   const data = FSE.readFileSync(TOMLPath, 'utf8');
   const json = TOML.parse(data);
   TEMPLATE = json;
-  // validate the loaded template
-  const [templateOK, report] = TemplateUtil.GetValidation(TEMPLATE);
-  if (!templateOK) {
-    const shortPath = PATH.basename(TOMLPath).split('.')[0];
-    console.error(PR, RD(`Invalid dataset template`), `'${TOMLPath}'`);
-    console.error(
-      PR,
-      `Correct using ${YL(
-        `./nc-validate.js ${shortPath} -vv`
-      )} script, then restart server.`
-    );
-    console.error(PR, `Report follows:\n`);
-    console.error(report);
-    process.exit(1);
-  } else {
-    console.log(PR, BL(`Dataset template validated`), TOMLPath);
+
+  if (USE_VALIDATOR) {
+    // validate the loaded template
+    const [templateOK, report] = TemplateUtil.GetValidation(TEMPLATE);
+    if (!templateOK) {
+      const shortPath = PATH.basename(TOMLPath).split('.')[0];
+      console.error(PR, RD(`Invalid dataset template`), `'${TOMLPath}'`);
+      console.error(
+        PR,
+        `Correct using ${YL(
+          `./nc-validate.js ${shortPath} -vv`
+        )} script, then restart server.`
+      );
+      console.error(PR, `Report follows:\n`);
+      console.error(report);
+      process.exit(1);
+    } else {
+      console.log(PR, BL(`Dataset template validated`), TOMLPath);
+    }
   }
 
   // don't clear the locks of a reload of template happens post-init
