@@ -180,9 +180,10 @@ function IsUIGroup(uobj) {
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
-  if (uobj.type !== undefined) return false; // not a group, it's a property
-  // got this far so it's probably a valid group, which means
-  // it has either value types of objects with a type
+  // check for explicit composite control type
+  if (typeof uobj.control !== 'string') return false;
+  if (uobj.control !== 'composite') return false; // not a composite group
+  // got this far so check that keys are simple values or nested UIObjs or UIGroups
   return Object.keys(uobj).some(key => {
     const prop = uobj[key];
     if (is_valueType(prop)) return false; // not a group
@@ -195,21 +196,26 @@ function IsUIGroup(uobj) {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: Given a uiData object, return a list of global settings and
+/** API HELPER: Given a uiMeta object, return a list of global settings and
  *  a list of groups found without further decoding the group properties.*/
-function GetUISettingsList(uiData) {
-  if (uiData === undefined || typeof uiData !== 'object')
-    return { error: 'uiData is not anobject' };
-  if (Object.keys(uiData).length === 0) return { error: 'uiData is empty' };
+function GetUISettingsList(uiMeta) {
+  if (uiMeta === undefined || typeof uiMeta !== 'object')
+    return { error: 'uiMeta is not an object' };
+  if (Object.keys(uiMeta).length === 0) return { error: 'uiMeta is empty' };
   const globalsList = [];
   const groupList = [];
-  Object.keys(uiData).forEach(uiKey => {
-    const entry = uiData[uiKey];
+  const unknownList = [];
+  Object.keys(uiMeta).forEach(uiKey => {
+    if (uiKey.startsWith('_')) return; // skip internal keys
+    const entry = uiMeta[uiKey];
     if (IsUIObj(entry)) globalsList.push(uiKey);
     else if (IsUIGroup(entry)) groupList.push(uiKey);
-    else LOG(...PR(`${uiKey} isn't UIObj or UIGroup`, entry));
+    else unknownList.push(`${uiKey} = ${JSON.stringify(entry)}`);
   });
-  return { globalsList, groupList };
+  if (DBG && unknownList.length > 0) {
+    LOG(...PR(`GetUISettingsList: non-UI objs found`), unknownList);
+  }
+  return { globalsList, groupList, unknownList };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Check if there are any pending changes in the settings object,
@@ -336,7 +342,7 @@ module.exports = {
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
   GetUIData, // setObj, dotProp => { groupName, propName, propMeta, propData }
-  GetUISettingsList, // uiData => { globalsList, groupSettings }
+  GetUISettingsList, // uiMeta => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
   // Locking API
   GetLockState, // ()=>AppState('LOCKSTATE')

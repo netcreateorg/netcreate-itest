@@ -27,9 +27,13 @@ searchColor = "#008800"
 sourceColor = "#FFa500"
 _schemaVersion = "2.1"
 
-[_ui._editor.global]
+[_ui._groupMeta]
 label = "Global Settings"
 description = "Project-wide settings"
+
+[_ui._groupMeta.nodeDefs]
+label = "Node Definitions"
+description = "Define the properties that nodes can have"
 
 [_ui.name]
 control = "in_string"
@@ -54,10 +58,6 @@ control = "in_string"
 label = "Admin Password"
 tooltip = "Set the admin password for the graph"
 help = "This password protects access to the Advanced Settings Panel"
-
-[_ui._editor.nodeDefs]
-label = "Node Definitions"
-description = "Define the properties that nodes can have"
 
 [_ui.nodeDefs]
 control = "composite"

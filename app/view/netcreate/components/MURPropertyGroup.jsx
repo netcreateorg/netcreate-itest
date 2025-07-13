@@ -81,10 +81,10 @@ function PropertyGroup(props) {
     propNames = RSB.GetUISettingsList(metaSource).globalsList || [];
     propNames.forEach(p => (propsData[p] = metaSource[p]));
     propsData._src = '';
-    if (metaSource._editor && metaSource._editor.global) {
-      propsData._editor = metaSource._editor.global;
+    if (metaSource._groupMeta) {
+      propsData._groupMeta = metaSource._groupMeta;
     } else {
-      propsData._editor = { propLabel: '<editor global>', description: '' };
+      propsData._groupMeta = { label: '<editor global>', description: '' };
     }
   } else {
     /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
@@ -93,8 +93,16 @@ function PropertyGroup(props) {
     propNames = Object.keys(propsData).filter(p => p.startsWith('_') === false);
   }
 
-  // look for title in propsData or _editor.global
-  const groupmeta = propsData[groupName] || propsData._editor || {};
+  // look for title in _groupMeta
+  let groupmeta = {};
+  if (groupName === '') {
+    // For global settings, use _groupMeta directly
+    groupmeta = propsData._groupMeta || {};
+  } else {
+    // For named groups, use _groupMeta[groupName] from metaSource
+    groupmeta = (metaSource._groupMeta && metaSource._groupMeta[groupName]) || 
+                propsData[groupName] || {};
+  }
   const grpTitle = groupmeta.label || groupName.toUpperCase() || '<title not set>';
   const grpDesc = groupmeta.description || '';
   const key = `pg-${groupName}`;
