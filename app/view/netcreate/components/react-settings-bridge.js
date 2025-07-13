@@ -39,6 +39,21 @@ const UDATA = UNISYS.NewDataLink(MOD);
 function $(strOrNum) {
   return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** extended typeof to handle arrays */
+function u_typeof(obj) {
+  if (Array.isArray(obj)) {
+    return `array`;
+  }
+  return typeof obj;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return true if the object is a simple value type */
+const value_types = ['string', 'number', 'boolean'];
+function is_valueType(obj) {
+  const type = u_typeof(obj);
+  return value_types.includes(type);
+}
 
 /// DISPATCHER API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -124,8 +139,6 @@ function GetUIData(setObj, dotProp) {
         ? setObj[groupName][propName][propField]
         : undefined;
 
-    LOG(...PR(`propData for ${dotProp}`, propData));
-
     return {
       groupName,
       propName,
@@ -158,7 +171,7 @@ function IsUIObj(uobj) {
   // either a property or property in a group
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
-  return typeof uobj.type === 'string';
+  return typeof uobj.control === 'string';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: determine if passed object is a ui group which has properties */
@@ -168,24 +181,33 @@ function IsUIGroup(uobj) {
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
   if (uobj.type !== undefined) return false; // not a group, it's a property
-  // got this far so it's probably a valid group
-  return Object.keys(uobj).some(key => IsUIObj(uobj[key]));
+  // got this far so it's probably a valid group, which means
+  // it has either value types of objects with a type
+  return Object.keys(uobj).some(key => {
+    const prop = uobj[key];
+    if (is_valueType(prop)) return false; // not a group
+    if (typeof prop === 'object') {
+      if (IsUIObj(prop)) return true;
+      if (IsUIGroup(prop)) return true;
+      return false;
+    }
+    throw Error(`Group property ${key} has unexpected type: ${u_typeof(prop)}`);
+  });
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a uiData object, return a list of global settings and
- *  a list of groups found without further decoding the group properties */
+ *  a list of groups found without further decoding the group properties.*/
 function GetUISettingsList(uiData) {
   if (uiData === undefined || typeof uiData !== 'object')
     return { error: 'uiData is not anobject' };
-  if (Object.keys(uiData).length === 0)
-    return { globalsList: [], groupList: [], error: 'uiData is empty' };
+  if (Object.keys(uiData).length === 0) return { error: 'uiData is empty' };
   const globalsList = [];
   const groupList = [];
-  Object.keys(uiData).forEach(g => {
-    const entry = uiData[g];
-    if (IsUIObj(entry)) globalsList.push(g);
-    else if (IsUIGroup(entry)) groupList.push(g);
+  Object.keys(uiData).forEach(uiKey => {
+    const entry = uiData[uiKey];
+    if (IsUIObj(entry)) globalsList.push(uiKey);
+    else if (IsUIGroup(entry)) groupList.push(uiKey);
+    else LOG(...PR(`${uiKey} isn't UIObj or UIGroup`, entry));
   });
   return { globalsList, groupList };
 }

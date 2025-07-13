@@ -89,7 +89,6 @@ function PropertyGroup(props) {
   } else {
     /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///
     propsData = { ...(metaSource[groupName] || draft.template[groupName] || {}) };
-    LOG(...PR(`PropertyGroup: groupName=${groupName}`, propsData));
     propsData._src = groupName;
     propNames = Object.keys(propsData).filter(p => p.startsWith('_') === false);
   }
