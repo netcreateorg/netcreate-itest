@@ -54,6 +54,14 @@ function is_valueType(obj) {
   const type = u_typeof(obj);
   return value_types.includes(type);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return by value for simple types, or clone of object for complex types */
+function u_clone(obj) {
+  if (is_valueType(obj)) return obj; // simple value type, return as-is
+  if (Array.isArray(obj)) return [...obj]; // clone array
+  if (typeof obj === 'object') return { ...obj }; // clone object
+  throw Error(`u_clone: unsupported type ${u_typeof(obj)}`);
+}
 
 /// DISPATCHER API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -114,7 +122,7 @@ function GetUIData(setObj, dotProp) {
       return {
         groupName,
         propName,
-        propMeta: { ...metaSource[propName] },
+        propMeta: u_clone(metaSource[propName]),
         propData: setObj[propName]
       };
     return {
@@ -143,7 +151,7 @@ function GetUIData(setObj, dotProp) {
       groupName,
       propName,
       propField,
-      propMeta: { ...metaSource[groupName][propName][propField] },
+      propMeta: u_clone(metaSource[groupName][propName][propField]),
       propData
     };
   }
@@ -161,40 +169,30 @@ function GetUIData(setObj, dotProp) {
   return {
     groupName,
     propName,
-    propMeta: { ...metaSource },
+    propMeta: u_clone(metaSource),
     propData: setObj[groupName][propName]
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: determine if passed object is a ui object which has a type */
+/** HELPER: Shallow check that this is a UI object, not group of UIObjects */
 function IsUIObj(uobj) {
   // either a property or property in a group
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
-  return typeof uobj.control === 'string';
+  if (typeof uobj.control !== 'string') throw Error('uobj.control must be a string');
+  if (Object.keys(uobj).length === 0) return false; // empty object
+  return uobj.control !== 'composite'; // not a composite control
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: determine if passed object is a ui group which has properties */
+/** HELPER: Shallow check that this is a UI group */
 function IsUIGroup(uobj) {
   // a group is an object with properties, not a property itself
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
-  // check for explicit composite control type
-  if (typeof uobj.control !== 'string') return false;
-  if (uobj.control !== 'composite') return false; // not a composite group
-  // got this far so check that keys are simple values or nested UIObjs or UIGroups
-  return Object.keys(uobj).some(key => {
-    const prop = uobj[key];
-    if (is_valueType(prop)) return false; // not a group
-    if (typeof prop === 'object') {
-      if (IsUIObj(prop)) return true;
-      if (IsUIGroup(prop)) return true;
-      return false;
-    }
-    throw Error(`Group property ${key} has unexpected type: ${u_typeof(prop)}`);
-  });
+  return uobj.control === 'composite';
 }
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a uiMeta object, return a list of global settings and
  *  a list of groups found without further decoding the group properties.*/

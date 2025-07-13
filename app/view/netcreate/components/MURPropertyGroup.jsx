@@ -28,18 +28,16 @@ function GroupHeader(props) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** extract UI data for property group rendering */
-function u_DecodeUIData(uiData) {
-  if (typeof uiData !== 'object')
-    return { error: `arg1 must be an object, got ${typeof uiData}` };
+function u_DecodeUIData(uiObj) {
+  if (typeof uiObj !== 'object')
+    return { error: `arg1 must be an object, got ${typeof uiObj}` };
 
-  const { groupName, propName, propMeta, propData } = uiData;
+  const { groupName, propName, propMeta, propData } = uiObj;
   const { control, label, tooltip, help } = propMeta;
   const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
 
   // resolve useful ui data using fallthrough assignment
   let fControl, fLabel, fHelp, fTooltip;
-
-  fControl = control || '<missing control type>';
 
   if (labelKey) fLabel = propData[labelKey];
   if (!fLabel) fLabel = label || propName || '<no label found>';
@@ -49,6 +47,16 @@ function u_DecodeUIData(uiData) {
 
   if (tooltipKey) fTooltip = propData[tooltipKey];
   if (!fTooltip) fTooltip = tooltip || '';
+
+  fControl = control || `<missing control prop>`;
+  if (control === undefined) {
+    LOG(
+      `%cWarning: 'control' is undefined for uiObj=`,
+      'color: red',
+      JSON.stringify(uiObj)
+    );
+    fControl = 'unknown'; // default to unknown if not specified
+  }
 
   return {
     groupName,
@@ -70,11 +78,11 @@ function PropertyGroup(props) {
   const metaSource = draft.template._ui || {};
 
   // editable properties are in propsData and propNames
-  // which are derived by scanning metaSource which is the groupmeta
+  // which are derived by scanning metaSource which is the groupMeta
   // dictionary that determines what the UI should display
 
   let propNames; // array of property names to display
-  let propsData = {}; // related
+  let propsData = {}; // derived data for rendering ui, not directly from template
 
   if (groupName === '') {
     /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
@@ -94,28 +102,32 @@ function PropertyGroup(props) {
   }
 
   // look for title in _groupMeta
-  let groupmeta = {};
+  let groupMeta = {};
   if (groupName === '') {
     // For global settings, use _groupMeta directly
-    groupmeta = propsData._groupMeta || {};
+    groupMeta = propsData._groupMeta || {};
   } else {
     // For named groups, use _groupMeta[groupName] from metaSource
-    groupmeta = (metaSource._groupMeta && metaSource._groupMeta[groupName]) || 
-                propsData[groupName] || {};
+    groupMeta =
+      (metaSource._groupMeta && metaSource._groupMeta[groupName]) ||
+      propsData[groupName] ||
+      {};
   }
-  const grpTitle = groupmeta.label || groupName.toUpperCase() || '<title not set>';
-  const grpDesc = groupmeta.description || '';
+  const grpTitle = groupMeta.label || groupName.toUpperCase() || '<title not set>';
+  const grpDesc = groupMeta.description || '';
   const key = `pg-${groupName}`;
 
-  /// RENDER ///
+  /// SUB RENDER ///
 
   const PropertyList = propNames.map(p => {
-    const propDef = RSB.EncodeDotProp(groupName, p);
-    const inputKey = `in_${propDef}`;
+    // skip control and internal properties
+    if (p === 'control' || p.startsWith('_')) return null;
 
     // Get structured UI data using RSB.GetUIData
-    const uiData = RSB.GetUIData(draft.template, propDef);
-    const { control, label } = u_DecodeUIData(uiData);
+    const propDef = RSB.EncodeDotProp(groupName, p);
+    const inputKey = `in_${propDef}`;
+    const uiObj = RSB.GetUIData(draft.template, propDef);
+    const { control, label } = u_DecodeUIData(uiObj);
 
     if (control === 'unknown') {
       LOG(`%cpropDef=${propDef} is missing control/type property`, 'color: red');
@@ -132,7 +144,7 @@ function PropertyGroup(props) {
       case 'in_password':
       case 'in_select':
       case 'in_timestamp':
-        LOG(...PR(`Rendering ${control} for property ${p}`), { uiData });
+        LOG(...PR(`Rendering ${control} for property ${p}`), { uiObj });
         return (
           <div key={inputKey}>
             {label}
@@ -147,6 +159,8 @@ function PropertyGroup(props) {
         return <p key={inputKey}>Unsupported control: {control}</p>;
     }
   });
+
+  /// RENDER ///
 
   return (
     <div key={key} style={{ margin: '1rem' }}>
