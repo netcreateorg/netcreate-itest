@@ -192,7 +192,6 @@ function IsUIGroup(uobj) {
   if (Object.keys(uobj).length === 0) return false; // empty group
   return uobj.control === 'composite';
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a uiMeta object, return a list of global settings and
  *  a list of groups found without further decoding the group properties.*/
@@ -288,7 +287,7 @@ const modColor = '#ffff00a0';
 // itemGrid is for the container of a label and input
 const itemGrid = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(200px,max-content) auto',
+  gridTemplateColumns: 'minmax(0, 200px) 1fr',
   alignItems: 'baseline',
   margin
 };

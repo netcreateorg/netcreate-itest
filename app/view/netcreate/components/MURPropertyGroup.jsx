@@ -92,7 +92,10 @@ function PropertyGroup(props) {
     if (metaSource._groupMeta) {
       propsData._groupMeta = metaSource._groupMeta;
     } else {
-      propsData._groupMeta = { label: '<editor global>', description: '' };
+      propsData._groupMeta = {
+        label: '<global groupMeta not in template>',
+        description: ''
+      };
     }
   } else {
     /// CASE 2: GROUP NAME AND PROP NAME AVAIABLE ///

@@ -275,7 +275,7 @@ async function m_LoadTemplate() {
       console.error(report);
       process.exit(1);
     } else {
-      console.log(PR, BL(`Dataset template validated`), TOMLPath);
+      console.log(PR, BL('Dataset template validated'), `'${TOMLPath}'`);
     }
   }
 
