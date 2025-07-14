@@ -64,92 +64,92 @@ control = "composite"
 
 [_ui.nodeDefs.id]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.label]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-exportLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+exportLabel = { control = "in_string", label = "Export Label", help = "Label used when exporting data" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.type]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-exportLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+exportLabel = { control = "in_string", label = "Export Label", help = "Label used when exporting data" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-options = { control = "in_select", labelKey = "displayLabel", helpKey = "help" }
+options = { control = "in_select", label = "Options", help = "Available options for selection" }
 
 [_ui.nodeDefs.notes]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-exportLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+exportLabel = { control = "in_string", label = "Export Label", help = "Label used when exporting data" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.info]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-exportLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+exportLabel = { control = "in_string", label = "Export Label", help = "Label used when exporting data" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.infoSource]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-exportLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+exportLabel = { control = "in_string", label = "Export Label", help = "Label used when exporting data" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-isProvenance = { control = "in_boolean", labelKey = "displayLabel", helpKey = "help" }
+isProvenance = { control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 
 [_ui.nodeDefs.degrees]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.created]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.createdBy]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.updated]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.updatedBy]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.revision]
 control = "composite"
-displayLabel = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
-help = { control = "in_string", labelKey = "displayLabel", helpKey = "help" }
+displayLabel = { control = "in_string", label = "Display Label", help = "Used as the label shown in the interface" }
+help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
