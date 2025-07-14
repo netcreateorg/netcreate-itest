@@ -47,7 +47,7 @@ function u_ExtractInputProps(controlData) {
 
   // if tooltipKey exists, use it. Otherwise meta has to provide a tooltip
   if (tooltipKey) fTooltip = sourceData[tooltipKey];
-  if (!fTooltip) fTooltip = tooltip || '';
+  if (!fTooltip) fTooltip = tooltip || fHelp || '';
 
   return {
     groupName,
