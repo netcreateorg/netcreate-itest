@@ -1416,7 +1416,7 @@ DB.PKT_RequestUnlockTemplate = pkt => {
 
 /// TEMPLATE READ+WRITE METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** called by Template Editor and DB.WriteTemplateTOML */
+/** called by Template Editor and DB.PKT_WriteTemplateTOML */
 function m_GetTemplateTOMLFileName() {
   return NC_CONFIG.dataset + TEMPLATE_EXT;
 }
@@ -1436,9 +1436,9 @@ DB.GetTemplateTOMLFileName = () => {
  *                        other specific template.
  *  WARN: Loads the template after saving!
  */
-DB.WriteTemplateTOML = pkt => {
+DB.PKT_WriteTemplateTOML = pkt => {
   if (pkt.data === undefined)
-    throw 'DB.WriteTemplateTOML pkt received with no `data`';
+    throw 'DB.PKT_WriteTemplateTOML pkt received with no `data`';
   const templateFilePath = pkt.data.path || m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(templateFilePath));
   // first back-up the old template file
@@ -1491,7 +1491,7 @@ DB.RegenerateDefaultTemplate = () => {
     }
   };
   const toml = TOML.stringify(pkt.data.template);
-  return DB.WriteTemplateTOML(pkt);
+  return DB.PKT_WriteTemplateTOML(pkt);
 };
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

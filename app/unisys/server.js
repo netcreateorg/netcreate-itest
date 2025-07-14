@@ -144,7 +144,7 @@ UNISYS.RegisterHandlers = () => {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   UNET.HandleMessage('SRV_TEMPLATESAVE', pkt => {
     if (DBG) console.log(PR, sprint_message(pkt));
-    const result = UDB.WriteTemplateTOML(pkt);
+    const result = UDB.PKT_WriteTemplateTOML(pkt);
     if (result.OK) {
       UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template);
     } else {
