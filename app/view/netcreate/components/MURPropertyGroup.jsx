@@ -32,20 +32,22 @@ function u_ExtractGroupProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
 
-  const { groupName, propName, propMeta, propData } = controlData;
-  const { control, label, tooltip, help } = propMeta;
-  const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
+  const { groupName, propName } = controlData;
+  const { sourceMeta, sourceData } = controlData;
+
+  const { control, label, tooltip, help } = sourceMeta;
+  const { labelKey, tooltipKey, helpKey, valueKey } = sourceMeta;
 
   // resolve useful ui data using fallthrough assignment
   let fControl, fLabel, fHelp, fTooltip;
 
-  if (labelKey) fLabel = propData[labelKey];
+  if (labelKey) fLabel = sourceData[labelKey];
   if (!fLabel) fLabel = label || propName || '<no label found>';
 
-  if (helpKey) fHelp = propData[helpKey];
+  if (helpKey) fHelp = sourceData[helpKey];
   if (!fHelp) fHelp = help || '';
 
-  if (tooltipKey) fTooltip = propData[tooltipKey];
+  if (tooltipKey) fTooltip = sourceData[tooltipKey];
   if (!fTooltip) fTooltip = tooltip || '';
 
   fControl = control || `<missing control prop>`;

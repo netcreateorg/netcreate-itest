@@ -23,29 +23,30 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 function u_ExtractInputProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
-  // extra data from propData and propMeta
-  const { groupName, propName, propField, propMeta, propData } = controlData;
+  //
+  const { groupName, propName, propField } = controlData;
+  const { sourceMeta, sourceData } = controlData;
 
-  const { label, tooltip, help } = propMeta;
-  const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
+  const { label, tooltip, help } = sourceMeta;
+  const { labelKey, tooltipKey, helpKey, valueKey } = sourceMeta;
 
   // resolve useful ui data
   let fValue, fLabel, fHelp, fTooltip;
 
-  // special case ... this is always a propData extraction
-  if (valueKey) fValue = propData[valueKey];
-  if (fValue === undefined) fValue = propData[propName] || propData;
+  // special case ... this is always a sourceData extraction
+  if (valueKey) fValue = sourceData[valueKey];
+  if (fValue === undefined) fValue = sourceData[propName] || sourceData;
 
   // if labelKey exists, use it. Otherwise meta has to provide a label
-  if (labelKey) fLabel = propData[labelKey];
+  if (labelKey) fLabel = sourceData[labelKey];
   if (!fLabel) fLabel = label || '<label not in template>';
 
   // if helpKey exists, use it. Otherwise meta has to provide a help text
-  if (helpKey) fHelp = propData[helpKey];
+  if (helpKey) fHelp = sourceData[helpKey];
   if (!fHelp) fHelp = help || '';
 
   // if tooltipKey exists, use it. Otherwise meta has to provide a tooltip
-  if (tooltipKey) fTooltip = propData[tooltipKey];
+  if (tooltipKey) fTooltip = sourceData[tooltipKey];
   if (!fTooltip) fTooltip = tooltip || '';
 
   return {

@@ -111,20 +111,20 @@ function GetDataForProp(template, propDef) {
   if (typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
   if (typeof template._ui !== 'object')
-    return { error: `${fn} metaSource _ui is not available` };
+    return { error: `${fn} t_ui _ui is not available` };
 
   // got this far, we have a valid template and template._ui
-  let metaSource = template._ui; // _ui is the metadata source
+  let t_ui = template._ui; // _ui is the metadata source
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
     if (!template[propName]) return { value, error: `no value for ${propDef}` };
-    if (metaSource[propName] !== undefined)
+    if (t_ui[propName] !== undefined)
       return {
         groupName,
         propName,
-        propMeta: u_clone(metaSource[propName]),
-        propData: template[propName]
+        sourceMeta: u_clone(t_ui[propName]),
+        sourceData: template[propName]
       };
     return {
       groupName: undefined,
@@ -134,16 +134,16 @@ function GetDataForProp(template, propDef) {
   }
   /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
   if (propField !== undefined) {
-    if (metaSource[groupName] === undefined)
+    if (t_ui[groupName] === undefined)
       return { error: `no UI metadata for group ${groupName}` };
-    if (metaSource[groupName][propName] === undefined)
+    if (t_ui[groupName][propName] === undefined)
       return { error: `group ${groupName} no metadata for ${propName}` };
-    if (metaSource[groupName][propName][propField] === undefined)
+    if (t_ui[groupName][propName][propField] === undefined)
       return {
         error: `composite ${groupName}.${propName} no metadata for field ${propField}`
       };
 
-    const propData =
+    const sourceData =
       template[groupName] && template[groupName][propName]
         ? template[groupName][propName][propField]
         : undefined;
@@ -152,17 +152,17 @@ function GetDataForProp(template, propDef) {
       groupName,
       propName,
       propField,
-      propMeta: u_clone(metaSource[groupName][propName][propField]),
-      propData
+      sourceMeta: u_clone(t_ui[groupName][propName][propField]),
+      sourceData
     };
   }
   /// CASE 3: TWO-LEVEL GROUP NAME AND PROP NAME AVAILABLE ///
-  metaSource = metaSource[groupName][propName];
-  if (metaSource === undefined)
+  t_ui = t_ui[groupName][propName];
+  if (t_ui === undefined)
     return {
       error: `group ${groupName} no metadata for ${propName}`
     };
-  // if got this far, metaSource now has a object keys for each type of
+  // if got this far, t_ui now has a object keys for each type of
   // "editable setting" which can have multiple properties:
   //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
   // and each key in the id setting look like this:
@@ -170,8 +170,8 @@ function GetDataForProp(template, propDef) {
   return {
     groupName,
     propName,
-    propMeta: u_clone(metaSource),
-    propData: template[groupName][propName]
+    sourceMeta: u_clone(t_ui),
+    sourceData: template[groupName][propName]
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -339,7 +339,7 @@ module.exports = {
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
-  GetDataForProp, // template, propDef => { groupName, propName, propMeta, propData }
+  GetDataForProp, // template, propDef => { groupName, propName, sourceMeta, sourceData }
   GetUISettingsList, // uiMeta => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
   // Locking API

@@ -21,19 +21,21 @@ function u_ExtractCompositeProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
 
-  const { groupName, propName, propMeta, propData } = controlData;
-  if (propData === undefined) {
-    LOG(`%cNo propData found for ${groupName}.${propName}`, 'color: red');
+  const { groupName, propName } = controlData;
+  const { sourceMeta, sourceData } = controlData;
+
+  if (sourceData === undefined) {
+    LOG(`%cNo sourceData found for ${groupName}.${propName}`, 'color: red');
     return [];
   }
 
   // For composite controls, we need to look for child controls
   // which look like { [settingName]: { control: 'in_string', labelKey: 'displayLabel' } }
   const propFields = [];
-  Object.keys(propMeta).forEach(propField => {
+  Object.keys(sourceMeta).forEach(propField => {
     if (propField === 'control') return;
 
-    const fieldMeta = propMeta[propField];
+    const fieldMeta = sourceMeta[propField];
     const { control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
       fieldMeta;
 
@@ -41,13 +43,13 @@ function u_ExtractCompositeProps(controlData) {
     // resolve useful ui data using fallthrough assignment pattern
     let fLabel, fHelp, fTooltip;
 
-    if (labelKey) fLabel = propData[labelKey];
+    if (labelKey) fLabel = sourceData[labelKey];
     if (!fLabel) fLabel = label || propField;
 
-    if (helpKey) fHelp = propData[helpKey];
+    if (helpKey) fHelp = sourceData[helpKey];
     if (!fHelp) fHelp = help || '';
 
-    if (tooltipKey) fTooltip = propData[tooltipKey];
+    if (tooltipKey) fTooltip = sourceData[tooltipKey];
     if (!fTooltip) fTooltip = tooltip || '';
 
     propFields.push({
