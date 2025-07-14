@@ -7,6 +7,7 @@
 const React = require('react');
 const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
+import BooleanInput from './MURBooleanInput';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -87,6 +88,9 @@ function CompositeInput(props) {
       case 'in_string':
       case 'in_text':
         return <TextInput propDef={childPropDef} key={childKey} />;
+      case 'in_boolean':
+        return <BooleanInput propDef={childPropDef} key={childKey} />;
+      case 'in_number':
       default:
         return (
           <div key={childKey}>

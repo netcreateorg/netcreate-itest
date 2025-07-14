@@ -8,6 +8,7 @@ const React = require('react');
 const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
 import CompositeInput from './MURCompositeInput';
+import BooleanInput from './MURBooleanInput';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -143,9 +144,10 @@ function PropertyGroup(props) {
       case 'in_string':
       case 'in_text':
         return <TextInput propDef={propDef} key={inputKey} />;
+      case 'in_boolean':
+        return <BooleanInput propDef={propDef} key={inputKey} />;
       case 'in_number':
       case 'in_integer':
-      case 'in_boolean':
       case 'in_password':
       case 'in_select':
       case 'in_timestamp':
