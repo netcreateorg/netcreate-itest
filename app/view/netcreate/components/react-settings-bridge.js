@@ -180,7 +180,8 @@ function IsUIObj(uobj) {
   // either a property or property in a group
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
-  if (typeof uobj.control !== 'string') throw Error('uobj.control must be a string');
+  if (typeof uobj.control !== 'string')
+    throw Error('uobj.control is missing or not string');
   if (Object.keys(uobj).length === 0) return false; // empty object
   return uobj.control !== 'composite'; // not a composite control
 }
@@ -204,11 +205,16 @@ function GetUISettingsList(uiMeta) {
   const groupList = [];
   const unknownList = [];
   Object.keys(uiMeta).forEach(uiKey => {
-    if (uiKey.startsWith('_')) return; // skip internal keys
-    const entry = uiMeta[uiKey];
-    if (IsUIObj(entry)) globalsList.push(uiKey);
-    else if (IsUIGroup(entry)) groupList.push(uiKey);
-    else unknownList.push(`${uiKey} = ${JSON.stringify(entry)}`);
+    try {
+      if (uiKey.startsWith('_')) return; // skip internal keys
+      const entry = uiMeta[uiKey];
+      if (IsUIObj(entry)) globalsList.push(uiKey);
+      else if (IsUIGroup(entry)) groupList.push(uiKey);
+      else unknownList.push(`${uiKey} = ${JSON.stringify(entry)}`);
+      // LOG(...PR(`GetUISettingsList: processed ${uiKey}`, entry));
+    } catch (err) {
+      LOG(`%c${err}`, 'color:red', `for entry '${uiKey}'`, uiMeta[uiKey]);
+    }
   });
   if (DBG && unknownList.length > 0) {
     LOG(...PR(`GetUISettingsList: non-UI objs found`), unknownList);
