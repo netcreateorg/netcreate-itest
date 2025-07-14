@@ -35,6 +35,10 @@ description = "Project-wide settings"
 label = "Node Definitions"
 description = "Define the properties that nodes can have"
 
+[_ui._groupMeta.edgeDefs]
+label = "Edge Definitions"
+description = "Define the properties that edges can have"
+
 [_ui.name]
 control = "in_string"
 label = "Graph Name"
@@ -152,6 +156,132 @@ displayLabel = { control = "in_string", label = "Display Label", help = "Used as
 help = { control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+
+[_ui.edgeDefs]
+control = "composite" 
+
+[_ui.edgeDefs.id]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.source]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.target]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.type]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+  [[_ui.edgeDefs.type.options]]
+  color = "#696969"
+  label = "edge option a"
+
+  [[_ui.edgeDefs.type.options]]
+  color = "#000000"
+  label = "edge option 2"
+
+[_ui.edgeDefs.notes]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.weight]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isRequired = { control = "in_boolean", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.infoOrigin]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.citation]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.category]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+isProvenance = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.created]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.createdBy]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.updated]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.updatedBy]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.revision]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.sourceLabel]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
+
+[_ui.edgeDefs.targetLabel]
+control = "composite"
+displayLabel = { control = "in_string", label = "label", help = "help|tooltip" }
+help = { control = "in_string", label = "label", help = "help|tooltip" }
+includeInGraphTooltip = { control = "in_boolean", label = "label", help = "help|tooltip" }
+hidden = { control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [citation]
 text = "No citation set"
