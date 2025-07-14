@@ -55,5 +55,5 @@ nbproject
 Thumbs.db
 
 # Ignore AI agent files
-CLAUDE.md
+CLAUDE*.md
 .claude
