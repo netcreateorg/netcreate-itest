@@ -27,12 +27,12 @@ function GroupHeader(props) {
   );
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** extract UI data for property group rendering */
-function u_DecodeUIData(uiObj) {
-  if (typeof uiObj !== 'object')
-    return { error: `arg1 must be an object, got ${typeof uiObj}` };
+/** extract group props data for property group rendering */
+function u_ExtractGroupProps(controlData) {
+  if (typeof controlData !== 'object')
+    return { error: `arg1 must be an object, got ${typeof controlData}` };
 
-  const { groupName, propName, propMeta, propData } = uiObj;
+  const { groupName, propName, propMeta, propData } = controlData;
   const { control, label, tooltip, help } = propMeta;
   const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
 
@@ -51,9 +51,9 @@ function u_DecodeUIData(uiObj) {
   fControl = control || `<missing control prop>`;
   if (control === undefined) {
     LOG(
-      `%cWarning: 'control' is undefined for uiObj=`,
+      `%cWarning: 'control' is undefined for controlData=`,
       'color: red',
-      JSON.stringify(uiObj)
+      JSON.stringify(controlData)
     );
     fControl = 'unknown'; // default to unknown if not specified
   }
@@ -126,11 +126,11 @@ function PropertyGroup(props) {
     // skip control and internal properties
     if (p === 'control' || p.startsWith('_')) return null;
 
-    // Get structured UI data using RSB.GetUIData
+    // Get structured control data using RSB.GetDataForProp
     const propDef = RSB.EncodePropDef(groupName, p);
     const inputKey = `in_${propDef}`;
-    const uiObj = RSB.GetUIData(draft.template, propDef);
-    const { control, label } = u_DecodeUIData(uiObj);
+    const controlData = RSB.GetDataForProp(draft.template, propDef);
+    const { control, label } = u_ExtractGroupProps(controlData);
 
     if (control === 'unknown') {
       LOG(`%cpropDef=${propDef} is missing control/type property`, 'color: red');
@@ -147,7 +147,7 @@ function PropertyGroup(props) {
       case 'in_password':
       case 'in_select':
       case 'in_timestamp':
-        LOG(...PR(`Rendering ${control} for property ${p}`), { uiObj });
+        LOG(...PR(`Rendering ${control} for property ${p}`), { controlData });
         return (
           <div key={inputKey}>
             {label}

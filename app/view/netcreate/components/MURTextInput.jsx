@@ -20,12 +20,11 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** extract text input specific data from propData and propMeta */
-function u_DecodeUIData(uiData) {
-  if (typeof uiData !== 'object')
-    return { error: `arg1 must be an object, got ${typeof uiData}` };
+function u_ExtractInputProps(controlData) {
+  if (typeof controlData !== 'object')
+    return { error: `arg1 must be an object, got ${typeof controlData}` };
   // extra data from propData and propMeta
-  const { groupName, propName, propField, propMeta, propData } = uiData;
+  const { groupName, propName, propField, propMeta, propData } = controlData;
 
   const { label, tooltip, help } = propMeta;
   const { labelKey, tooltipKey, helpKey, valueKey } = propMeta;
@@ -39,7 +38,7 @@ function u_DecodeUIData(uiData) {
 
   // if labelKey exists, use it. Otherwise meta has to provide a label
   if (labelKey) fLabel = propData[labelKey];
-  if (!fLabel) fLabel = label || 'label not set';
+  if (!fLabel) fLabel = label || '<label not in template>';
 
   // if helpKey exists, use it. Otherwise meta has to provide a help text
   if (helpKey) fHelp = propData[helpKey];
@@ -64,10 +63,13 @@ function u_DecodeUIData(uiData) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
+  // propName, groupName.propName, or groupName.propName.fieldName
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
-  const uiData = RSB.GetUIData(draft.template, propDef);
-  const { name, label, tooltip, help, placeholder, value } = u_DecodeUIData(uiData);
+  // controlData contains what's needed to render this input component
+  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const { name, label, tooltip, help, placeholder, value } =
+    u_ExtractInputProps(controlData);
   const defValue = undefined; // TODO: handle default values
 
   // declare reactive render state
@@ -82,8 +84,7 @@ function TextInput(props) {
   // retention with hooks, and other bullshit.
   React.useEffect(() => {
     if (!draft.pending) {
-      const uiData = RSB.GetUIData(draft.template, propDef);
-      const { value } = u_DecodeUIData(uiData);
+      const { value } = u_ExtractInputProps(controlData);
       setInputValue(value || defValue);
     }
   }, [draft.pending]);

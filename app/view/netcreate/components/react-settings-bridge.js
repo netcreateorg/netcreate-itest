@@ -99,10 +99,10 @@ function EncodePropDef(groupName, propName, propField) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a settings object and propDef, return all UI-relevant
- *  data. The settings object could be TEMPLATE or from React Context value.
- *  Since this is a legacy codebase, we don't have access to ?. operators */
-function GetUIData(template, propDef) {
-  const fn = 'GetUIData:';
+ *  data scoped to that propDef. This data will be specific to the type
+ *  of control */
+function GetDataForProp(template, propDef) {
+  const fn = 'GetDataForProp:';
   if (typeof template !== 'object')
     throw Error(`${fn} arg1 must be a settings object`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
@@ -339,7 +339,7 @@ module.exports = {
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
-  GetUIData, // template, propDef => { groupName, propName, propMeta, propData }
+  GetDataForProp, // template, propDef => { groupName, propName, propMeta, propData }
   GetUISettingsList, // uiMeta => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
   // Locking API
