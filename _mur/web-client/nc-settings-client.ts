@@ -45,11 +45,11 @@ const EM = new EventMachine('settings_client');
 
 /// HELPER METHODS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple decoder for a valid dotProp string. If there is only one
+/** HELPER: simple decoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will assume it's a propName and will
  *  return [ undefined, propName ]. Otherwise it will return [groupID, propID]
  *  or [groupID, propID, fieldID */
-function DecodeDotProp(propDef: string) {
+function DecodePropDef(propDef: string) {
   if (typeof propDef !== 'string')
     throw Error(`Invalid propDef ${propDef}, expected dotted string`);
   if (propDef.length === 0)
@@ -61,15 +61,15 @@ function DecodeDotProp(propDef: string) {
   return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple encoder for a valid dotProp string. If there is only one
+/** HELPER: simple encoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will return just the propName. Otherwise
  * it will return 'groupID.propID' or 'groupID.propID.fieldID' */
-function EncodeDotProp(
+function EncodePropDef(
   groupID: string | undefined,
   propID: string,
   fieldID?: string | undefined
 ): string {
-  const fn = 'EncodeDotProp:';
+  const fn = 'EncodePropDef:';
   // single arg? then assume it's a propID
   const gidOK =
     groupID !== undefined && typeof groupID === 'string' && groupID.length > 0;
@@ -113,7 +113,7 @@ function GetDispatcher() {
           draft.isDirty = false;
           draft.changeSet = new Set();
         }
-        [group, prop, field] = DecodeDotProp(propDef);
+        [group, prop, field] = DecodePropDef(propDef);
         // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
         // groupless properties are at the top level of the template
         if (group === undefined) {
@@ -131,7 +131,8 @@ function GetDispatcher() {
         }
         // three-level properties for composite field updates (group.prop.field)
         else if (field !== undefined) {
-          if (DBG) LOG(...PR('update composite field'), { group, prop, field, value });
+          if (DBG)
+            LOG(...PR('update composite field'), { group, prop, field, value });
           if (draft.pending[group] === undefined) {
             throw Error(`${fn} invalid group referenced in ${propDef}`);
           }
@@ -257,8 +258,8 @@ function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
 export {
   Dispatch, // (state, action) => newState
   HasPendingChanges, // () => boolean
-  DecodeDotProp,
-  EncodeDotProp,
+  DecodePropDef,
+  EncodePropDef,
   //
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void

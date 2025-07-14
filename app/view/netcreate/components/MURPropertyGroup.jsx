@@ -127,7 +127,7 @@ function PropertyGroup(props) {
     if (p === 'control' || p.startsWith('_')) return null;
 
     // Get structured UI data using RSB.GetUIData
-    const propDef = RSB.EncodeDotProp(groupName, p);
+    const propDef = RSB.EncodePropDef(groupName, p);
     const inputKey = `in_${propDef}`;
     const uiObj = RSB.GetUIData(draft.template, propDef);
     const { control, label } = u_DecodeUIData(uiObj);

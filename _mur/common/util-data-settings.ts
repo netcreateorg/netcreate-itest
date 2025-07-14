@@ -67,7 +67,7 @@ type PropToken = {
 /// DECODE/ENCODE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a dotProp is a string with a groupID and a propID separated by a period */
-function DecodeDotProp(dotProp: string): PropToken {
+function DecodePropDef(dotProp: string): PropToken {
   const [groupID, propID, ...extra] = dotProp.split('.');
   if (extra.length > 0) return { error: `invalid dotProp: ${dotProp}` };
   if (!IsCamelCase(groupID)) return { error: `invalid group name: ${groupID}` };
@@ -81,7 +81,7 @@ function DecodePropObject(psObj: any): PropToken {
   if (!CHK.IsObject(psObj)) return { error: `expected object` };
   if (!CHK.HasSingularKey(psObj)) return { error: `bad obj structure` };
   const pKey = Object.keys(psObj)[0];
-  const { groupID, propID, error } = DecodeDotProp(pKey);
+  const { groupID, propID, error } = DecodePropDef(pKey);
   if (error) return { error };
   const pVal = psObj[pKey];
   if (!CHK.HasSingularKey(pVal)) return { error: `expected simple value` };
@@ -118,7 +118,7 @@ function IsMetaSubmitObj(msObj: PropSubmitMeta): boolean {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   //
-  DecodeDotProp, // (dotProp: DotProp) => PropToken
+  DecodePropDef, // (dotProp: DotProp) => PropToken
   DecodePropObject, // (psObj: PropSubmitValue) => PropToken
   //
   IsValueSubmitObj, // (psObj: PropSubmitValue) => boolean

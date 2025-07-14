@@ -78,7 +78,7 @@ function CompositeInput(props) {
   // Render child inputs
   const ChildInputs = settings.map(fieldUI => {
     const { propField, groupName, propName, control } = fieldUI;
-    const childPropDef = RSB.EncodeDotProp(groupName, propName, propField);
+    const childPropDef = RSB.EncodePropDef(groupName, propName, propField);
     const childKey = `field-${propField}`;
 
     switch (control) {

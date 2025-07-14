@@ -88,47 +88,48 @@ function PersistTemplate(templateObj) {
   return DATASTORE.SaveTemplateFile(templateObj);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: splits a dotProp string into groupName and propName */
-function DecodeDotProp(dotProp) {
-  return Settings.DecodeDotProp(dotProp);
+/** API HELPER: splits a propDef string into groupName and propName */
+function DecodePropDef(propDef) {
+  return Settings.DecodePropDef(propDef);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: create a dotProp string from groupName and propName */
-function EncodeDotProp(groupName, propName, propField) {
-  return Settings.EncodeDotProp(groupName, propName, propField);
+/** API HELPER: create a propDef string from groupName and propName */
+function EncodePropDef(groupName, propName, propField) {
+  return Settings.EncodePropDef(groupName, propName, propField);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: Given a settings object and dotProp, return all UI-relevant
+/** API HELPER: Given a settings object and propDef, return all UI-relevant
  *  data. The settings object could be TEMPLATE or from React Context value.
  *  Since this is a legacy codebase, we don't have access to ?. operators */
-function GetUIData(setObj, dotProp) {
+function GetUIData(template, propDef) {
   const fn = 'GetUIData:';
-  if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
-  if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
-  const [groupName, propName, propField] = DecodeDotProp(dotProp); // throws error if not valid
+  if (typeof template !== 'object')
+    throw Error(`${fn} arg1 must be a settings object`);
+  if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
+  const [groupName, propName, propField] = DecodePropDef(propDef); // throws error if not valid
   // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
   if (typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
-  if (typeof setObj._ui !== 'object')
+  if (typeof template._ui !== 'object')
     return { error: `${fn} metaSource _ui is not available` };
 
-  // got this far, we have a valid setObj and setObj._ui
-  let metaSource = setObj._ui; // _ui is the metadata source
+  // got this far, we have a valid template and template._ui
+  let metaSource = template._ui; // _ui is the metadata source
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
-    if (!setObj[propName]) return { value, error: `no value for ${dotProp}` };
+    if (!template[propName]) return { value, error: `no value for ${propDef}` };
     if (metaSource[propName] !== undefined)
       return {
         groupName,
         propName,
         propMeta: u_clone(metaSource[propName]),
-        propData: setObj[propName]
+        propData: template[propName]
       };
     return {
       groupName: undefined,
       propName,
-      error: `no UI data for ${dotProp}`
+      error: `no UI data for ${propDef}`
     };
   }
   /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
@@ -143,8 +144,8 @@ function GetUIData(setObj, dotProp) {
       };
 
     const propData =
-      setObj[groupName] && setObj[groupName][propName]
-        ? setObj[groupName][propName][propField]
+      template[groupName] && template[groupName][propName]
+        ? template[groupName][propName][propField]
         : undefined;
 
     return {
@@ -170,7 +171,7 @@ function GetUIData(setObj, dotProp) {
     groupName,
     propName,
     propMeta: u_clone(metaSource),
-    propData: setObj[groupName][propName]
+    propData: template[groupName][propName]
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -338,7 +339,7 @@ module.exports = {
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
-  GetUIData, // setObj, dotProp => { groupName, propName, propMeta, propData }
+  GetUIData, // template, propDef => { groupName, propName, propMeta, propData }
   GetUISettingsList, // uiMeta => { globalsList, groupSettings }
   HasPendingChanges, // return true if there are pending changes
   // Locking API
@@ -347,8 +348,8 @@ module.exports = {
   LockTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   ReleaseTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   // PropDef and MetaDef helpers
-  DecodeDotProp, // 'group.prop' => { groupName, propName }
-  EncodeDotProp, // { groupName, propName } => 'group.prop'
+  DecodePropDef, // 'group.prop' => { groupName, propName }
+  EncodePropDef, // { groupName, propName } => 'group.prop'
   IsUIObj, // uobj => true if it has a type
   IsUIGroup, // uobj => true if it has properties
   // Styling API
