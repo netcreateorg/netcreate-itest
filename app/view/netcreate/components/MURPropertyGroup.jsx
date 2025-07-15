@@ -8,6 +8,7 @@ const React = require('react');
 const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
 import CompositeInput from './MURCompositeInput';
+import ArrayInput from './MURArrayInput';
 import BooleanInput from './MURBooleanInput';
 const { ConsoleStyler } = require('ursys-min');
 
@@ -161,7 +162,8 @@ function PropertyGroup(props) {
         );
       case 'composite':
         return <CompositeInput propDef={propDef} key={inputKey} />;
-      // return <div key={inputKey}>Composite Input for {p}</div>;
+      case 'array':
+        return <ArrayInput propDef={propDef} key={inputKey} />;
       default:
         LOG(...PR(`Unsupported control type ${_control} for property ${p}`));
         return <p key={inputKey}>Unsupported control: {_control}</p>;
