@@ -135,8 +135,10 @@ function PropertyGroup(props) {
     const controlData = RSB.GetDataForProp(draft.template, propDef);
     const { _control, label } = u_ExtractGroupProps(controlData);
 
-    if (_control === 'unknown') {
-      LOG(`%cpropDef=${propDef} is missing control/type property`, 'color: red');
+    // skip disabled controls
+    if (_control.startsWith('//')) {
+      LOG('.. %cskipping disabled control:', 'color: blue', p);
+      return null;
     }
 
     // Switch on control type from _ui metadata

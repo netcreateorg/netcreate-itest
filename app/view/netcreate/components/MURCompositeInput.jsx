@@ -40,6 +40,12 @@ function u_ExtractCompositeProps(controlData) {
     const { _control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
       fieldMeta;
 
+    // skip disabled controls
+    if (_control && _control.startsWith('//')) {
+      LOG('.. %cskipping disabled composite field:', 'color: blue', propField);
+      return; // skip this iteration
+    }
+
     // NOTE: This normalizing code could be moved into a common RSB helper
     // resolve useful ui data using fallthrough assignment pattern
     let fLabel, fHelp, fTooltip;
