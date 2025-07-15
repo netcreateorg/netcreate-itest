@@ -36,7 +36,7 @@ function u_ExtractGroupProps(controlData) {
   const { groupName, propName } = controlData;
   const { sourceMeta, sourceData } = controlData;
 
-  const { control, label, tooltip, help } = sourceMeta;
+  const { _control, label, tooltip, help } = sourceMeta;
   const { labelKey, tooltipKey, helpKey, valueKey } = sourceMeta;
 
   // resolve useful ui data using fallthrough assignment
@@ -51,10 +51,10 @@ function u_ExtractGroupProps(controlData) {
   if (tooltipKey) fTooltip = sourceData[tooltipKey];
   if (!fTooltip) fTooltip = tooltip || '';
 
-  fControl = control || `<missing control prop>`;
-  if (control === undefined) {
+  fControl = _control || `<missing control prop>`;
+  if (_control === undefined) {
     LOG(
-      `%cWarning: 'control' is undefined for controlData=`,
+      `%cWarning: '_control' is undefined for controlData=`,
       'color: red',
       JSON.stringify(controlData)
     );
@@ -64,7 +64,7 @@ function u_ExtractGroupProps(controlData) {
   return {
     groupName,
     propName,
-    control: fControl,
+    _control: fControl,
     label: fLabel,
     tooltip: fTooltip,
     help: fHelp
@@ -126,21 +126,21 @@ function PropertyGroup(props) {
   /// SUB RENDER ///
 
   const PropertyList = propNames.map(p => {
-    // skip control and internal properties
-    if (p === 'control' || p.startsWith('_')) return null;
+    // skip _control and other internal properties
+    if (p.startsWith('_')) return null;
 
     // Get structured control data using RSB.GetDataForProp
     const propDef = RSB.EncodePropDef(groupName, p);
     const inputKey = `in_${propDef}`;
     const controlData = RSB.GetDataForProp(draft.template, propDef);
-    const { control, label } = u_ExtractGroupProps(controlData);
+    const { _control, label } = u_ExtractGroupProps(controlData);
 
-    if (control === 'unknown') {
+    if (_control === 'unknown') {
       LOG(`%cpropDef=${propDef} is missing control/type property`, 'color: red');
     }
 
     // Switch on control type from _ui metadata
-    switch (control) {
+    switch (_control) {
       case 'in_string':
       case 'in_text':
         return <TextInput propDef={propDef} key={inputKey} />;
@@ -149,21 +149,20 @@ function PropertyGroup(props) {
       case 'in_number':
       case 'in_integer':
       case 'in_password':
-      case 'in_select':
       case 'in_timestamp':
-        LOG(...PR(`Rendering ${control} for property ${p}`), { controlData });
+        LOG(...PR(`Rendering ${_control} for property ${p}`), { controlData });
         return (
           <div key={inputKey}>
             {label}
-            <div style={{ float: 'right' }}>[{control}]</div>
+            <div style={{ float: 'right' }}>[{_control}]</div>
           </div>
         );
       case 'composite':
         return <CompositeInput propDef={propDef} key={inputKey} />;
       // return <div key={inputKey}>Composite Input for {p}</div>;
       default:
-        LOG(...PR(`Unsupported control type ${control} for property ${p}`));
-        return <p key={inputKey}>Unsupported control: {control}</p>;
+        LOG(...PR(`Unsupported control type ${_control} for property ${p}`));
+        return <p key={inputKey}>Unsupported control: {_control}</p>;
     }
   });
 

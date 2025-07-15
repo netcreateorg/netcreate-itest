@@ -34,10 +34,10 @@ function u_ExtractCompositeProps(controlData) {
   // which look like { [settingName]: { control: 'in_string', labelKey: 'displayLabel' } }
   const propFields = [];
   Object.keys(sourceMeta).forEach(propField => {
-    if (propField === 'control') return;
+    if (propField.startsWith('_')) return;
 
     const fieldMeta = sourceMeta[propField];
-    const { control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
+    const { _control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
       fieldMeta;
 
     // NOTE: This normalizing code could be moved into a common RSB helper
@@ -57,7 +57,7 @@ function u_ExtractCompositeProps(controlData) {
       propField,
       groupName,
       propName,
-      control,
+      _control,
       label: fLabel,
       help: fHelp,
       tooltip: fTooltip
@@ -80,11 +80,11 @@ function CompositeInput(props) {
 
   // Render child inputs
   const ChildInputs = propFields.map(fieldUI => {
-    const { propField, groupName, propName, control } = fieldUI;
+    const { propField, groupName, propName, _control } = fieldUI;
     const childPropDef = RSB.EncodePropDef(groupName, propName, propField);
     const childKey = `field-${propField}`;
 
-    switch (control) {
+    switch (_control) {
       case 'in_string':
       case 'in_text':
         return <TextInput propDef={childPropDef} key={childKey} />;
@@ -95,7 +95,7 @@ function CompositeInput(props) {
         return (
           <div key={childKey}>
             <span>{propField}: </span>
-            <span style={{ color: 'gray' }}>[{control}]</span>
+            <span style={{ color: 'gray' }}>[{_control}]</span>
           </div>
         );
     }

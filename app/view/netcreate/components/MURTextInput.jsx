@@ -23,7 +23,7 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 function u_ExtractInputProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
-  //
+
   const { groupName, propName, propField } = controlData;
   const { sourceMeta, sourceData } = controlData;
 

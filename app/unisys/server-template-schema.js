@@ -11,8 +11,8 @@
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// UI metadata control types have specific ui properties. These properties are
 /// used to render the UI form elements as defined by:
-/// { [fieldName]:{ control, ...ui_properties }}
-/// the 'control' property is excluded from the check
+/// { [fieldName]:{ _control, ...ui_properties }}
+/// the '_control' property is excluded from the check
 const CONTROL_SCHEMA = {
   in_string: {
     label: 'string',
@@ -36,7 +36,7 @@ const CONTROL_SCHEMA = {
     options: 'object[]'
   },
   // contains a composite control with nested fields
-  // { control:'composite', [fieldName]:{ control, ...ui_properties }}
+  // { _control:'composite', [fieldName]:{ _control, ...ui_properties }}
   composite: {}
 };
 
@@ -52,6 +52,7 @@ const OBJS_SCHEMA20 = {
     help: 'string',
     feedback: 'string'
   },
+  colorOption: { label: 'string', color: 'string' },
   nodeType: { label: 'string', color: 'string' },
   edgeType: { label: 'string', color: 'string' }
 };

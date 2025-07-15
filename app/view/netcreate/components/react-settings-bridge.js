@@ -166,7 +166,7 @@ function GetDataForProp(template, propDef) {
   // "editable setting" which can have multiple properties:
   //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
   // and each key in the id setting look like this:
-  //   displayLabel = { control, labelKey, helpKey }
+  //   displayLabel = { _control, labelKey, helpKey }
   return {
     groupName,
     propName,
@@ -180,10 +180,10 @@ function IsUIObj(uobj) {
   // either a property or property in a group
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
-  if (typeof uobj.control !== 'string')
-    throw Error('uobj.control is missing or not string');
+  if (typeof uobj._control !== 'string')
+    throw Error('uobj._control is missing or not string');
   if (Object.keys(uobj).length === 0) return false; // empty object
-  return uobj.control !== 'composite'; // not a composite control
+  return uobj._control !== 'composite'; // not a composite control
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Shallow check that this is a UI group */
@@ -192,7 +192,7 @@ function IsUIGroup(uobj) {
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
-  return uobj.control === 'composite';
+  return uobj._control === 'composite';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a uiMeta object, return a list of global settings and
