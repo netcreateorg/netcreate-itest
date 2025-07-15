@@ -172,11 +172,15 @@ function PropertyGroup(props) {
 
   return (
     <div key={key} style={{ margin: '1rem' }}>
-      <details open>
+      <details>
         <summary>
           <GroupHeader propLabel={grpTitle} />
+          {grpDesc && (
+            <p style={{ color: 'gray', fontStyle: 'italic', marginTop: '0.25rem' }}>
+              {grpDesc}
+            </p>
+          )}
         </summary>
-        {grpDesc && <p style={{ color: 'gray', fontStyle: 'italic' }}>{grpDesc}</p>}
         {PropertyList}
       </details>
     </div>

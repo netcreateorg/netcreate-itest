@@ -20,7 +20,6 @@ const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
 // components
 const PropertyGroup = require('./MURPropertyGroup');
-const ToDoList = require('./MURSettingsToDo');
 const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
@@ -35,7 +34,6 @@ function MURSettingsEditor() {
   /// SETUP ///
 
   const initialState = { template: RSB.GetTemplate() };
-  const [showToDo, setShowToDo] = React.useState(false);
   const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
   const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
   const value = { hasLock, draft, dispatch };
@@ -77,26 +75,31 @@ function MURSettingsEditor() {
 
   // save, revert, toggle
   const ButtonBar = hasLock ? (
-    <div>
-      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
-        Save Changes
-      </button>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}
+    >
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
         Revert Changes
       </button>
-      &nbsp;
-      <button style={opBtnStyle} onClick={() => setShowToDo(!showToDo)}>
-        {showToDo ? 'ShowWIP' : 'ShowToDo'}
+      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
+        Save Changes
       </button>
     </div>
   ) : (
-    <p>Template is locked by another user.</p>
+    <p style={{ color: 'red', fontWeight: 'bold' }}>
+      Template is locked by another user.
+    </p>
   );
 
   // note: template global settings not grouped, so prepend as special case group=""
   const GroupList = [
     <PropertyGroup groupName="nodeDefs" key="nodeDefs" />,
-    <PropertyGroup groupName="edgeDefs" key="edgeDefs" />
+    <PropertyGroup groupName="edgeDefs" key="edgeDefs" />,
+    <div key="commentTypes">[ CommentTypes Will Go Here ]</div>
   ];
   GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
 
@@ -105,8 +108,7 @@ function MURSettingsEditor() {
   return (
     <SettingsContext.Provider value={value}>
       {ButtonBar}
-      {!showToDo && GroupList}
-      {showToDo && ToDoList}
+      {GroupList}
     </SettingsContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Composite Input Component
+  Handle a group of ui items as a single composite setting
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -114,7 +115,7 @@ function CompositeInput(props) {
       }}
     >
       <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: '#666' }}>
-        {controlData.propName} (composite)
+        {controlData.propName}
       </div>
       {ChildInputs}
     </div>
