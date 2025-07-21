@@ -173,6 +173,9 @@ UNET.RegisterRemoteHandlers = function (pkt) {
 /** The socket has connected, so let's save this to our connection list */
 function m_NewSocketConnected(socket) {
   if (DBG) console.log(PR, 'socket connected');
+  if (mu_sockets.size === 0) {
+    console.log(`\n--- appserver online - accepting client connections ---\n`);
+  }
   m_SocketAdd(socket);
   m_SocketClientAck(socket);
   // subscribe socket to handlers

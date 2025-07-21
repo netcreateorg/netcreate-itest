@@ -107,14 +107,13 @@ module.exports = {
     styles: {
       /// also include these css files in the stylesheets joinTo
     },
-    globals: {
-    }
+    globals: {}
   },
   hooks: {
     onCompile(generatedFiles, changedAssets) {
       if (FIRST_RUN) {
         // u_hack_mapfiles(); // try to override map files (doesn't work really)
-        console.log(`\n--- compilation complete - appserver is online ---\n`);
+        console.log(`\n--- starting compilation - please stand by ---\n`);
         // setup CHOKIDAR to watch for changes in the _ur_addons subdirectories except _dist
         // since brunch can't be configured to watch them
         const DIR_A = PATH.join(__dirname, '_mur');
