@@ -43,6 +43,7 @@ var m_socket_msgs_list = new Map(); // message map by uaddr
 // heartbeat
 var m_heartbeat_interval;
 var m_pong_timer = [];
+let FIRST_CONNECTION = false; // first connection flag
 
 /// API MEHTHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,6 +71,7 @@ UNET.StartNetwork = () => {
     if (STAT) console.log(PR, `unisys network is active on port ${mu_options.port}`);
     mu_wss.on('connection', m_NewSocketConnected);
   });
+  FIRST_CONNECTION = false; // reset first connection flag
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HandleMessage() registers a server-implemented handler. The handlerFunc
@@ -173,8 +175,9 @@ UNET.RegisterRemoteHandlers = function (pkt) {
 /** The socket has connected, so let's save this to our connection list */
 function m_NewSocketConnected(socket) {
   if (DBG) console.log(PR, 'socket connected');
-  if (mu_sockets.size === 0) {
+  if (!FIRST_CONNECTION) {
     console.log(`\n--- appserver online - accepting client connections ---\n`);
+    FIRST_CONNECTION = true; // set first connection flag
   }
   m_SocketAdd(socket);
   m_SocketClientAck(socket);
