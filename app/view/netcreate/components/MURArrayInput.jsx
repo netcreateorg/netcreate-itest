@@ -42,8 +42,8 @@ function m_ExtractArrayProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
 
-  const { groupName, propName, propField, sourceMeta, sourceData, itemDef } =
-    controlData;
+  const { groupName, propName, propField } = controlData;
+  const { sourceMeta, sourceData, itemDef } = controlData;
 
   if (!Array.isArray(sourceData)) return { error: 'sourceData must be an array' };
 
@@ -54,9 +54,9 @@ function m_ExtractArrayProps(controlData) {
     groupName,
     propName,
     propField,
-    items: sourceData,
-    schema: itemDef,
-    metadata: sourceMeta
+    sourceData,
+    itemDef,
+    sourceMeta
   };
 }
 
@@ -65,7 +65,7 @@ function m_ExtractArrayProps(controlData) {
 /** Renders an array of UI Objects */
 function ArrayInput(props) {
   const { propDef } = props;
-  const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
+  const { draft, hasLock } = React.useContext(RSB.SettingsContext);
 
   const controlData = RSB.GetDataForProp(draft.template, propDef);
   const arrayProps = m_ExtractArrayProps(controlData);
@@ -77,7 +77,7 @@ function ArrayInput(props) {
   }
 
   const { groupName, propName, propField } = arrayProps;
-  const { items, schema, metadata } = arrayProps;
+  const { sourceMeta, sourceData, itemDef } = arrayProps;
   const isDisabled = !hasLock;
 
   console.log(
