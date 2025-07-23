@@ -48,16 +48,17 @@ function u_typeof(obj) {
   return typeof obj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given a UI object, return the user-defined schema if it exists inside
+/** given a UI object, return the user-defined control schema if one exists
+ *  in the _ui_defs dictionary.
  *  the _ui_defs dictionary, or undefined if not found. */
-function u_schema(uiObj, schemaDict) {
+function u_itemDef(uiObj, schemaDict) {
   // assume uiObj is a valid UI object because the template would have
   // passed validation before application start
   const control = uiObj._control.trim();
   if (!control.endsWith('[]')) return;
   const schemaKey = control.slice(0, -2);
-  const sourceSchema = schemaDict[schemaKey];
-  return sourceSchema;
+  const itemDef = schemaDict[schemaKey];
+  return itemDef;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the object is a simple value type */
@@ -110,9 +111,9 @@ function EncodePropDef(groupName, propName, propField) {
   return Settings.EncodePropDef(groupName, propName, propField);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: Given a settings object and propDef, return all UI-relevant
- *  data scoped to that propDef. This data will be specific to the type
- *  of control */
+/** API CRITICAL HELPER: Given a settings object and propDef, return all
+ *  UI-relevant data scoped to that propDef. This data will be specific to the
+ *  type of control */
 function GetDataForProp(template, propDef) {
   const fn = 'GetDataForProp:';
 
@@ -141,7 +142,7 @@ function GetDataForProp(template, propDef) {
         groupName,
         propName,
         sourceMeta,
-        sourceSchema: u_schema(sourceMeta, schema_dict),
+        itemDef: u_itemDef(sourceMeta, schema_dict),
         sourceData: template[propName]
       };
     }
@@ -173,7 +174,7 @@ function GetDataForProp(template, propDef) {
       propName,
       propField,
       sourceMeta,
-      sourceSchema: u_schema(sourceMeta, schema_dict),
+      itemDef: u_itemDef(sourceMeta, schema_dict),
       sourceData
     };
   }
@@ -193,7 +194,7 @@ function GetDataForProp(template, propDef) {
     groupName,
     propName,
     sourceMeta,
-    sourceSchema: u_schema(sourceMeta, schema_dict),
+    itemDef: u_itemDef(sourceMeta, schema_dict),
     sourceData: template[groupName][propName]
   };
 }
