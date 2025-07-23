@@ -42,6 +42,14 @@ function u_ExtractCompositeProps(controlData) {
     const { _control, labelKey, helpKey, tooltipKey, label, help, tooltip } =
       fieldMeta;
 
+    if (_control === undefined) {
+      LOG(
+        `%cWarning: '_control' is undefined for ${groupName}.${propName}.${propField}`,
+        'color: orange'
+      );
+      return; // skip this iteration
+    }
+
     // skip disabled controls
     if (_control && _control.startsWith('//')) {
       LOG('.. %cskipping disabled composite field:', 'color: blue', propField);
@@ -92,23 +100,30 @@ function CompositeInput(props) {
     const childPropDef = RSB.EncodePropDef(groupName, propName, propField);
     const childKey = `field-${propField}`;
 
-    switch (_control) {
-      case 'in_string':
-      case 'in_text':
-        return <TextInput propDef={childPropDef} key={childKey} />;
-      case 'in_boolean':
-        return <BooleanInput propDef={childPropDef} key={childKey} />;
-      case 'array':
-        return <ArrayInput propDef={childPropDef} key={childKey} />;
-      case 'in_number':
-      default:
-        return (
-          <div key={childKey}>
-            <span>{propField}: </span>
-            <span style={{ color: 'gray' }}>[{_control}]</span>
-          </div>
-        );
+    // handle recognized simple control types
+    if (_control === 'in_string' || _control === 'in_text') {
+      return <TextInput propDef={childPropDef} key={childKey} />;
+    } else if (_control === 'in_boolean') {
+      return <BooleanInput propDef={childPropDef} key={childKey} />;
+    } else if (_control === 'in_number') {
+      return (
+        <div key={childKey}>
+          <span>{propField}: </span>
+          <span style={{ color: 'gray' }}>[{_control}]</span>
+        </div>
+      );
     }
+    // handle special control types
+    if (_control.endsWith('[]')) {
+      return <ArrayInput propDef={childPropDef} key={childKey} />;
+    }
+    // handle unsupported control types
+    return (
+      <div key={childKey}>
+        <span>{propField}: </span>
+        <span style={{ color: 'gray' }}>[{_control}]</span>
+      </div>
+    );
   });
 
   return (

@@ -14,7 +14,7 @@ const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
+const DBG = false;
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('PGroup', 'TagBlue');
 
@@ -136,38 +136,24 @@ function PropertyGroup(props) {
     const controlData = RSB.GetDataForProp(draft.template, propDef);
     const { _control, label } = u_ExtractGroupProps(controlData);
 
-    // skip disabled controls
-    if (_control.startsWith('//')) {
-      LOG('.. %cskipping disabled control:', 'color: blue', p);
+    // handle recognized simple control types
+    if (_control === 'in_string' || _control === 'in_text') {
+      return <TextInput propDef={propDef} key={inputKey} />;
+    } else if (_control === 'in_boolean') {
+      return <BooleanInput propDef={propDef} key={inputKey} />;
+    } else if (_control === 'composite') {
+      return <CompositeInput propDef={propDef} key={inputKey} />;
+    }
+    // handle special control types
+    if (_control.endsWith('[]')) {
+      return <ArrayInput propDef={propDef} key={inputKey} />;
+    } else if (_control.startsWith('//')) {
+      if (DBG) LOG('.. %cskipping disabled control:', 'color: blue', p);
       return null;
     }
-
-    // Switch on control type from _ui metadata
-    switch (_control) {
-      case 'in_string':
-      case 'in_text':
-        return <TextInput propDef={propDef} key={inputKey} />;
-      case 'in_boolean':
-        return <BooleanInput propDef={propDef} key={inputKey} />;
-      case 'in_number':
-      case 'in_integer':
-      case 'in_password':
-      case 'in_timestamp':
-        LOG(...PR(`Rendering ${_control} for property ${p}`), { controlData });
-        return (
-          <div key={inputKey}>
-            {label}
-            <div style={{ float: 'right' }}>[{_control}]</div>
-          </div>
-        );
-      case 'composite':
-        return <CompositeInput propDef={propDef} key={inputKey} />;
-      case 'array':
-        return <ArrayInput propDef={propDef} key={inputKey} />;
-      default:
-        LOG(...PR(`Unsupported control type ${_control} for property ${p}`));
-        return <p key={inputKey}>Unsupported control: {_control}</p>;
-    }
+    // handle unsupported control types
+    LOG(...PR(`Unsupported control type ${_control} for property ${p}`));
+    return <p key={inputKey}>Unsupported control: {_control}</p>;
   });
 
   /// RENDER ///
