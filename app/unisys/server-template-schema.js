@@ -59,18 +59,17 @@ const OBJS_SCHEMA20 = {
 
 /// BASIC TYPE SCHEMAS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// Basic types used in the template schema for 'type' fields in template
+/// Basic types used in the template schema for 'type' fields in template.
+/// Note these are not the same as the 'type' defined in the application
+/// components (e.g. NCNode, NCEdge, etc.) which is the NCUI system.
+/// This is the UI for editing that UI system, not the NCUI System itself.
 const TYPES_SCHEMA20 = [
   // basic types
   'string',
   'number',
   'boolean',
-  // extended types
-  'select',
-  'timestamp',
-  'weight',
-  'infoOrigin',
-  'node'
+  'composite',
+  'array'
 ];
 /// extended types used in the template schema
 TYPES_SCHEMA20.push(...Object.keys(OBJS_SCHEMA20));

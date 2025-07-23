@@ -27,6 +27,10 @@ searchColor = "#008800"
 sourceColor = "#FFa500"
 _schemaVersion = "2.1"
 
+[_ui_defs]
+NodeType = { label = "string", color = "string" }
+EdgeType = { label = "string", color = "string" }
+
 [_ui._groupMeta]
 label = "Global Settings"
 description = "Project-wide settings"
@@ -88,7 +92,7 @@ exportLabel = { _control = "in_string", label = "Export Label", help = "Label us
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-options = { _control = "array", label = "Options", help = "Available options for selection" }
+options = { _control = "NodeType[]", label = "Node Types", help = "Define custom Node Types" }
 
 [_ui.nodeDefs.notes]
 _control = "composite"
@@ -187,14 +191,7 @@ displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" 
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
-
-  [[_ui.edgeDefs.type.options]]
-  color = "#696969"
-  label = "edge option a"
-
-  [[_ui.edgeDefs.type.options]]
-  color = "#000000"
-  label = "edge option 2"
+options = { _control = "EdgeType[]", label = "Edge Types", help = "Define custom Edge Types" }
 
 [_ui.edgeDefs.notes]
 _control = "composite"

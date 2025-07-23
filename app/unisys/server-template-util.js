@@ -372,12 +372,23 @@ function Validate(template) {
   m_FindMissingKeys(template, TEMPLATE_SCHEMA);
 
   // NEXT: Validate _ui metadata structure
-  // if (template._ui) {
-  //   m_ValidateUIProperties(template._ui, '');
-  // } else {
-  //   MISSING.push('_ui : missing UI metadata');
-  //   console.log(`${CRT}* missing _ui metadata in template${NRM}`);
-  // }
+  if (template._ui) {
+    //   would call m_ValidateUIProperties(template._ui, '');
+  } else {
+    MISSING.push('_ui : missing UI metadata');
+    console.log(`${CRT}* missing _ui metadata in template${NRM}`);
+  }
+
+  // NEXT: Validate _ui_defs, which declares the schema-related
+  // info for user-defined node/edge attributes and node/edge types
+  // as well as commentTypes (and what have you)
+  if (template._ui_defs) {
+    // would validate _ui_defs structure
+  } else {
+    MISSING.push('_ui_defs : missing UI definitions');
+    console.log(`${CRT}* missing _ui_defs metadata in template${NRM}`);
+  }
+
   const templateOK =
     INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
   return { VALID, INVALID, EXTRA, MISSING, WARNINGS, templateOK };

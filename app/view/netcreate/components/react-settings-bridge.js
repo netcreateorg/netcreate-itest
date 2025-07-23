@@ -48,6 +48,18 @@ function u_typeof(obj) {
   return typeof obj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a UI object, return the user-defined schema if it exists inside
+ *  the _ui_defs dictionary, or undefined if not found. */
+function u_schema(uiObj, schemaDict) {
+  // assume uiObj is a valid UI object because the template would have
+  // passed validation before application start
+  const control = uiObj._control.trim();
+  if (!control.endsWith('[]')) return;
+  const schemaKey = control.slice(0, -2);
+  const sourceSchema = schemaDict[schemaKey];
+  return sourceSchema;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the object is a simple value type */
 const value_types = ['string', 'number', 'boolean'];
 function is_valueType(obj) {
@@ -103,6 +115,8 @@ function EncodePropDef(groupName, propName, propField) {
  *  of control */
 function GetDataForProp(template, propDef) {
   const fn = 'GetDataForProp:';
+
+  /// FIRST: BASIC DEFENSIVE CHECKS ///
   if (typeof template !== 'object')
     throw Error(`${fn} arg1 must be a settings object`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
@@ -115,17 +129,23 @@ function GetDataForProp(template, propDef) {
 
   // got this far, we have a valid template and template._ui
   let t_ui = template._ui; // _ui is the metadata source
+  let schema_dict = template._ui_defs; // _ui_defs is the schema dictionary
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
-    if (!template[propName]) return { value, error: `no value for ${propDef}` };
-    if (t_ui[propName] !== undefined)
+    if (!template[propName]) return { error: `no value for ${propDef}` };
+    // has metadata
+    if (t_ui[propName] !== undefined) {
+      const sourceMeta = u_clone(t_ui[propName]);
       return {
         groupName,
         propName,
-        sourceMeta: u_clone(t_ui[propName]),
+        sourceMeta,
+        sourceSchema: u_schema(sourceMeta, schema_dict),
         sourceData: template[propName]
       };
+    }
+    // no metadata for this prop, return error
     return {
       groupName: undefined,
       propName,
@@ -147,12 +167,13 @@ function GetDataForProp(template, propDef) {
       template[groupName] && template[groupName][propName]
         ? template[groupName][propName][propField]
         : undefined;
-
+    const sourceMeta = u_clone(t_ui[groupName][propName][propField]);
     return {
       groupName,
       propName,
       propField,
-      sourceMeta: u_clone(t_ui[groupName][propName][propField]),
+      sourceMeta,
+      sourceSchema: u_schema(sourceMeta, schema_dict),
       sourceData
     };
   }
@@ -167,10 +188,12 @@ function GetDataForProp(template, propDef) {
   //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
   // and each key in the id setting look like this:
   //   displayLabel = { _control, labelKey, helpKey }
+  const sourceMeta = u_clone(t_ui);
   return {
     groupName,
     propName,
-    sourceMeta: u_clone(t_ui),
+    sourceMeta,
+    sourceSchema: u_schema(sourceMeta, schema_dict),
     sourceData: template[groupName][propName]
   };
 }
