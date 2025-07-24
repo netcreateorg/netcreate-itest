@@ -15,6 +15,7 @@
 import { produce, current, enableMapSet } from 'immer';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { EventMachine } from '../common/class-event-machine.ts';
+import { IsInteger } from '../common/util-data-check.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,6 +35,12 @@ type DraftObj = {
   isDirty?: boolean; // true if there are pending changes
   changeSet?: Set<string>; // set of changed propDefs
 };
+type DecodedArrayProp = {
+  type?: 'array' | 'arrayIndex' | '';
+  name?: string; // property name without brackets
+  index?: number; // index if type is 'arrayIndex'
+  error?: string; // error message if malformed
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,13 +50,32 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EM = new EventMachine('settings_client');
 
-/// HELPER METHODS //////////////////////////////////////////////////////////
+/// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple decoder for a valid propDef string. If there is only one
+/** HELPER: looks for bracket expression either [] or [n] at the end of the
+ *  string, return typeof 'array' or 'arrayIndex' */
+function u_DecodeArrayProp(propSeg: string): DecodedArrayProp {
+  const fn = 'u_decodeArrayProp:';
+  // quit if this doesn't look like an array
+  if (propSeg[propSeg.length - 1] !== ']') return { type: '', name: propSeg };
+  const match = propSeg.match(/^(.*)\[(\d*)\]$/);
+  if (match) {
+    if (match[2])
+      return { type: 'arrayIndex', name: match[1], index: parseInt(match[2]) };
+    return { type: 'array', name: match[1] };
+  }
+  // if it doesn't match, then it's a malformed array prop
+  return { error: `${fn} Malformed array prop ${propSeg}` };
+}
+
+/// UTILITY METHODS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: simple decoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will assume it's a propName and will
  *  return [ undefined, propName ]. Otherwise it will return [groupID, propID]
  *  or [groupID, propID, fieldID */
 function DecodePropDef(propDef: string) {
+  // guard checks
   if (typeof propDef !== 'string')
     throw Error(`Invalid propDef ${propDef}, expected dotted string`);
   if (propDef.length === 0)
@@ -57,35 +83,59 @@ function DecodePropDef(propDef: string) {
   const [groupID, propID, fieldID, ...extra] = propDef.split('.');
   if (extra.length > 0)
     throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  if (propID === undefined) return [undefined, groupID, undefined];
+  // check that none of the parts are purely numeric
+  if (IsInteger(groupID) || IsInteger(propID) || IsInteger(fieldID)) {
+    throw Error(`Invalid propDef ${propDef}, numeric parts not allowed`);
+  }
+  // if there is only one part, then it's a propID
+  if (propID === undefined) {
+    const { type, index } = u_DecodeArrayProp(groupID);
+    if (type === 'arrayIndex') return [undefined, groupID, undefined, index];
+    return [undefined, groupID, undefined];
+  }
+  // if there are two or more parts, then check the last defined part for
+  // array-ness
+  const lastProp = fieldID || propID || groupID;
+  const { type, index } = u_DecodeArrayProp(lastProp);
+  if (type === 'arrayIndex') return [groupID, propID, fieldID, index];
   return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple encoder for a valid propDef string. If there is only one
+/** UTILITY: simple encoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will return just the propName. Otherwise
  * it will return 'groupID.propID' or 'groupID.propID.fieldID' */
 function EncodePropDef(
   groupID: string | undefined,
   propID: string,
-  fieldID?: string | undefined
+  fieldID?: string | undefined,
+  index?: number | undefined
 ): string {
   const fn = 'EncodePropDef:';
-  // single arg? then assume it's a propID
+
+  // guard checks
   const gidOK =
     groupID !== undefined && typeof groupID === 'string' && groupID.length > 0;
   const pidOK =
     propID !== undefined && typeof propID === 'string' && propID.length > 0;
   const fldOK =
     fieldID !== undefined && typeof fieldID === 'string' && fieldID.length > 0;
-  // if (groupID, propID) then return 'groupID.propID
-  if (propID === undefined && gidOK) return groupID;
-  // if (undefined, propID) then return propID
-  if (pidOK && !gidOK) return propID;
+  const idxOK = index !== undefined && IsInteger(index);
+
+  // if just groupID, this is actually a propID without a group
+  if (gidOK && !pidOK) return idxOK ? `${groupID}[${index}]` : groupID;
+  // if (undefined, propID) then return propID (callee may unexpectedly use this)
+  if (!gidOK && pidOK) return idxOK ? `${propID}[${index}]` : propID;
+  // missing groupID and propID is an error!
   if (!gidOK && !pidOK)
     throw Error(`${fn} bad groupID ${groupID} or propID ${propID}`);
-  // got this far, so we have a groupID and propID
-  if (fldOK) return `${groupID}.${propID}.${fieldID}`;
-  return `${groupID}.${propID}`;
+  // got this far, so we have a valid groupID and propID so check fieldID
+  if (fldOK) {
+    return idxOK
+      ? `${groupID}.${propID}.${fieldID}[${index}]`
+      : `${groupID}.${propID}.${fieldID}`;
+  }
+  // otherwise it's a boring groupID.propID
+  return idxOK ? `${groupID}.${propID}[${index}]` : `${groupID}.${propID}`;
 }
 
 /// DISPATCHER API ////////////////////////////////////////////////////////////

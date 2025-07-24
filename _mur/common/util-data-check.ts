@@ -64,6 +64,21 @@ function HasSingularKey(obj: any): boolean {
 
 /// TYPE CHECKERS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Check if a value is numeric whether is a number or a numeric string */
+function IsNumeric(value: any): boolean {
+  return (
+    (typeof value === 'number' && !isNaN(value) && isFinite(value)) ||
+    (typeof value === 'string' && !isNaN(parseFloat(value)))
+  );
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Check if a value is an integer whether is a number or a numeric string */
+function IsInteger(value: any): boolean {
+  return (
+    (typeof value === 'number' && Number.isInteger(value)) ||
+    (typeof value === 'string' && !isNaN(parseInt(value)))
+  );
+}
 
 /// STRING CHECKERS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,6 +89,8 @@ export {
   ExTypeof,
   ExIsValue,
   //
+  IsNumeric,
+  IsInteger,
   IsValue,
   IsObject,
   IsArray,
