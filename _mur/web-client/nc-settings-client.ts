@@ -153,111 +153,118 @@ function GetDispatcher() {
   enableMapSet(); // enable Map and Set support in immer
   m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
     const { op, propDef, value, saveFunction } = action;
-    let group, prop, field;
-    switch (op) {
-      // update is called by individual property editors like TextInput
-      case 'update':
-        if (!draft.pending) {
-          if (DBG) LOG(...PR('create pending copy'));
-          draft.pending = JSON.parse(JSON.stringify(draft.template));
-          draft.isDirty = false;
-          draft.changeSet = new Set();
+    let group, prop, field, index;
+
+    /// UPDATE OP ///
+
+    if (op === 'update') {
+      if (!draft.pending) {
+        if (DBG) LOG(...PR('create pending copy'));
+        draft.pending = JSON.parse(JSON.stringify(draft.template));
+        draft.isDirty = false;
+        draft.changeSet = new Set();
+      }
+      [group, prop, field, index] = DecodePropDef(propDef);
+      // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
+      // groupless properties are at the top level of the template
+      if (group === undefined) {
+        if (DBG) LOG(...PR('update no group'), { prop, value });
+        if (draft.pending === draft.template)
+          throw Error(`${fn} pending/template are the same`);
+        const orig = current(draft).template[prop];
+        const curr = current(draft).pending[prop];
+        if (curr !== value) {
+          draft.pending[prop] = value;
+          draft.changeSet.add(prop);
+          draft.isDirty = value !== orig;
+        } else if (DBG) LOG(...PR('- no change for', prop));
+        if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
+      }
+      // three-level properties for composite field updates (group.prop.field)
+      else if (field !== undefined) {
+        if (DBG) LOG(...PR('update composite field'), { group, prop, field, value });
+        if (draft.pending[group] === undefined) {
+          throw Error(`${fn} invalid group referenced in ${propDef}`);
         }
-        [group, prop, field] = DecodePropDef(propDef);
-        // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
-        // groupless properties are at the top level of the template
-        if (group === undefined) {
-          if (DBG) LOG(...PR('update no group'), { prop, value });
-          if (draft.pending === draft.template)
-            throw Error(`${fn} pending/template are the same`);
-          const orig = current(draft).template[prop];
-          const curr = current(draft).pending[prop];
-          if (curr !== value) {
-            draft.pending[prop] = value;
-            draft.changeSet.add(prop);
-            draft.isDirty = value !== orig;
-          } else if (DBG) LOG(...PR('- no change for', prop));
-          if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
+        if (draft.pending[group][prop] === undefined) {
+          throw Error(`${fn} invalid prop referenced in ${propDef}`);
         }
-        // three-level properties for composite field updates (group.prop.field)
-        else if (field !== undefined) {
-          if (DBG)
-            LOG(...PR('update composite field'), { group, prop, field, value });
-          if (draft.pending[group] === undefined) {
-            throw Error(`${fn} invalid group referenced in ${propDef}`);
-          }
-          if (draft.pending[group][prop] === undefined) {
-            throw Error(`${fn} invalid prop referenced in ${propDef}`);
-          }
-          const orig = current(draft).template[group][prop][field];
-          const curr = current(draft).pending[group][prop][field];
-          if (curr !== value) {
-            draft.pending[group][prop][field] = value;
-            draft.changeSet.add(propDef);
-            draft.isDirty = value !== orig;
-          } else if (DBG) LOG(...PR('- no change for', propDef));
+        const orig = current(draft).template[group][prop][field];
+        const curr = current(draft).pending[group][prop][field];
+        if (curr !== value) {
+          draft.pending[group][prop][field] = value;
+          draft.changeSet.add(propDef);
+          draft.isDirty = value !== orig;
+        } else if (DBG) LOG(...PR('- no change for', propDef));
+      }
+      // two-level grouped properties are nested in the template
+      else {
+        if (DBG) LOG(...PR('update with group'), { group, prop, value });
+        if (draft.pending[group] === undefined) {
+          throw Error(`${fn} invalid group referenced in ${propDef}`);
         }
-        // two-level grouped properties are nested in the template
-        else {
-          if (DBG) LOG(...PR('update with group'), { group, prop, value });
-          if (draft.pending[group] === undefined) {
-            throw Error(`${fn} invalid group referenced in ${propDef}`);
-          }
-          const orig = current(draft).template[group][prop];
-          const curr = current(draft).pending[group][prop];
-          if (curr !== value) {
-            draft.pending[group][prop] = value;
-            draft.changeSet.add(propDef);
-            draft.isDirty = value !== orig;
-          } else if (DBG) LOG(...PR('- no change for', propDef));
-        }
-        break;
-      // revert is called by the MURSettingsEditor Revert Changes button
-      case 'revert':
-        // on revert, clear pending and isDirty, no write done
-        if (draft.pending) {
-          if (DBG) LOG(...PR('revert changes', current(draft).changeSet));
-          draft.pending = null;
-          draft.isDirty = false;
-          draft.changeSet.clear();
-        } else {
-          if (DBG) LOG(...PR('revert: no pending changes'));
-          if (DBG) LOG(...PR('- template', current(draft).template));
-        }
-        break;
-      // submit is called by the MURSettingsEditor Save Changes button
-      case 'submit':
-        if (typeof saveFunction !== 'function') {
-          throw Error(`${fn} no saveFunction provided for submit`);
-        }
-        // on submit, copy pending to template
-        // immer handles object immutability
-        if (draft.pending && draft.isDirty) {
-          if (DBG) LOG(...PR('submit changes', current(draft).changeSet));
-          draft.template = JSON.parse(JSON.stringify(draft.pending));
-          draft.pending = null;
-          draft.isDirty = false;
-          draft.changeSet.clear();
-          // invoke save function passed in the action
-          saveFunction(current(draft).template)
-            .then((result: OpResult) => {
-              if (result.OK) {
-                if (DBG) LOG(...PR('submit: success', result));
-              } else if (DBG) LOG(...PR('submit: error', result));
-            })
-            .catch(err => {
-              if (DBG) LOG(...PR('submit: error', err));
-            });
-        } else {
-          if (DBG) LOG(...PR('submit: no pending changes'));
-          if (DBG) LOG(...PR('- template', current(draft).template));
-        }
-        break;
-      default:
-        throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
+        const orig = current(draft).template[group][prop];
+        const curr = current(draft).pending[group][prop];
+        if (curr !== value) {
+          draft.pending[group][prop] = value;
+          draft.changeSet.add(propDef);
+          draft.isDirty = value !== orig;
+        } else if (DBG) LOG(...PR('- no change for', propDef));
+      }
+      return draft;
     }
+
+    /// REVERT OP ///
+
+    if (op === 'revert') {
+      // on revert, clear pending and isDirty, no write done
+      if (draft.pending) {
+        if (DBG) LOG(...PR('revert changes', current(draft).changeSet));
+        draft.pending = null;
+        draft.isDirty = false;
+        draft.changeSet.clear();
+      } else {
+        if (DBG) LOG(...PR('revert: no pending changes'));
+        if (DBG) LOG(...PR('- template', current(draft).template));
+      }
+      return draft;
+    }
+
+    /// SUBMIT OP ///
+
+    if (op === 'submit') {
+      if (typeof saveFunction !== 'function') {
+        throw Error(`${fn} no saveFunction provided for submit`);
+      }
+      // on submit, copy pending to template
+      // immer handles object immutability
+      if (draft.pending && draft.isDirty) {
+        if (DBG) LOG(...PR('submit changes', current(draft).changeSet));
+        draft.template = JSON.parse(JSON.stringify(draft.pending));
+        draft.pending = null;
+        draft.isDirty = false;
+        draft.changeSet.clear();
+        // invoke save function passed in the action
+        saveFunction(current(draft).template)
+          .then((result: OpResult) => {
+            if (result.OK) {
+              if (DBG) LOG(...PR('submit: success', result));
+            } else if (DBG) LOG(...PR('submit: error', result));
+          })
+          .catch(err => {
+            if (DBG) LOG(...PR('submit: error', err));
+          });
+      } else {
+        if (DBG) LOG(...PR('submit: no pending changes'));
+        if (DBG) LOG(...PR('- template', current(draft).template));
+      }
+      return draft;
+    }
+
+    /// UNKNOWN OP ///
+
+    throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
     // return the modified draft object
-    return draft;
   });
 }
 
