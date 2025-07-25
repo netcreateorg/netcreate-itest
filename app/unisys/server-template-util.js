@@ -49,11 +49,11 @@ function u_typeof(obj) {
   return typeof obj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return true if the object is a simple value type */
+/** return true if the object is a simple value v_type */
 const value_types = ['string', 'number', 'boolean'];
 function is_valueType(obj) {
-  const type = u_typeof(obj);
-  return value_types.includes(type);
+  const v_type = u_typeof(obj);
+  return value_types.includes(v_type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** remove trailing dot from path if exists */
@@ -63,21 +63,23 @@ function u_noDot(path) {
   return path;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return checkObj type as [u_typeof] or ['array','<itemType>'] */
+/** return checkObj v_type as [u_typeof] or ['array','<itemType>'] */
 function get_checkType(checkObj) {
   if (typeof checkObj === 'string') {
-    // checkObj is an array type, so return item type
+    // checkObj is an array v_type, so return item v_type
     if (checkObj.endsWith('[]')) {
       const itemType = checkObj.slice(0, -2); // remove '[]'
       return ['array', itemType];
     }
   }
-  // if checkObj is anything else return the found type
+  // if checkObj is anything else return the found v_type
   return [u_typeof(checkObj)];
 }
+
+/// TEMPLATE HELPERS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Helper to recursively walk template and collect found keys. As template is
- *  a Javascript object, the values stored as 'array' or typeof value type.
+ *  a Javascript object, the values stored as 'array' or typeof value v_type.
  *  The keyMap property is the working context for this recursive function,
  *  which has the desirable side effect of removing duplicate keys as we
  *  would find in variable options[] and prompts[] */
@@ -113,7 +115,7 @@ function r_GatherTemplateKeys(obj, basePath = '') {
  *  r_GatherTemplateKeys method, generating a usefule data structure for
  *  comparison */
 function r_GatherSchemaKeys(obj, basePath = '') {
-  // strings are the format of a type declaration in the schema
+  // strings are the format of a v_type declaration in the schema
   if (typeof obj === 'string') {
     // Handle array types like 'promptType[]'
     if (obj.endsWith('[]')) {
@@ -121,12 +123,12 @@ function r_GatherSchemaKeys(obj, basePath = '') {
       const cleanPath = u_noDot(basePath);
       const arrayPath = cleanPath + '[]';
       SCHEMA_KEYS.set(arrayPath, obj);
-      // If it's a complex type, walk its properties
+      // If it's a complex v_type, walk its properties
       if (OBJS_SCHEMA20[itemType]) {
         r_GatherSchemaKeys(OBJS_SCHEMA20[itemType], arrayPath + '.');
       }
     } else {
-      // Simple type
+      // Simple v_type
       SCHEMA_KEYS.set(u_noDot(basePath), obj);
     }
   } else if (typeof obj === 'object' && obj !== null) {
@@ -139,7 +141,51 @@ function r_GatherSchemaKeys(obj, basePath = '') {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Validate a single property against the checkObj type or structure
+/** Helper to find missing keys in the template object against the schema.
+ *  It gathers all keys in the template and schema, then compares them.
+ *  It prints the found keys side-by-side for easy comparison. */
+function m_FindMissingKeys(template) {
+  TEMPLATE_KEYS = new Map();
+  SCHEMA_KEYS = new Map();
+  r_GatherTemplateKeys(template);
+  r_GatherSchemaKeys(TEMPLATE_SCHEMA);
+  for (const [schemaPath, schemaType] of SCHEMA_KEYS) {
+    if (!TEMPLATE_KEYS.has(schemaPath)) {
+      const err = `* ${schemaPath} : missing property (v_type: ${schemaType})`;
+      MISSING.push(err);
+    }
+  }
+  if (DBG) {
+    // print the foundKeys side-by-side, using 80 column wide screen as reference
+    // each column is 40 characters wide, and truncate the key length if longer then 38 chars
+    const maxKeyLength = 38;
+    const maxColWidth = 40;
+    const col1 = foundTemplateKeys.map(key =>
+      key.padEnd(maxColWidth).slice(0, maxColWidth)
+    );
+    const col2 = foundSchemaKeys.map(key =>
+      key.padEnd(maxColWidth).slice(0, maxColWidth)
+    );
+    const col1Str = col1.join('\n');
+    const col2Str = col2.join('\n');
+    const col1Lines = col1Str.split('\n');
+    const col2Lines = col2Str.split('\n');
+    const maxLines = Math.max(col1Lines.length, col2Lines.length);
+    const col1Padded = col1Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
+    const col2Padded = col2Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
+    // print the keys side-by-side
+    LOG(`${PR}* SCHEMA KEYS vs FOUND TEMPLATE KEYS`);
+    for (let i = 0; i < maxLines; i++) {
+      const line1 = col1Padded[i] || ''.padEnd(maxColWidth + 1);
+      const line2 = col2Padded[i] || ''.padEnd(maxColWidth + 1);
+      LOG(`${line2}${line1}`);
+    }
+  }
+}
+
+/// PROPERTY VALIDATION ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Validate a single property against the checkObj v_type or structure
  *  as a recursive function. Adds results to the global arrays:
  *  VALID, INVALID, EXTRA, and MISSING.
  *  !!! Handles only properties, not ui metadata !!!
@@ -152,7 +198,7 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
   if (DBG) {
     const jst = JSON.stringify(tObj).substring(0, 20);
     const cst = JSON.stringify(checkObj).substring(0, 20);
-    // console.log(`${GRY}Validating '${tInfo}' ${NRM}${jst}${GRY}  type ${NRM}${cst}`);
+    // console.log(`${GRY}Validating '${tInfo}' ${NRM}${jst}${GRY}  v_type ${NRM}${cst}`);
   }
 
   // (0) tobjType is used to determine how to process the tObj
@@ -171,18 +217,18 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
       INVALID.push(err);
       return;
     }
-    // (1A) special case for 'type' keys
-    if (tInfo === 'type') {
-      // the prop value should be a string type
+    // (1A) special case for 'v_type' keys
+    if (tInfo === 'v_type') {
+      // the prop value should be a string v_type
       if (tobjType !== 'string') {
         const err = `* ${tInfo} : expected 'string', not <${tObjType}>`;
         if (DBG) LOG(err);
         INVALID.push(err);
         return;
       }
-      // check if the type is a recognized type
+      // check if the v_type is a recognized v_type
       if (!TYPES_SCHEMA20.includes(tObj)) {
-        const err = `* ${tInfo} : unknown template type "${tObj}". Check TYPES_SCHEMA20`;
+        const err = `* ${tInfo} : unknown template v_type "${tObj}". Check TYPES_SCHEMA20`;
         if (DBG) LOG(err);
         INVALID.push(err);
         return;
@@ -190,7 +236,7 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
       // continue procesing by falling through
     }
 
-    // (1B) This is a simple value type like number, string, boolean
+    // (1B) This is a simple value v_type like number, string, boolean
     if (tInfo.includes('[]')) {
       const ok = `. ${tInfo} : variable item ok`;
       VARIES.push(ok);
@@ -198,7 +244,7 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
       const ok = `. ${tInfo} : valid simple value <${u_typeof(tObj)}>`;
       VALID.push(ok);
     }
-    // (1C) finished validating simple value type, exit validator
+    // (1C) finished validating simple value v_type, exit validator
     return;
   }
 
@@ -213,12 +259,12 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
       INVALID.push(err);
       return;
     }
-    // get the schema for this array type
-    const itemSchema = OBJS_SCHEMA20[itemType]; // complex object type
+    // get the schema for this array v_type
+    const itemSchema = OBJS_SCHEMA20[itemType]; // complex object v_type
 
     // (2A) It's a simple array of recognized value types (e.g. string, number)
     if (itemSchema === undefined && TYPES_SCHEMA20.includes(itemType)) {
-      // validate each item in the simple type array
+      // validate each item in the simple v_type array
       tObj.forEach((item, index) => {
         if (item === undefined) {
           const err = `* ${tInfo}[${index}] : undefined item in array`;
@@ -233,12 +279,12 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
           INVALID.push(err);
         }
       });
-      return; // if we got here, we validated the simple type array items so exit clause!!!
+      return; // if we got here, we validated the simple v_type array items so exit clause!!!
     }
 
     // (2B) It's an unrecognized array of value types, so log an error
     if (itemSchema === undefined) {
-      const err = `* ${tInfo} : unknown array type '${itemType}'`;
+      const err = `* ${tInfo} : unknown array v_type '${itemType}'`;
       LOG(err);
       INVALID.push(err);
       return;
@@ -260,7 +306,7 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
     return;
   }
 
-  // (3) tObj should be a valid object type, otherwise something messed up
+  // (3) tObj should be a valid object v_type, otherwise something messed up
   if (tobjType !== 'object') {
     const err = `* ${tInfo} : expected object, not ${tobjType}`;
     LOG(err);
@@ -310,47 +356,49 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
     return;
   });
 }
+
+/// UI METDATA VALIDATION /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Helper to find missing keys in the template object against the schema.
- *  It gathers all keys in the template and schema, then compares them.
- *  It prints the found keys side-by-side for easy comparison. */
-function m_FindMissingKeys(template) {
-  TEMPLATE_KEYS = new Map();
-  SCHEMA_KEYS = new Map();
-  r_GatherTemplateKeys(template);
-  r_GatherSchemaKeys(TEMPLATE_SCHEMA);
-  for (const [schemaPath, schemaType] of SCHEMA_KEYS) {
-    if (!TEMPLATE_KEYS.has(schemaPath)) {
-      const err = `* ${schemaPath} : missing property (type: ${schemaType})`;
-      MISSING.push(err);
+/** API: Look for ui definitions and check that they are valid. Currently it just
+ *  checks that _control exists in all metadata objects*/
+function m_ValidateUIProperties(tInfo, uiObj, checkObj) {
+  // walk all the keys in uiObj recursively
+  const uiKeys = Object.keys(uiObj);
+  uiKeys.forEach(key => {
+    const check = checkObj[key] || {};
+    const value = uiObj[key];
+    const v_type = u_typeof(value);
+
+    if (v_type === 'object') {
+      const info = tInfo ? `${tInfo}.${key}` : key;
+      m_ValidateUIProperties(`${info}`, value, check);
+      return;
     }
-  }
-  if (DBG) {
-    // print the foundKeys side-by-side, using 80 column wide screen as reference
-    // each column is 40 characters wide, and truncate the key length if longer then 38 chars
-    const maxKeyLength = 38;
-    const maxColWidth = 40;
-    const col1 = foundTemplateKeys.map(key =>
-      key.padEnd(maxColWidth).slice(0, maxColWidth)
-    );
-    const col2 = foundSchemaKeys.map(key =>
-      key.padEnd(maxColWidth).slice(0, maxColWidth)
-    );
-    const col1Str = col1.join('\n');
-    const col2Str = col2.join('\n');
-    const col1Lines = col1Str.split('\n');
-    const col2Lines = col2Str.split('\n');
-    const maxLines = Math.max(col1Lines.length, col2Lines.length);
-    const col1Padded = col1Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
-    const col2Padded = col2Lines.map(line => line.padEnd(maxColWidth + 1)); // +1 for the space between columns
-    // print the keys side-by-side
-    LOG(`${PR}* SCHEMA KEYS vs FOUND TEMPLATE KEYS`);
-    for (let i = 0; i < maxLines; i++) {
-      const line1 = col1Padded[i] || ''.padEnd(maxColWidth + 1);
-      const line2 = col2Padded[i] || ''.padEnd(maxColWidth + 1);
-      LOG(`${line2}${line1}`);
+    //
+    if (key === '_control') {
+      if (v_type === 'undefined') {
+        const err = `* ${tInfo}.${key} : _control is required`;
+        LOG(err);
+        MISSING.push(err);
+        return;
+      }
+      if (v_type !== 'string') {
+        const err = `* ${tInfo}.${key} : _control value should be string, not <${v_type}>`;
+        LOG(err);
+        INVALID.push(err);
+        return;
+      }
+      if (value.includes('-')) {
+        // is invalid control type, so log an error
+        const err = `* ${tInfo}.${key} : _control='${value}' should use '_' not '-'`;
+        LOG(err);
+        INVALID.push(err);
+        return;
+      }
+      const info = tInfo ? `${tInfo}.${key}` : key;
+      VALID.push(`. ${info} : key string ok`);
     }
-  }
+  });
 }
 
 /// MAIN API METHODS //////////////////////////////////////////////////////////
@@ -373,7 +421,7 @@ function Validate(template) {
 
   // NEXT: Validate _ui metadata structure
   if (template._ui) {
-    //   would call m_ValidateUIProperties(template._ui, '');
+    m_ValidateUIProperties('', template._ui, TEMPLATE_SCHEMA);
   } else {
     MISSING.push('_ui : missing UI metadata');
     console.log(`${CRT}* missing _ui metadata in template${NRM}`);
@@ -383,7 +431,7 @@ function Validate(template) {
   // info for user-defined node/edge attributes and node/edge types
   // as well as commentTypes (and what have you)
   if (template._ui_defs) {
-    // would validate _ui_defs structure
+    m_ValidateUIProperties('', template, TEMPLATE_SCHEMA);
   } else {
     MISSING.push('_ui_defs : missing UI definitions');
     console.log(`${CRT}* missing _ui_defs metadata in template${NRM}`);

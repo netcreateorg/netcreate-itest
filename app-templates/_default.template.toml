@@ -28,8 +28,8 @@ sourceColor = "#FFa500"
 _schemaVersion = "2.1"
 
 [_ui_defs]
-NodeType = { _control="in-color", label = "string", color = "string" }
-EdgeType = { _control="in-color", label = "string", color = "string" }
+NodeType = { _control="in_color", label = "string", color = "string" }
+EdgeType = { _control="in_color", label = "string", color = "string" }
 
 [_ui._groupMeta]
 label = "Global Settings"
