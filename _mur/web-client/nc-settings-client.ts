@@ -165,20 +165,30 @@ function GetDispatcher() {
         draft.changeSet = new Set();
       }
       [group, prop, field, index] = DecodePropDef(propDef);
+      const isArray = index !== undefined;
       // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
       // groupless properties are at the top level of the template
       if (group === undefined) {
         if (DBG) LOG(...PR('update no group'), { prop, value });
         if (draft.pending === draft.template)
           throw Error(`${fn} pending/template are the same`);
-        const orig = current(draft).template[prop];
-        const curr = current(draft).pending[prop];
-        if (curr !== value) {
-          draft.pending[prop] = value;
-          draft.changeSet.add(prop);
-          draft.isDirty = value !== orig;
-        } else if (DBG) LOG(...PR('- no change for', prop));
-        if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
+        if (isArray) {
+          const orig = current(draft).template[prop][index];
+          const curr = current(draft).pending[prop][index];
+          if (curr !== value) {
+            draft.pending[prop][index] = value;
+            draft.changeSet.add(prop);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', prop));
+        } else {
+          const orig = current(draft).template[prop];
+          const curr = current(draft).pending[prop];
+          if (curr !== value) {
+            draft.pending[prop] = value;
+            draft.changeSet.add(prop);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', prop));
+        }
       }
       // three-level properties for composite field updates (group.prop.field)
       else if (field !== undefined) {
@@ -189,13 +199,23 @@ function GetDispatcher() {
         if (draft.pending[group][prop] === undefined) {
           throw Error(`${fn} invalid prop referenced in ${propDef}`);
         }
-        const orig = current(draft).template[group][prop][field];
-        const curr = current(draft).pending[group][prop][field];
-        if (curr !== value) {
-          draft.pending[group][prop][field] = value;
-          draft.changeSet.add(propDef);
-          draft.isDirty = value !== orig;
-        } else if (DBG) LOG(...PR('- no change for', propDef));
+        if (isArray) {
+          const orig = current(draft).template[group][prop][field][index];
+          const curr = current(draft).pending[group][prop][field][index];
+          if (curr !== value) {
+            draft.pending[group][prop][field][index] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        } else {
+          const orig = current(draft).template[group][prop][field];
+          const curr = current(draft).pending[group][prop][field];
+          if (curr !== value) {
+            draft.pending[group][prop][field] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        }
       }
       // two-level grouped properties are nested in the template
       else {
@@ -203,13 +223,23 @@ function GetDispatcher() {
         if (draft.pending[group] === undefined) {
           throw Error(`${fn} invalid group referenced in ${propDef}`);
         }
-        const orig = current(draft).template[group][prop];
-        const curr = current(draft).pending[group][prop];
-        if (curr !== value) {
-          draft.pending[group][prop] = value;
-          draft.changeSet.add(propDef);
-          draft.isDirty = value !== orig;
-        } else if (DBG) LOG(...PR('- no change for', propDef));
+        if (isArray) {
+          const orig = current(draft).template[group][prop][index];
+          const curr = current(draft).pending[group][prop][index];
+          if (curr !== value) {
+            draft.pending[group][prop][index] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        } else {
+          const orig = current(draft).template[group][prop];
+          const curr = current(draft).pending[group][prop];
+          if (curr !== value) {
+            draft.pending[group][prop] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        }
       }
       return draft;
     }
