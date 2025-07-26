@@ -35,7 +35,7 @@ function URPopover({ title, onClose, children }) {
     </button>
   );
   return (
-    <Draggable cancel=".no-drag">
+    <Draggable cancel="input, textarea, select, button, .no-drag">
       <div id="popover">
         <div className="popover-toolbar">
           {title}

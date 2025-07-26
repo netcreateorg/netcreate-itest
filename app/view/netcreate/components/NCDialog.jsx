@@ -51,7 +51,7 @@ class NCDialog extends React.Component {
     return (
       <div className="dialog">
         <div className="screen"></div>
-        <Draggable>
+        <Draggable cancel="input, textarea, select, button, .no-drag">
           <div className="dialogwindow">
             <div className="dialogmessage">{message}</div>
             <div className="dialogcontrolbar">
