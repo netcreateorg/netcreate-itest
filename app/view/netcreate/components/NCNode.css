@@ -209,12 +209,21 @@
 .nccomponent .edit .formview {
   row-gap: 10px;
 }
-.nccomponent .formview label {
+.nccomponent .formview > label {
   font-size: var(--font-size-xs);
   line-height: var(--font-size-sm);
   opacity: 0.7;
   text-align: right;
   margin-bottom: 0.25rem; /* override bootstrap */
+}
+
+/* Type View */
+.nccomponent.ncedge .formview.typeview,
+.nccomponent.ncedge .typeview label,
+.nccomponent.ncedge .typeview div {
+  display: inline;
+  padding-right: 0.25rem;
+  line-height: 1.25rem;
 }
 .nccomponent .formview.typeview {
   /* match .formview with column gap*/
@@ -226,7 +235,8 @@
 }
 .nccomponent .formview .edgetypeRow {
   display: grid;
-  grid-template-columns: 18px 1fr;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
   column-gap: 10px;
   margin-bottom: 0;
 }
@@ -245,7 +255,6 @@
   max-width: 225px;
 }
 .nccomponent .formview div.targetarrow {
-  margin-top: -5px;
   text-align: center;
   font-size: 18px;
   font-weight: bold;
