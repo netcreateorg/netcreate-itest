@@ -20,7 +20,7 @@ const PR = 'URPopover';
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function URPopover({ title, onClose, children }) {
+function URPopover({ title, onClose, children, classOverride }) {
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   const BTN_CLOSE = (
@@ -36,7 +36,7 @@ function URPopover({ title, onClose, children }) {
   );
   return (
     <Draggable cancel="input, textarea, select, button, .no-drag">
-      <div id="popover">
+      <div id="popover" className={classOverride}>
         <div className="popover-toolbar">
           {title}
           {BTN_CLOSE}
