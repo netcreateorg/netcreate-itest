@@ -125,6 +125,12 @@ body {
   text-align: center;
 }
 
+.nc-bugreport-btn {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+}
+
 /* NC Navbar -------------------------------------------------------------- */
 .nc-navbar {
   top: 0;
@@ -149,7 +155,7 @@ body {
   cursor: pointer;
 }
 
-/* SVG styles */
+/* SVG styles -------------------------------------------------------------- */
 svg#netgraph {
   flex-basis: 100%;
   min-width: 200px;

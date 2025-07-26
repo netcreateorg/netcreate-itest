@@ -20,6 +20,9 @@ Candidate version 2.0 "Commenting"
 * For Septemeber 2024 pilot testing.
 * Tagged Jan 15, 2025 for pilot testing.
 * Tagged Mar 1, 2025 for pilot testing.
+* Tagged Apr 19, 2025 for pilot testing: 2025-04-19_Pilot_vfoi-itest-2023-b
+* Tagged Apr 19, 2025 for pilot testing: 2025-04-19_Pilot_Part2_vfoi-itest -- with `hotfix-table-optimization` to deal with slow Chromebook rendering.
+* Tagged Jun 29, 2025 for pilot testing: 2025-06-29_SummerPD_vfoi-itest-2023-b
 
 v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data format has changed significantly with 1.5.x so pre-1.4.x data (*.loki) and template (*.json) files are no longer compatible.
 
@@ -36,6 +39,9 @@ v2.0.0 introduces "commenting" and a fresh user interface.  Database/file data f
   - Conversion of JSON templates to TOML/YAML has been deprecated
 
 **Significant Features**
+- New "Bug Report" window for teachers
+- New branch `deploy-terraform` will be a branch purely for deploying and redeploying droplets to DigitalOcean. 
+- Add support for secure websockets (and SSL) if Net.Create is runing on `HTTPS`.
 - Generate "User Tokens" via the Advanced Panel #389
 - Nodes/Edges can be imported using "Replace" or "Merge" #386
 - All user interface widgets should be accessible #362

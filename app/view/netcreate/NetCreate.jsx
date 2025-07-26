@@ -60,6 +60,7 @@ import PANELMGR from './panel-mgr';
 import NCInfoPanel from './components/NCInfoPanel';
 import NCHelpPanel from './components/NCHelpPanel';
 import NCAdvancedPanel from './components/NCAdvancedPanel';
+import NCBugReport from './components/NCBugReport';
 import NCFiltersPanel from './components/filter/NCFiltersPanel';
 import URButtonToggle from './components/URButtonToggle';
 import URCommentStatus from './components/URCommentStatus';
@@ -230,7 +231,18 @@ class NetCreate extends UNISYS.Component {
       </div>
     );
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+    const BUGREPORTBTN = (
+      <div className="nc-bugreport-btn">
+        <URButtonToggle
+          title="Show/Hide Bug Report"
+          selected={PANELMGR.BugreportIsOpen()}
+          onClick={PANELMGR.ToggleBugreport}
+        >
+          ⚠︎
+        </URButtonToggle>
+      </div>
+    );
+    /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     return (
       <main className="--NetCreate nc-base" role="main">
         {DISCONNECTED_MSG}
@@ -241,6 +253,7 @@ class NetCreate extends UNISYS.Component {
           <div className="--NetCreate_Columns nc-col-left" id="left">
             <NCSearch />
             <NCNode />
+            {BUGREPORTBTN}
           </div>
           {/*** CENTER NETVIEW COLUMN***************/}
           <div className="--NetCreate_Column_NetView nc-col-middle">
@@ -276,6 +289,7 @@ class NetCreate extends UNISYS.Component {
         <div id="dialog-container"></div>
         <NCHelpPanel />
         <NCAdvancedPanel />
+        <NCBugReport />
       </main>
     ); // end return
   } // end render()
