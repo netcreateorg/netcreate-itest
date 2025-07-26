@@ -23,9 +23,23 @@ const DBG = false;
 /// export a class object for consumption by brunch/require
 function NCBugReport() {
   const [isOpen, setIsOpen] = useState(true);
+  const [logInfo, setLogInfo] = useState({ logFilename: 'loading...' });
 
   useEffect(() => {
     UDATA.OnAppStateChange('PANELSTATE', evt_ToggleBugReport);
+
+    // Get log info from server
+    UDATA.Call('SRV_GET_LOG_INFO', {})
+      .then(data => {
+        setLogInfo(data);
+      })
+      .catch(err => {
+        console.error('Failed to get log info:', err);
+        setLogInfo({
+          logFilename: 'error getting log info'
+        });
+      });
+
     return () => {
       UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleBugReport);
     };
@@ -68,7 +82,7 @@ function NCBugReport() {
         <label>Build Time</label>
         <div>{GIT_INFO.buildTime}</div>
         <label>Log file</label>
-        <div>{window.NC_CONFIG.dataset}.log</div>
+        <div>{logInfo.logFilename}</div>
         <label>Server IP</label>
         <div>{SETTINGS.ServerHostIP()}</div>
         <label>UADDR</label>

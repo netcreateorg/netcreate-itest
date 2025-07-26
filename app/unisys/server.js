@@ -391,6 +391,13 @@ UNISYS.RegisterHandlers = () => {
     if (DBG) console.log(PR, sprint_message(pkt));
     return LOGGER.PKT_LogEvent(pkt);
   });
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  UNET.HandleMessage('SRV_GET_LOG_INFO', function (pkt) {
+    if (DBG) console.log(PR, sprint_message(pkt));
+    return {
+      logFilename: LOGGER.GetCurrentLogFilename()
+    };
+  });
 };
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
