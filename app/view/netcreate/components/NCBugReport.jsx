@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
 import URPopover from './URPopover';
 const SETTINGS = require('settings');
-const GIT_INFO = require('system/git-info');
+const GIT_INFO = require('../../../../app-config/git-info');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
