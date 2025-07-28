@@ -107,8 +107,33 @@ function MURSettingsEditor() {
 
   return (
     <SettingsContext.Provider value={value}>
-      {ButtonBar}
-      {GroupList}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%'
+        }}
+      >
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            padding: '0.5rem 0 0.5rem 0',
+            borderBottom: '1px solid #ccc'
+          }}
+        >
+          {ButtonBar}
+        </div>
+        <div
+          style={{
+            flex: 1,
+            overflow: 'auto'
+          }}
+        >
+          {GroupList}
+        </div>
+      </div>
     </SettingsContext.Provider>
   );
 }
