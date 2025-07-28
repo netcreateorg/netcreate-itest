@@ -96,8 +96,8 @@ function DecodePropDef(propDef: string) {
   // if there are two or more parts, then check the last defined part for
   // array-ness
   const lastProp = fieldID || propID || groupID;
-  const { type, index } = u_DecodeArrayProp(lastProp);
-  if (type === 'arrayIndex') return [groupID, propID, fieldID, index];
+  const { type, name, index } = u_DecodeArrayProp(lastProp);
+  if (type === 'arrayIndex') return [groupID, propID, name, index];
   return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

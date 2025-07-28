@@ -121,7 +121,7 @@ function GetDataForProp(template, propDef) {
   if (typeof template !== 'object')
     throw Error(`${fn} arg1 must be a settings object`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
-  const [groupName, propName, propField] = DecodePropDef(propDef); // throws error if not valid
+  let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
   // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
   if (typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
@@ -131,19 +131,29 @@ function GetDataForProp(template, propDef) {
   // got this far, we have a valid template and template._ui
   let t_ui = template._ui; // _ui is the metadata source
   let schema_dict = template._ui_defs; // _ui_defs is the schema dictionary
+  let sourceMeta, sourceData, itemDef;
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
     if (!template[propName]) return { error: `no value for ${propDef}` };
     // has metadata
     if (t_ui[propName] !== undefined) {
-      const sourceMeta = u_clone(t_ui[propName]);
+      sourceMeta = u_clone(t_ui[propName]);
+      // handle indexed array access
+      if (index !== undefined) {
+        sourceData = template[propName] && template[propName][index];
+        itemDef = u_itemDef(sourceMeta, schema_dict);
+      } else {
+        sourceData = template[propName];
+        itemDef = u_itemDef(sourceMeta, schema_dict);
+      }
       return {
         groupName,
         propName,
+        propField,
         sourceMeta,
-        itemDef: u_itemDef(sourceMeta, schema_dict),
-        sourceData: template[propName]
+        itemDef,
+        sourceData
       };
     }
     // no metadata for this prop, return error
@@ -164,17 +174,29 @@ function GetDataForProp(template, propDef) {
         error: `composite ${groupName}.${propName} no metadata for field ${propField}`
       };
 
-    const sourceData =
-      template[groupName] && template[groupName][propName]
-        ? template[groupName][propName][propField]
-        : undefined;
-    const sourceMeta = u_clone(t_ui[groupName][propName][propField]);
+    sourceMeta = u_clone(t_ui[groupName][propName][propField]);
+    // handle indexed array access
+    if (index !== undefined) {
+      sourceData =
+        template[groupName] &&
+        template[groupName][propName] &&
+        template[groupName][propName][propField]
+          ? template[groupName][propName][propField][index]
+          : undefined;
+      itemDef = u_itemDef(sourceMeta, schema_dict);
+    } else {
+      sourceData =
+        template[groupName] && template[groupName][propName]
+          ? template[groupName][propName][propField]
+          : undefined;
+      itemDef = u_itemDef(sourceMeta, schema_dict);
+    }
     return {
       groupName,
       propName,
       propField,
       sourceMeta,
-      itemDef: u_itemDef(sourceMeta, schema_dict),
+      itemDef,
       sourceData
     };
   }
@@ -189,13 +211,23 @@ function GetDataForProp(template, propDef) {
   //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
   // and each key in the id setting look like this:
   //   displayLabel = { _control, labelKey, helpKey }
-  const sourceMeta = u_clone(t_ui);
+  sourceMeta = u_clone(t_ui);
+  // handle indexed array access
+  if (index !== undefined) {
+    sourceData =
+      template[groupName][propName] && template[groupName][propName][index];
+    itemDef = u_itemDef(sourceMeta, schema_dict);
+  } else {
+    sourceData = template[groupName][propName];
+    itemDef = u_itemDef(sourceMeta, schema_dict);
+  }
   return {
     groupName,
     propName,
+    propField,
     sourceMeta,
-    itemDef: u_itemDef(sourceMeta, schema_dict),
-    sourceData: template[groupName][propName]
+    itemDef,
+    sourceData
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
