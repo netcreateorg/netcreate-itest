@@ -77,7 +77,7 @@ function ColorInput(props) {
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
   // controlData contains what's needed to render this input component
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const { colorValue, labelValue, label, tooltip, help } =
     m_ExtractColorProps(controlData);
   const defColorValue = '#000000';

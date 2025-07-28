@@ -53,9 +53,9 @@ function m_ExtractColorArrayProps(controlData) {
 /** Renders an array of color UI Objects */
 function ColorGroup(props) {
   const { propDef } = props;
-  const { draft, hasLock } = React.useContext(RSB.SettingsContext);
+  const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
 
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const colorProps = m_ExtractColorArrayProps(controlData);
 
   if (colorProps.error) {
@@ -74,35 +74,41 @@ function ColorGroup(props) {
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Render color item editors for each item in the array
-  const ColorItemControls = sourceData.map((item, index) => {
-    const itemKey = `color-item-${index}`;
-    const itemPropDef = `${propDef}[${index}]`;
-    return (
-      <div
-        key={itemKey}
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-      >
-        <ColorItemEdit propDef={itemPropDef} />
-        <button
-          style={{
-            ...opBtnStyle,
-            backgroundColor: '#ff4444',
-            color: 'white',
-            fontSize: '0.8em',
-            padding: '0.2rem 0.5rem',
-            width: '60px'
-          }}
-          disabled={isDisabled}
-          onClick={() => {
-            // TODO: dispatch DELETE action
-            console.log(`Delete color item at ${itemPropDef}`);
-          }}
+  const renderColorItems = () => {
+    return sourceData.map((item, index) => {
+      const itemKey = `color-item-${index}`;
+      const itemPropDef = `${propDef}[${index}]`;
+      return (
+        <div
+          key={itemKey}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          DELETE
-        </button>
-      </div>
-    );
-  });
+          <ColorItemEdit propDef={itemPropDef} />
+          <button
+            style={{
+              ...opBtnStyle,
+              backgroundColor: '#ff4444',
+              color: 'white',
+              fontSize: '0.8em',
+              padding: '0.2rem 0.5rem',
+              width: '60px'
+            }}
+            disabled={isDisabled}
+            onClick={() => {
+              const newArray = sourceData.filter((_, i) => i !== index);
+              dispatch({
+                op: 'update',
+                propDef,
+                value: newArray
+              });
+            }}
+          >
+            DELETE
+          </button>
+        </div>
+      );
+    });
+  };
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Render controls for adding and sorting color items
   const ButtonControls = (
@@ -123,8 +129,19 @@ function ColorGroup(props) {
           disabled={isDisabled}
           defaultValue="a-z"
           onChange={e => {
-            // TODO: dispatch SORT action
-            console.log(`Sort ${propDef} by:`, e.target.value);
+            const sortType = e.target.value;
+            const sortedArray = [...sourceData].sort((a, b) => {
+              const labelA = (a.label || '').toLowerCase();
+              const labelB = (b.label || '').toLowerCase();
+              return sortType === 'a-z'
+                ? labelA.localeCompare(labelB)
+                : labelB.localeCompare(labelA);
+            });
+            dispatch({
+              op: 'update',
+              propDef,
+              value: sortedArray
+            });
           }}
         >
           <option value="a-z">A-Z</option>
@@ -143,8 +160,13 @@ function ColorGroup(props) {
         }}
         disabled={isDisabled}
         onClick={() => {
-          // TODO: dispatch ADD action
-          console.log(`Add new color item to ${propDef}`);
+          const newItem = { color: '#808080', label: 'Label' };
+          const newArray = [...sourceData, newItem];
+          dispatch({
+            op: 'update',
+            propDef,
+            value: newArray
+          });
         }}
       >
         ADD
@@ -175,7 +197,7 @@ function ColorGroup(props) {
   return (
     <div style={arrayContainerStyle}>
       {Label}
-      {ColorItemControls}
+      {renderColorItems()}
       {ButtonControls}
     </div>
   );

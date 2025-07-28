@@ -155,15 +155,16 @@ function GetDispatcher() {
     const { op, propDef, value, saveFunction } = action;
     let group, prop, field, index;
 
+    if (!draft.pending) {
+      if (DBG) LOG(...PR('create pending copy'));
+      draft.pending = JSON.parse(JSON.stringify(draft.template));
+      draft.isDirty = false;
+      draft.changeSet = new Set();
+    }
+
     /// UPDATE OP ///
 
     if (op === 'update') {
-      if (!draft.pending) {
-        if (DBG) LOG(...PR('create pending copy'));
-        draft.pending = JSON.parse(JSON.stringify(draft.template));
-        draft.isDirty = false;
-        draft.changeSet = new Set();
-      }
       [group, prop, field, index] = DecodePropDef(propDef);
       const isArray = index !== undefined;
       // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
