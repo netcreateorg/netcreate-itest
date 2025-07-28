@@ -7,7 +7,7 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-import ColorItemEdit from './MURColorInput';
+import ColorInput from './MURColorInput';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -54,6 +54,7 @@ function m_ExtractColorArrayProps(controlData) {
 function ColorGroup(props) {
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
+  const [sortType, setSortType] = React.useState('a-z');
 
   const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const colorProps = m_ExtractColorArrayProps(controlData);
@@ -75,15 +76,18 @@ function ColorGroup(props) {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Render color item editors for each item in the array
   const renderColorItems = () => {
-    return sourceData.map((item, index) => {
-      const itemKey = `color-item-${index}`;
+    let items = [];
+    const colorItems = sourceData.map((item, index) => {
+      const itemHash = btoa(`${item.color}-${item.label}`);
+      const itemKey = `${index}-${itemHash}`;
       const itemPropDef = `${propDef}[${index}]`;
+      items.push(item);
       return (
         <div
           key={itemKey}
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <ColorItemEdit propDef={itemPropDef} />
+          <ColorInput propDef={itemPropDef} />
           <button
             style={{
               ...opBtnStyle,
@@ -108,6 +112,7 @@ function ColorGroup(props) {
         </div>
       );
     });
+    return colorItems;
   };
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// Render controls for adding and sorting color items
@@ -123,17 +128,18 @@ function ColorGroup(props) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <label>SORT:</label>
+        <label>FORCE SORT:</label>
         <select
           style={inputStyle}
           disabled={isDisabled}
-          defaultValue="a-z"
+          value={sortType}
           onChange={e => {
-            const sortType = e.target.value;
+            const newSortType = e.target.value;
+            setSortType(newSortType);
             const sortedArray = [...sourceData].sort((a, b) => {
               const labelA = (a.label || '').toLowerCase();
               const labelB = (b.label || '').toLowerCase();
-              return sortType === 'a-z'
+              return newSortType === 'a-z'
                 ? labelA.localeCompare(labelB)
                 : labelB.localeCompare(labelA);
             });
