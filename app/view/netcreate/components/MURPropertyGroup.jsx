@@ -10,6 +10,7 @@ import TextInput from './MURTextInput';
 import CompositeInput from './MURCompositeInput';
 import ArrayInput from './MURArrayInput';
 import BooleanInput from './MURBooleanInput';
+import ColorGroup from './MURColorGroup';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -134,7 +135,15 @@ function PropertyGroup(props) {
     const propDef = RSB.EncodePropDef(groupName, p);
     const inputKey = `in_${propDef}`;
     const controlData = RSB.GetDataForProp(draft.template, propDef);
-    const { _control, label } = u_ExtractGroupProps(controlData);
+    const { _control } = u_ExtractGroupProps(controlData);
+    // LOG(
+    //   `%cPropertyGroup: %c${propDef} %c(${_control})`,
+    //   'color: green',
+    //   'color: blue',
+    //   'color: gray',
+    //   propDef,
+    //   _control
+    // );
 
     // handle recognized simple control types
     if (_control === 'in_string' || _control === 'in_text') {
@@ -145,11 +154,13 @@ function PropertyGroup(props) {
       return <CompositeInput propDef={propDef} key={inputKey} />;
     }
     // handle special control types
-    if (_control.endsWith('[]')) {
-      return <ArrayInput propDef={propDef} key={inputKey} />;
+    if (_control === 'in_colorgroup') {
+      return <ColorGroup propDef={propDef} key={inputKey} />;
     } else if (_control.startsWith('//')) {
       if (DBG) LOG('.. %cskipping disabled control:', 'color: blue', p);
       return null;
+    } else if (_control === 'in_array') {
+      return <ArrayInput propDef={propDef} key={inputKey} />;
     }
     // handle unsupported control types
     LOG(...PR(`Unsupported control type ${_control} for property ${p}`));

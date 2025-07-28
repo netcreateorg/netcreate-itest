@@ -10,6 +10,7 @@ const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
 import BooleanInput from './MURBooleanInput';
 import ArrayInput from './MURArrayInput';
+import ColorGroup from './MURColorGroup';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
@@ -114,7 +115,9 @@ function CompositeInput(props) {
       );
     }
     // handle special control types
-    if (_control.endsWith('[]')) {
+    if (_control === 'in_colorgroup') {
+      return <ColorGroup propDef={childPropDef} key={childKey} />;
+    } else if (_control === 'in_array') {
       return <ArrayInput propDef={childPropDef} key={childKey} />;
     }
     // handle unsupported control types

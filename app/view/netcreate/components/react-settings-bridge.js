@@ -48,19 +48,6 @@ function u_typeof(obj) {
   return typeof obj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given a UI object, return the user-defined control schema if one exists
- *  in the _ui_defs dictionary.
- *  the _ui_defs dictionary, or undefined if not found. */
-function u_itemDef(uiObj, schemaDict) {
-  // assume uiObj is a valid UI object because the template would have
-  // passed validation before application start
-  const control = uiObj._control.trim();
-  if (!control.endsWith('[]')) return;
-  const schemaKey = control.slice(0, -2);
-  const itemDef = schemaDict[schemaKey];
-  return itemDef;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the object is a simple value type */
 const value_types = ['string', 'number', 'boolean'];
 function is_valueType(obj) {
@@ -130,8 +117,7 @@ function GetDataForProp(template, propDef) {
 
   // got this far, we have a valid template and template._ui
   let t_ui = template._ui; // _ui is the metadata source
-  let schema_dict = template._ui_defs; // _ui_defs is the schema dictionary
-  let sourceMeta, sourceData, itemDef;
+  let sourceMeta, sourceData;
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
@@ -142,17 +128,14 @@ function GetDataForProp(template, propDef) {
       // handle indexed array access
       if (index !== undefined) {
         sourceData = template[propName] && template[propName][index];
-        itemDef = u_itemDef(sourceMeta, schema_dict);
       } else {
         sourceData = template[propName];
-        itemDef = u_itemDef(sourceMeta, schema_dict);
       }
       return {
         groupName,
         propName,
         propField,
         sourceMeta,
-        itemDef,
         sourceData
       };
     }
@@ -183,20 +166,17 @@ function GetDataForProp(template, propDef) {
         template[groupName][propName][propField]
           ? template[groupName][propName][propField][index]
           : undefined;
-      itemDef = u_itemDef(sourceMeta, schema_dict);
     } else {
       sourceData =
         template[groupName] && template[groupName][propName]
           ? template[groupName][propName][propField]
           : undefined;
-      itemDef = u_itemDef(sourceMeta, schema_dict);
     }
     return {
       groupName,
       propName,
       propField,
       sourceMeta,
-      itemDef,
       sourceData
     };
   }
@@ -216,17 +196,14 @@ function GetDataForProp(template, propDef) {
   if (index !== undefined) {
     sourceData =
       template[groupName][propName] && template[groupName][propName][index];
-    itemDef = u_itemDef(sourceMeta, schema_dict);
   } else {
     sourceData = template[groupName][propName];
-    itemDef = u_itemDef(sourceMeta, schema_dict);
   }
   return {
     groupName,
     propName,
     propField,
     sourceMeta,
-    itemDef,
     sourceData
   };
 }

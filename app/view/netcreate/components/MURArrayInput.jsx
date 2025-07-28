@@ -10,7 +10,6 @@ const React = require('react');
 const RSB = require('./react-settings-bridge');
 import TextInput from './MURTextInput';
 import BooleanInput from './MURBooleanInput';
-import ColorInput from './MURColorInput';
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
