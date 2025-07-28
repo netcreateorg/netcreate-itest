@@ -68,7 +68,7 @@ function TextInput(props) {
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
   // controlData contains what's needed to render this input component
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const { name, label, tooltip, help, placeholder, value } =
     u_ExtractInputProps(controlData);
   const defValue = undefined; // TODO: handle default values

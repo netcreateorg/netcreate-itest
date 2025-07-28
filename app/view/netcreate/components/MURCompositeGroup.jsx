@@ -120,7 +120,6 @@ function u_GetPropertyNames(propDef, draft) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Get group metadata for title and description */
 function u_GetGroupMeta(propDef, draft) {
-  const { template } = draft;
   const metaSource = template._ui || {};
 
   if (!propDef || propDef === '') {
@@ -134,7 +133,7 @@ function u_GetGroupMeta(propDef, draft) {
   }
 
   // For composite properties, get metadata from controlData
-  const controlData = RSB.GetDataForProp(template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   if (!controlData) {
     return { label: '<no metadata found>', description: '' };
   }

@@ -134,7 +134,7 @@ function PropertyGroup(props) {
     // Get structured control data using RSB.GetDataForProp
     const propDef = RSB.EncodePropDef(groupName, p);
     const inputKey = `in_${propDef}`;
-    const controlData = RSB.GetDataForProp(draft.template, propDef);
+    const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
     const { _control } = u_ExtractGroupProps(controlData);
     // LOG(
     //   `%cPropertyGroup: %c${propDef} %c(${_control})`,

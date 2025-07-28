@@ -92,7 +92,7 @@ function CompositeInput(props) {
   const { draft } = React.useContext(RSB.SettingsContext);
 
   // Get control data for the composite property
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const propFields = u_ExtractCompositeProps(controlData);
 
   // Render child inputs

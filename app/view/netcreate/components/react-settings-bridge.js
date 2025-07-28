@@ -106,7 +106,7 @@ function GetDataForProp(template, propDef) {
 
   /// FIRST: BASIC DEFENSIVE CHECKS ///
   if (typeof template !== 'object')
-    throw Error(`${fn} arg1 must be a settings object`);
+    throw Error(`${fn} arg1 must be an object based on a template.toml file`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
   let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
   // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
