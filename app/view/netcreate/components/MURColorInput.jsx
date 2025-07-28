@@ -87,7 +87,6 @@ function ColorInput(props) {
   // note that this only runs on the FIRST render, which is why
   // we need the useEffect() to work around it
   const [labelColor, setLabelColor] = React.useState('black');
-  const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
   const templateColorValue = colorValue || defColorValue;
   const templateLabelValue = labelValue || defLabelValue;
   const [inputColorValue, setInputColorValue] = React.useState(
@@ -135,8 +134,8 @@ function ColorInput(props) {
   const handleColorChange = event => {
     const color = event.target.value;
     setInputColorValue(color);
-    // TODO: dispatch color change
     console.log(`Color change for ${propDef}:`, color);
+    submitColorToSettings(color);
   };
 
   // label changes will update the current value
@@ -148,8 +147,9 @@ function ColorInput(props) {
   // label key return will submit the value to draft object
   const handleLabelEnterKey = async event => {
     if (event.key === 'Enter') {
-      // TODO: dispatch label change
-      console.log(`Label change for ${propDef}:`, event.target.value);
+      const label = event.target.value;
+      console.log(`Label change for ${propDef}:`, label);
+      submitLabelToSettings(label);
     }
   };
 
@@ -179,6 +179,9 @@ function ColorInput(props) {
   const mod = colorMod || labelMod;
   const bgColor = mod ? modColor : 'white';
 
+  // conditional flags based on template values
+  const isDefaultLabel = !labelValue || labelValue === '';
+
   // render either enabled or disabled based on hasLock
   const InputField = hasLock ? (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -197,18 +200,23 @@ function ColorInput(props) {
       <input
         type="text"
         value={inputLabelValue}
-        placeholder="Label"
+        placeholder={isDefaultLabel ? '<default>' : 'Label'}
+        disabled={isDefaultLabel}
         style={{
           ...inputStyle,
           minWidth: '120px',
-          backgroundColor: bgColor
+          backgroundColor: isDefaultLabel ? '#f5f5f5' : bgColor,
+          cursor: isDefaultLabel ? 'not-allowed' : 'text'
         }}
-        onKeyDown={handleLabelEnterKey}
-        onBlur={e => {
-          // TODO: dispatch label change on blur
-          console.log(`Label blur for ${propDef}:`, e.target.value);
-        }}
-        onChange={handleLabelTyping}
+        onKeyDown={isDefaultLabel ? undefined : handleLabelEnterKey}
+        onBlur={
+          isDefaultLabel
+            ? undefined
+            : e => {
+                submitLabelToSettings(e.target.value);
+              }
+        }
+        onChange={isDefaultLabel ? undefined : handleLabelTyping}
       />
     </div>
   ) : (
@@ -222,19 +230,14 @@ function ColorInput(props) {
           borderRadius: '3px'
         }}
       />
-      <span>{inputLabelValue || 'Unlabeled'}</span>
-      <span style={{ color: 'gray', fontSize: '0.8em' }}>({inputColorValue})</span>
+      <span>{inputLabelValue || '<default>'}</span>
+      {/* <span style={{ color: 'gray', fontSize: '0.8em' }}>({inputColorValue})</span> */}
     </div>
   );
 
   /// RENDER ///
 
-  return (
-    <div style={itemGrid}>
-      {InputField}
-      {tooltip && <div style={tooltipStyle}>{tooltip}</div>}
-    </div>
-  );
+  return <div style={itemGrid}>{InputField}</div>;
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
