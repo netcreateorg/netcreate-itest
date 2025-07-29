@@ -20,6 +20,7 @@ const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
 // components
 const PropertyGroup = require('./MURPropertyGroup');
+const CompositeGroup = require('./MURCompositeGroup');
 const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
@@ -97,11 +98,11 @@ function MURSettingsEditor() {
 
   // note: template global settings not grouped, so prepend as special case group=""
   const GroupList = [
-    <PropertyGroup groupName="nodeDefs" key="nodeDefs" />,
-    <PropertyGroup groupName="edgeDefs" key="edgeDefs" />,
+    <CompositeGroup propDef="nodeDefs" open={false} key="nodeDefs" />,
+    <CompositeGroup propDef="edgeDefs" open={false} key="edgeDefs" />,
     <div key="commentTypes">[ CommentTypes Will Go Here ]</div>
   ];
-  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
+  GroupList.unshift(<CompositeGroup propDef="" open={false} key="global-settings" />);
 
   //
 

@@ -78,8 +78,7 @@ function DecodePropDef(propDef: string) {
   // guard checks
   if (typeof propDef !== 'string')
     throw Error(`Invalid propDef ${propDef}, expected dotted string`);
-  if (propDef.length === 0)
-    throw Error(`Invalid propDef ${propDef}, expected dotted string`);
+  if (propDef.length === 0) return [''];
   const [groupID, propID, fieldID, ...extra] = propDef.split('.');
   if (extra.length > 0)
     throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);

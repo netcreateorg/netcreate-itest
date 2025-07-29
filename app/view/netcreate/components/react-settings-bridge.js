@@ -109,8 +109,7 @@ function GetDataForProp(template, propDef) {
     throw Error(`${fn} arg1 must be an object based on a template.toml file`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
   let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
-  // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
-  if (typeof propName !== 'string')
+  if (propName !== undefined && typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
   if (typeof template._ui !== 'object')
     return { error: `${fn} t_ui _ui is not available` };
@@ -118,6 +117,26 @@ function GetDataForProp(template, propDef) {
   // got this far, we have a valid template and template._ui
   let t_ui = template._ui; // _ui is the metadata source
   let sourceMeta, sourceData;
+
+  /// CASE 0: GROUP NAME IS '', i.e. a global setting ///
+  if (groupName === '' && propName === undefined) {
+    // return filtered metadata containing only global properties plus _groupMeta
+    const { globalsList } = GetUISettingsList(t_ui);
+    sourceMeta = {};
+    globalsList.forEach(p => (sourceMeta[p] = u_clone(t_ui[p])));
+    // Include _groupMeta for root-level group metadata
+    if (t_ui._groupMeta) {
+      sourceMeta._groupMeta = u_clone(t_ui._groupMeta);
+    }
+    sourceData = template;
+    return {
+      groupName: '',
+      propName: undefined,
+      propField: undefined,
+      sourceMeta,
+      sourceData
+    };
+  }
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
   if (groupName === undefined || groupName === '') {
