@@ -7,7 +7,7 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-import ColorInput from './MURColorInput';
+const ColorInput = require('./MURColorInput');
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////

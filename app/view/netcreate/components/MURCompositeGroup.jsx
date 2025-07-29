@@ -2,14 +2,6 @@
 
   MUR Composite Group Component
   Recursive component for rendering nested property groups and composites
-  To implemente
-
-  * THIS IS AI GENERATED AND DOES NOT WORK *
-  * DO NOT USE *
-
-  TODO: modify MURSettingEditor to use this component instead of
-  MURPropertyGroup when ready to implement. This will simplify the
-  template rendering system.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

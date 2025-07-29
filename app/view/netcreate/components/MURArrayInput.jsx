@@ -8,8 +8,8 @@
 
 const React = require('react');
 const RSB = require('./react-settings-bridge');
-import TextInput from './MURTextInput';
-import BooleanInput from './MURBooleanInput';
+const TextInput = require('./MURTextInput');
+const BooleanInput = require('./MURBooleanInput');
 const { ConsoleStyler } = require('ursys-min');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////

@@ -3,23 +3,12 @@
   MUR Property Editor Panel
   (replacement for deprecated `NCTemplate.jsx`)
 
-  Concept: This design assumes "Property Groups" that contain "Properties"
-  in a data object, which is different than how TEMPLATE is organized.
-  The MURSettingsEditor figures out what Property Groups are available,
-  and writes PropertyGroup components that themselves render the specific
-  Input components for each property.
-
-  Unfortunately, React itself does not lend itself to this kind of top-
-  down data sharing, so we have to jump through hoops to make it work
-  through various hooks and context providers.
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
 // components
-const PropertyGroup = require('./MURPropertyGroup');
 const CompositeGroup = require('./MURCompositeGroup');
 const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
