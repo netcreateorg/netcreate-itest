@@ -4,6 +4,9 @@
   Recursive component for rendering nested property groups and composites
   To implemente
 
+  * THIS IS AI GENERATED AND DOES NOT WORK *
+  * DO NOT USE *
+
   TODO: modify MURSettingEditor to use this component instead of
   MURPropertyGroup when ready to implement. This will simplify the
   template rendering system.
@@ -22,7 +25,7 @@ const { ConsoleStyler } = require('ursys-min');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('CompositeGroup', 'TagBlue');
+const PR = ConsoleStyler('CGroup', 'TagPink');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -90,9 +93,11 @@ function CompositeGroup(props) {
   } else {
     // Named groups: look for group metadata in _ui._groupMeta[groupName]
     groupMeta = (metaSource._groupMeta && metaSource._groupMeta[propDef]) || {};
+    // LOG(...PR(`CompositeGroup: metaSource._groupMeta =`, metaSource._groupMeta));
   }
 
-  const grpTitle = groupMeta.label || propName || propDef || '<title not set>';
+  const grpTitle =
+    groupMeta.label || `[${propName}]` || `[${propDef}]` || '<title not set>';
   const grpDesc = groupMeta.description || '';
 
   // Generate unique key for this group

@@ -84,10 +84,10 @@ function MURSettingsEditor() {
       }}
     >
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
-        Revert Changes
+        Cancel Settings Changes
       </button>
       <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
-        Save Changes
+        Save Settings Changes
       </button>
     </div>
   ) : (
