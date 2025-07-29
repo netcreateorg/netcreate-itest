@@ -20,10 +20,8 @@ const PR = ConsoleStyler('InColor', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { inputStyle, opBtnStyle } = RSB.GetStyles();
 
-const arrayContainerStyle = {
-  border: '1px solid #ddd',
-  padding: '1rem',
-  backgroundColor: '#fff'
+const groupContainerStyle = {
+  padding: '1rem 0.5rem'
 };
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -69,6 +67,52 @@ function ColorGroup(props) {
   const { sourceMeta, sourceData } = colorProps;
   const isDisabled = !hasLock;
 
+  /// EVENT HANDLERS ///
+
+  const handleDeleteItem = index => {
+    const newArray = sourceData.filter((_, i) => i !== index);
+    dispatch({
+      op: 'update',
+      propDef,
+      value: newArray
+    });
+  };
+
+  const handleSortChange = e => {
+    const newSortType = e.target.value;
+    setSortType(newSortType);
+    const sortedArray = [...sourceData].sort((a, b) => {
+      const labelA = (a.label || '').toLowerCase();
+      const labelB = (b.label || '').toLowerCase();
+      return newSortType === 'a-z'
+        ? labelA.localeCompare(labelB)
+        : labelB.localeCompare(labelA);
+    });
+    dispatch({
+      op: 'update',
+      propDef,
+      value: sortedArray
+    });
+  };
+
+  const handleAddItem = () => {
+    const newItem = { color: '#808080', label: 'Label' };
+    const newArray = [...sourceData, newItem];
+    dispatch({
+      op: 'update',
+      propDef,
+      value: newArray
+    });
+  };
+
+  const handleTooltip = e => {
+    if (e.type === 'mouseover') {
+      if (tooltip) e.target.title = tooltip;
+    } else if (e.type === 'mouseout') {
+      if (tooltip) e.target.removeAttribute('title');
+    }
+  };
+
   /// SUB RENDER ///
 
   const { label, tooltip, help } = sourceMeta;
@@ -98,14 +142,7 @@ function ColorGroup(props) {
               width: '60px'
             }}
             disabled={isDisabled}
-            onClick={() => {
-              const newArray = sourceData.filter((_, i) => i !== index);
-              dispatch({
-                op: 'update',
-                propDef,
-                value: newArray
-              });
-            }}
+            onClick={() => handleDeleteItem(index)}
           >
             DELETE
           </button>
@@ -122,33 +159,18 @@ function ColorGroup(props) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: '1rem',
-        paddingTop: '1rem',
-        borderTop: '1px solid #ddd'
+        marginTop: '0.5rem',
+        borderTop: '1px dotted #00000040',
+        paddingTop: '0.5rem'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <label>FORCE SORT:</label>
+        <label style={{ marginLeft: '0.5rem' }}>FORCE SORT:</label>
         <select
           style={inputStyle}
           disabled={isDisabled}
           value={sortType}
-          onChange={e => {
-            const newSortType = e.target.value;
-            setSortType(newSortType);
-            const sortedArray = [...sourceData].sort((a, b) => {
-              const labelA = (a.label || '').toLowerCase();
-              const labelB = (b.label || '').toLowerCase();
-              return newSortType === 'a-z'
-                ? labelA.localeCompare(labelB)
-                : labelB.localeCompare(labelA);
-            });
-            dispatch({
-              op: 'update',
-              propDef,
-              value: sortedArray
-            });
-          }}
+          onChange={handleSortChange}
         >
           <option value="a-z">A-Z</option>
           <option value="z-a">Z-A</option>
@@ -165,15 +187,7 @@ function ColorGroup(props) {
           marginRight: '1rem'
         }}
         disabled={isDisabled}
-        onClick={() => {
-          const newItem = { color: '#808080', label: 'Label' };
-          const newArray = [...sourceData, newItem];
-          dispatch({
-            op: 'update',
-            propDef,
-            value: newArray
-          });
-        }}
+        onClick={handleAddItem}
       >
         ADD
       </button>
@@ -187,12 +201,8 @@ function ColorGroup(props) {
         marginBottom: '0.5rem',
         display: 'block'
       }}
-      onMouseOver={e => {
-        if (tooltip) e.target.title = tooltip;
-      }}
-      onMouseOut={e => {
-        if (tooltip) e.target.removeAttribute('title');
-      }}
+      onMouseOver={handleTooltip}
+      onMouseOut={handleTooltip}
     >
       {label || propName}
     </label>
@@ -201,10 +211,12 @@ function ColorGroup(props) {
   /// RENDER ///
 
   return (
-    <div style={arrayContainerStyle}>
+    <div style={groupContainerStyle}>
       {Label}
-      {renderColorItems()}
-      {ButtonControls}
+      <div style={{ padding: '0.5rem 0', backgroundColor: '#00000020' }}>
+        {renderColorItems()}
+        {ButtonControls}
+      </div>
     </div>
   );
 }

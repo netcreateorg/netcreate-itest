@@ -17,8 +17,7 @@ const PR = ConsoleStyler('InColor', 'TagBlue');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { itemGrid, labelStyle, inputStyle, popupStyle, modColor, opBtnStyle } =
-  RSB.GetStyles();
+const { labelStyle, inputStyle, popupStyle, modColor, opBtnStyle } = RSB.GetStyles();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -153,24 +152,6 @@ function ColorInput(props) {
     }
   };
 
-  // hovering over label will show tooltip
-  const handleTooltip = event => {
-    if (event.type === 'mouseover') {
-      const offset = RSB.EventTargetOffsetStyle(event);
-      const content = tooltip || '';
-      setTooltipStyle({
-        ...popupStyle,
-        ...offset,
-        display: 'block',
-        content
-      });
-      setLabelColor('maroon');
-    } else if (event.type === 'mouseout') {
-      setTooltipStyle({ ...popupStyle });
-      setLabelColor('black');
-    }
-  };
-
   /// SUB RENDER ///
 
   // conditional flags based on template values
@@ -237,7 +218,18 @@ function ColorInput(props) {
 
   /// RENDER ///
 
-  return <div style={itemGrid}>{InputField}</div>;
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 214px) 1fr',
+        alignItems: 'baseline',
+        margin: '0.2rem 0.4rem'
+      }}
+    >
+      {InputField}
+    </div>
+  );
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
