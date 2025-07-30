@@ -22,7 +22,7 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
 function NCBugReport() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [logInfo, setLogInfo] = useState({ logFilename: 'loading...' });
 
   useEffect(() => {
