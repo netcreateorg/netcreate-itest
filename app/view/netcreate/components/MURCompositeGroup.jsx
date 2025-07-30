@@ -32,6 +32,8 @@ function u_RenderControlInput(_control, propDef, key) {
     return <TextInput propDef={propDef} key={key} />;
   } else if (_control === 'in_boolean') {
     return <BooleanInput propDef={propDef} key={key} />;
+  } else if (_control === 'in_array') {
+    return <ArrayInput propDef={propDef} key={key} />;
   } else if (_control === 'composite') {
     return <CompositeGroup propDef={propDef} key={key} />;
   }
@@ -41,8 +43,6 @@ function u_RenderControlInput(_control, propDef, key) {
   } else if (_control.startsWith('//')) {
     if (DBG) LOG('.. %cskipping disabled control:', 'color: blue', propDef);
     return null;
-  } else if (_control === 'in_array') {
-    return <ArrayInput propDef={propDef} key={key} />;
   }
 
   LOG(...PR(`Unsupported control type ${_control} for propDef ${propDef}`));
@@ -59,24 +59,23 @@ function CompositeGroup(props) {
   const { draft } = React.useContext(RSB.SettingsContext);
 
   // Get property names and metadata from controlData
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
-  const propNames =
-    controlData && controlData.sourceMeta
-      ? Object.keys(controlData.sourceMeta).filter(p => !p.startsWith('_'))
-      : [];
-
-  if (DBG)
-    LOG(
-      `%cCompositeGroup: %c${propDef || 'root'} %c(${propNames.length} props)`,
-      'color: green',
-      'color: blue',
-      'color: gray',
-      propNames
-    );
+  let controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
 
   // Extract group metadata for header
-  const { propName, sourceMeta } = controlData || {};
+  const { propName, sourceMeta, sourceData } = controlData || {};
   const metaSource = draft.template._ui || {};
+
+  let propNames = sourceMeta
+    ? Object.keys(controlData.sourceMeta).filter(p => !p.startsWith('_'))
+    : [];
+
+  if (propNames.length === 0 && sourceMeta._control === 'in_array') {
+    propNames = sourceData.map((item, index) => {
+      const pn = `${propDef}[${index}]`;
+      console.log('propName generated', pn);
+      return pn;
+    });
+  }
 
   let groupMeta = {};
   if (!propDef || propDef === '') {
@@ -98,24 +97,40 @@ function CompositeGroup(props) {
   /// SUB RENDER ///
 
   const PropertyList = propNames.map(p => {
-    if (p.startsWith('_')) return null;
+    if (p.startsWith('_')) {
+      // console.warn(`skipping ${p}`);
+      return null;
+    }
 
-    // Build child propDef - for root level, just use property name
-    const childPropDef = propDef ? `${propDef}.${p}` : p;
+    // Build child propDef
+    let childPropDef;
+    if (sourceMeta._control === 'in_array') {
+      childPropDef = p;
+    } else {
+      childPropDef = propDef ? `${propDef}.${p}` : p;
+    }
     // Get control data for this child property
     const childControlData = RSB.GetDataForProp(
       draft.pending || draft.template,
       childPropDef
     );
-    if (!childControlData || !childControlData.sourceMeta) return null;
+    // if (!childControlData || !childControlData.sourceMeta) {
+    //   console.warn(`missing childControlData=`, JSON.stringify(childControlData));
+    //   return null;
+    // } else {
+    //   console.log(`good childPropDef`, JSON.stringify(childControlData));
+    // }
 
     const { _control } = childControlData.sourceMeta;
     const inputKey = `in_${childPropDef}`;
 
-    return u_RenderControlInput(_control, childPropDef, inputKey);
+    const result = u_RenderControlInput(_control, childPropDef, inputKey);
+    return result;
   });
 
   /// RENDER ///
+
+  LOG(...PR(`Rendering PropertyList for ${propDef}`, PropertyList));
 
   return (
     <div key={key} style={{ margin: '1rem 0.5rem' }}>

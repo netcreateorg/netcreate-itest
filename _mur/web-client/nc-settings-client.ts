@@ -88,15 +88,18 @@ function DecodePropDef(propDef: string) {
   }
   // if there is only one part, then it's a propID
   if (propID === undefined) {
-    const { type, index } = u_DecodeArrayProp(groupID);
-    if (type === 'arrayIndex') return [undefined, groupID, undefined, index];
+    const { type, name, index } = u_DecodeArrayProp(groupID);
+    if (type === 'arrayIndex') return [undefined, name, undefined, index];
     return [undefined, groupID, undefined];
   }
   // if there are two or more parts, then check the last defined part for
   // array-ness
   const lastProp = fieldID || propID || groupID;
   const { type, name, index } = u_DecodeArrayProp(lastProp);
-  if (type === 'arrayIndex') return [groupID, propID, name, index];
+  if (type === 'arrayIndex') {
+    if (fieldID) return [groupID, propID, name, index]; // 3-part
+    return [groupID, name, fieldID, index]; // 2-part
+  }
   return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -30,6 +30,8 @@ _schemaVersion = "2.1"
 [_ui_defs]
 NodeType = { label = "string", color = "string" }
 EdgeType = { label = "string", color = "string" }
+CommentType = { slug = "string", label ="string", prompts = "ui_def" }
+PromptType = { format = "string", prompt = "string", help = "string", feedback = "string" }
 
 [_ui._groupMeta]
 label = "Global Settings"
@@ -281,7 +283,8 @@ includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.commentTypes]
-_control = "array"
+_control = "in_array"
+_controLDef = "CommentType"
 
 [citation]
 text = "No citation set"

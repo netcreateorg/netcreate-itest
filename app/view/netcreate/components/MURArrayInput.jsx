@@ -16,7 +16,7 @@ const { ConsoleStyler } = require('ursys-min');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('InText', 'TagBlue');
+const PR = ConsoleStyler('InArray', 'TagBlue');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,20 +46,18 @@ function m_ExtractArrayProps(controlData) {
     return { error: `arg1 must be an object, got ${typeof controlData}` };
 
   const { groupName, propName, propField } = controlData;
-  const { sourceMeta, sourceData, itemDef } = controlData;
+  const { sourceMeta, sourceData } = controlData;
+  const controlDef = sourceMeta._controlDef;
 
   if (!Array.isArray(sourceData)) return { error: 'sourceData must be an array' };
-
-  if (!itemDef || typeof itemDef !== 'object')
-    return { error: 'itemDef must be an object defining field types' };
 
   return {
     groupName,
     propName,
     propField,
     sourceData,
-    itemDef,
-    sourceMeta
+    sourceMeta,
+    controlDef
   };
 }
 
@@ -70,7 +68,7 @@ function ArrayInput(props) {
   const { propDef } = props;
   const { draft, hasLock } = React.useContext(RSB.SettingsContext);
 
-  const controlData = RSB.GetDataForProp(draft.template, propDef);
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const arrayProps = m_ExtractArrayProps(controlData);
 
   if (arrayProps.error) {
@@ -80,48 +78,56 @@ function ArrayInput(props) {
   }
 
   const { groupName, propName, propField } = arrayProps;
-  const { sourceMeta, sourceData, itemDef } = arrayProps;
+  const { sourceMeta, sourceData, controlDef } = arrayProps;
   const isDisabled = !hasLock;
 
-  const { _control } = itemDef;
   // Render child inputs for each item in the array
-  const ItemControls = sourceData.map((item, index) => {
+  if (sourceData.length > 0)
+    console.log('good sourceData', JSON.stringify(sourceData));
+  const ArrayItems = sourceData.map((item, index) => {
     const itemKey = `item-${index}`;
     const itemPropDef = `${propDef}[${index}]`;
 
-    // handle common control types
-    if (_control === 'in_string' || _control === 'in_text') {
-      return <TextInput propDef={itemPropDef} key={childKey} />;
-    } else if (_control === 'in_boolean') {
-      return <BooleanInput propDef={itemPropDef} key={childKey} />;
+    const itemControlData = RSB.GetDataForProp(
+      draft.pending || draft.template,
+      itemPropDef
+    );
+
+    if (!itemControlData || !itemControlData.sourceMeta) {
+      console.warn(`No control data for item ${itemPropDef}`, itemControlData);
+      return null;
     }
 
+    const control = itemControlData.sourceMeta._control;
+    if (control) {
+      // console.log(`Rendering item ${itemKey}`, itemControlData);
+    } else {
+      console.warn(`No control value found for ${itemKey}`);
+      return null;
+    }
     // handle unsupported control types
-    return (
-      <div key={itemKey}>
-        <span>{propField}: </span>
-        <span style={{ color: 'gray' }}>[{_control}]</span>
-      </div>
-    );
+    return <div key={itemKey}>{itemKey}</div>;
   });
 
   /// RENDER ///
 
-  return (
-    <div style={arrayContainerStyle}>
-      {sourceMeta.label && (
-        <div style={{ marginBottom: '0.5rem' }}>
-          <h4 style={{ margin: 0, fontWeight: 'bold' }}>{sourceMeta.label}</h4>
-        </div>
-      )}
-      {sourceMeta.help && (
-        <div style={{ marginBottom: '1rem', color: '#666', fontSize: '0.9em' }}>
-          {sourceMeta.help}
-        </div>
-      )}
-      {ItemControls}
-    </div>
-  );
+  return <p>Do You Even Render, Bro</p>;
+
+  // return (
+  //   <div style={arrayContainerStyle}>
+  //     {sourceMeta.label && (
+  //       <div style={{ marginBottom: '0.5rem' }}>
+  //         <h4 style={{ margin: 0, fontWeight: 'bold' }}>{sourceMeta.label}</h4>
+  //       </div>
+  //     )}
+  //     {sourceMeta.help && (
+  //       <div style={{ marginBottom: '1rem', color: '#666', fontSize: '0.9em' }}>
+  //         {sourceMeta.help}
+  //       </div>
+  //     )}
+  //     <p>Do you even render, bro?</p>
+  //   </div>
+  // );
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

@@ -119,6 +119,7 @@ function GetDataForProp(template, propDef) {
   let sourceMeta, sourceData;
 
   /// CASE 0: GROUP NAME IS '', i.e. a global setting ///
+
   if (groupName === '' && propName === undefined) {
     // return filtered metadata containing only global properties plus _groupMeta
     const { globalsList } = GetUISettingsList(t_ui);
@@ -139,14 +140,17 @@ function GetDataForProp(template, propDef) {
   }
 
   /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+
   if (groupName === undefined || groupName === '') {
-    if (!template[propName]) return { error: `no value for ${propDef}` };
+    if (!template[propName])
+      return { error: `(1) no value for propName:${propName}` };
     // has metadata
     if (t_ui[propName] !== undefined) {
       sourceMeta = u_clone(t_ui[propName]);
       // handle indexed array access
       if (index !== undefined) {
         sourceData = template[propName] && template[propName][index];
+        sourceMeta._controlDef = 'CommentType';
       } else {
         sourceData = template[propName];
       }
@@ -165,32 +169,40 @@ function GetDataForProp(template, propDef) {
       error: `no UI data for ${propDef}`
     };
   }
+
   /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
+
   if (propField !== undefined) {
+    // if there's a propfield, then check for array
     if (t_ui[groupName] === undefined)
-      return { error: `no UI metadata for group ${groupName}` };
+      return { error: `(2) no UI metadata for group ${groupName}` };
     if (t_ui[groupName][propName] === undefined)
-      return { error: `group ${groupName} no metadata for ${propName}` };
+      return { error: `(2) group ${groupName} no metadata for ${propName}` };
     if (t_ui[groupName][propName][propField] === undefined)
       return {
-        error: `composite ${groupName}.${propName} no metadata for field ${propField}`
+        error: `(2) composite ${groupName}.${propName} no metadata for field ${propField}`
       };
 
-    sourceMeta = u_clone(t_ui[groupName][propName][propField]);
-    // handle indexed array access
-    if (index !== undefined) {
+    if (Number.isInteger(index)) {
+      // find sourceData
       sourceData =
         template[groupName] &&
         template[groupName][propName] &&
         template[groupName][propName][propField]
           ? template[groupName][propName][propField][index]
           : undefined;
+      // find sourceMeta
     } else {
+      // find sourceData
       sourceData =
         template[groupName] && template[groupName][propName]
           ? template[groupName][propName][propField]
           : undefined;
     }
+
+    sourceMeta = u_clone(t_ui[groupName][propName][propField]);
+
+    // handle indexed array access
     return {
       groupName,
       propName,
@@ -199,11 +211,13 @@ function GetDataForProp(template, propDef) {
       sourceData
     };
   }
+
   /// CASE 3: TWO-LEVEL GROUP NAME AND PROP NAME AVAILABLE ///
+
   t_ui = t_ui[groupName][propName];
   if (t_ui === undefined)
     return {
-      error: `group ${groupName} no metadata for ${propName}`
+      error: `(3) group ${groupName} no metadata for ${propName}`
     };
   // if got this far, t_ui now has a object keys for each type of
   // "editable setting" which can have multiple properties:
