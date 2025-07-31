@@ -538,7 +538,10 @@ class NCNode extends UNISYS.Component {
    */
   LookupBackgroundColor(type) {
     const COLORMAP = this.AppState('COLORMAP');
-    const uBackgroundColor = COLORMAP.nodeColorMap[type] || '#555555';
+    // Use empty string as fallback for undefined type if an empty type has been defined
+    const normalizedType =
+      type === undefined && COLORMAP.nodeColorMap[''] ? '' : type;
+    const uBackgroundColor = COLORMAP.nodeColorMap[normalizedType] || '#555555';
     return uBackgroundColor;
   }
 

@@ -667,7 +667,10 @@ class NCEdge extends UNISYS.Component {
    */
   LookupBackgroundColor(type) {
     const COLORMAP = this.AppState('COLORMAP');
-    const uBackgroundColor = COLORMAP.edgeColorMap[type] || '#555555';
+    // Use empty string as fallback for undefined type if an empty type has been defined
+    const normalizedType =
+      type === undefined && COLORMAP.edgeColorMap[''] ? '' : type;
+    const uBackgroundColor = COLORMAP.edgeColorMap[normalizedType] || '#555555';
     return uBackgroundColor;
   }
   LookupSourceTargetNodeColor({ dSourceNode, dTargetNode } = this.state) {
