@@ -326,7 +326,8 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
 
     // (3C) see if the prop was found in the schema for this object
     if (checkProp === undefined) {
-      // is this an old legacy property or runtime property that snuck into template data?
+      // there are some properties that seem to be commonly included, but not consistently.
+      // flag them as a warning
       const parentType = tInfo; // 'nodeDefs' or 'edgeDefs'
       if (EXTRAS20[parentType] && EXTRAS20[parentType].includes(key)) {
         const warn = `? ${tInfo}.${key} : non-schema property detected in dataset template (legacy?)`;
@@ -335,7 +336,8 @@ function r_ValidateProperty(tInfo, tObj, checkObj) {
         return;
       }
 
-      // if not, then it's an unrecognized property that's not in the schema
+      // if the property isn't a "recognized unknown property" found in EXTRAS20, then
+      // add it as an EXTRA key instead of a warning that would have been caught above.
       const err = `* ${tInfo}.${key} : extra property in template: not defined in schema`;
       if (DBG) LOG(err);
       EXTRA.push(err);
@@ -468,8 +470,7 @@ function GetValidation(template) {
   if (WARNINGS.length > 0) {
     report += `    ${WARNINGS.length} warnings found\n`;
   }
-  const templateOK =
-    INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
+  const templateOK = INVALID.length === 0 && MISSING.length === 0;
 
   return [
     templateOK,
