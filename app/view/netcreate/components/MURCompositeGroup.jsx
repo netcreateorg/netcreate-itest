@@ -71,6 +71,8 @@ function CompositeGroup(props) {
   let propNames = sourceMeta
     ? Object.keys(controlData.sourceMeta).filter(p => !p.startsWith('_'))
     : [];
+  // HACK: Remove commentTypes because this is defined at the top level
+  propNames = propNames.filter(p => p !== 'commentTypes');
 
   // override propNames if there are no keys, as this could be an in_array
   // control. In this case, the propNames should just contain the propDef[]

@@ -92,6 +92,7 @@ function MURSettingsEditor() {
     // <CompositeGroup propDef="commentTypes" open={true} key="commentTypes" />
   ];
   GroupList.unshift(<CompositeGroup propDef="" open={false} key="global-settings" />);
+  // HACK there is a check for global commentTypes in MURCompositeGroup
 
   return (
     <SettingsContext.Provider value={value}>
