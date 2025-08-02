@@ -34,7 +34,7 @@ function u_RenderControlInput(_control, propDef, key) {
     return <BooleanInput propDef={propDef} key={key} />;
   } else if (_control === 'in_array') {
     return <ArrayInput propDef={propDef} key={key} />;
-  } else if (_control === 'composite') {
+  } else if (_control === 'in_composite') {
     return <CompositeGroup propDef={propDef} key={key} />;
   }
 
@@ -58,31 +58,35 @@ function CompositeGroup(props) {
   if (open === undefined) open = true; // default to open if not specified
   const { draft } = React.useContext(RSB.SettingsContext);
 
-  // Get property names and metadata from controlData
+  // get propDef-scoped property names and metadata from controlData
   let controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
 
-  // Extract group metadata for header
+  // extract group metadata for header
   const { propName, sourceMeta, sourceData } = controlData || {};
-  const metaSource = draft.template._ui || {};
+  const metaSource = draft.template._ui || {}; // used
 
+  // extract the top-level keys in sourceMeta if it exists. this is the
+  // list of properties found that we will process one-by-one when
+  // generating the PropertyList render output.
   let propNames = sourceMeta
     ? Object.keys(controlData.sourceMeta).filter(p => !p.startsWith('_'))
     : [];
 
+  // override propNames if there are no keys, as this could be an in_array
+  // control. In this case, the propNames should just contain the propDef[]
+  // syntax, as ArrayInput expects to receive this as its propDef
   if (propNames.length === 0 && sourceMeta._control === 'in_array') {
-    propNames = sourceData.map((item, index) => {
-      const pn = `${propDef}[${index}]`;
-      console.log('propName generated', pn);
-      return pn;
-    });
+    propNames = [`${propDef}`];
   }
 
   let groupMeta = {};
+  // special check for propDef='', which means the global settings that are
+  // not in a group in the template.toml declaration file.
   if (!propDef || propDef === '') {
     // Root level: use global _groupMeta
     groupMeta = (sourceMeta && sourceMeta._groupMeta) || {};
   } else {
-    // Named groups: look for group metadata in _ui._groupMeta[groupName]
+    // not a global settings, so look for group metadata in _ui._groupMeta[groupName]
     groupMeta = (metaSource._groupMeta && metaSource._groupMeta[propDef]) || {};
     // LOG(...PR(`CompositeGroup: metaSource._groupMeta =`, metaSource._groupMeta));
   }
@@ -102,20 +106,19 @@ function CompositeGroup(props) {
       return null;
     }
 
-    // Build child propDef
-    let childPropDef;
-    if (sourceMeta._control === 'in_array') {
-      childPropDef = p;
-    } else {
-      childPropDef = propDef ? `${propDef}.${p}` : p;
-    }
+    // Build child propDef (stripping the leading '.' if propDef is empty
+    let childPropDef = propDef ? `${propDef}.${p}` : p;
+
     // Get control data for this child property
     const childControlData = RSB.GetDataForProp(
       draft.pending || draft.template,
       childPropDef
     );
+
+    // // detect missing controlData
     // if (!childControlData || !childControlData.sourceMeta) {
     //   console.warn(`missing childControlData=`, JSON.stringify(childControlData));
+    //   console.log(JSON.stringify(draft.template._ui.commentTypes, ' ', 2));
     //   return null;
     // } else {
     //   console.log(`good childPropDef`, JSON.stringify(childControlData));
@@ -129,8 +132,6 @@ function CompositeGroup(props) {
   });
 
   /// RENDER ///
-
-  LOG(...PR(`Rendering PropertyList for ${propDef}`, PropertyList));
 
   return (
     <div key={key} style={{ margin: '1rem 0.5rem' }}>

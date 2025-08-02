@@ -105,18 +105,25 @@ function GetDataForProp(template, propDef) {
   const fn = 'GetDataForProp:';
 
   /// FIRST: BASIC DEFENSIVE CHECKS ///
+
   if (typeof template !== 'object')
     throw Error(`${fn} arg1 must be an object based on a template.toml file`);
   if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
+  //
   let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
+  //
   if (propName !== undefined && typeof propName !== 'string')
     return { error: `${fn} invalid propName (string required)` };
+  //
   if (typeof template._ui !== 'object')
     return { error: `${fn} t_ui _ui is not available` };
 
   // got this far, we have a valid template and template._ui
   let t_ui = template._ui; // _ui is the metadata source
   let sourceMeta, sourceData;
+
+  const strIndex = index !== undefined ? `[${index}]` : '';
+  // LOG(...PR(propDef, `= ${groupName}.${propName}.${propField} ${strIndex}`));
 
   /// CASE 0: GROUP NAME IS '', i.e. a global setting ///
 
@@ -143,11 +150,10 @@ function GetDataForProp(template, propDef) {
 
   if (groupName === undefined || groupName === '') {
     if (!template[propName])
-      return { error: `(1) no value for propName:${propName}` };
+      return { error: `(1) no value for ${propName} (${propDef})` };
     // has metadata
     if (t_ui[propName] !== undefined) {
       sourceMeta = u_clone(t_ui[propName]);
-      // handle indexed array access
       if (index !== undefined) {
         sourceData = template[propName] && template[propName][index];
         sourceMeta._controlDef = 'CommentType';
@@ -175,12 +181,14 @@ function GetDataForProp(template, propDef) {
   if (propField !== undefined) {
     // if there's a propfield, then check for array
     if (t_ui[groupName] === undefined)
-      return { error: `(2) no UI metadata for group ${groupName}` };
+      return { error: `(2) no UI metadata for group ${groupName} (${propDef})` };
     if (t_ui[groupName][propName] === undefined)
-      return { error: `(2) group ${groupName} no metadata for ${propName}` };
+      return {
+        error: `(2) group ${groupName} no metadata for ${propName} (${propDef})`
+      };
     if (t_ui[groupName][propName][propField] === undefined)
       return {
-        error: `(2) composite ${groupName}.${propName} no metadata for field ${propField}`
+        error: `(2) composite ${groupName}.${propName} no metadata for field ${propField} (${propDef})`
       };
 
     if (Number.isInteger(index)) {
@@ -217,7 +225,7 @@ function GetDataForProp(template, propDef) {
   t_ui = t_ui[groupName][propName];
   if (t_ui === undefined)
     return {
-      error: `(3) group ${groupName} no metadata for ${propName}`
+      error: `(3) group ${groupName} no metadata for ${propName} (${propDef})`
     };
   // if got this far, t_ui now has a object keys for each type of
   // "editable setting" which can have multiple properties:
@@ -241,6 +249,21 @@ function GetDataForProp(template, propDef) {
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API CRITICAL HELPER - given a uiDef, return the data found in
+ *  template._ui_def[uiDef]. Used to look up things like _controlDef which
+ *  is used in components like in_array (but not in_colorgroup, which can use
+ *  the hardcoded expectation of what its sourceData is shaped like */
+function GetUIDefForType(template, uiDef) {
+  const fn = 'GetUIDefForType';
+  if (!template || typeof template !== 'object')
+    throw Error(`${fn}: template must be an object`);
+  if (!template._ui_defs || typeof template._ui_defs !== 'object')
+    throw Error(`${fn}: template._ui_defs missing or not an object`);
+  if (!uiDef || typeof uiDef !== 'string')
+    throw Error(`${fn}: uiDef must be a string`);
+  return template._ui_defs[uiDef];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Shallow check that this is a UI object, not group of UIObjects */
 function IsUIObj(uobj) {
   // either a property or property in a group
@@ -249,7 +272,7 @@ function IsUIObj(uobj) {
   if (typeof uobj._control !== 'string')
     throw Error('uobj._control is missing or not string');
   if (Object.keys(uobj).length === 0) return false; // empty object
-  return uobj._control !== 'composite'; // not a composite control
+  return uobj._control !== 'in_composite'; // not a in_composite control
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Shallow check that this is a UI group */
@@ -258,7 +281,7 @@ function IsUIGroup(uobj) {
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
-  return uobj._control === 'composite';
+  return uobj._control === 'in_composite';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API HELPER: Given a uiMeta object, return a list of global settings and
@@ -413,6 +436,7 @@ module.exports = {
   PersistTemplate, // dataObj => { template: dataObj }
   GetDataForProp, // template, propDef => { groupName, propName, sourceMeta, sourceData }
   GetUISettingsList, // uiMeta => { globalsList, groupSettings }
+  GetUIDefForType, // template, uiDef => template._ui_defs[uiDef]
   HasPendingChanges, // return true if there are pending changes
   // Locking API
   GetLockState, // ()=>AppState('LOCKSTATE')

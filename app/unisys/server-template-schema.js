@@ -35,9 +35,9 @@ const CONTROL_SCHEMA = {
     help: 'string',
     options: 'object[]'
   },
-  // contains a composite control with nested fields
-  // { _control:'composite', [fieldName]:{ _control, ...ui_properties }}
-  composite: {}
+  // contains a in_composite control with nested fields
+  // { _control:'in_composite', [fieldName]:{ _control, ...ui_properties }}
+  in_composite: {}
 };
 
 /// OBJECT TYPE SCHEMAS ///////////////////////////////////////////////////////

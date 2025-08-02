@@ -70,17 +70,17 @@ tooltip = "Set the admin password for the graph"
 help = "This password protects access to the Advanced Settings Panel"
 
 [_ui.nodeDefs]
-_control = "composite"
+_control = "in_composite"
 
 [_ui.nodeDefs.id]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.label]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -88,7 +88,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.type]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -97,7 +97,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 options = { _control = "in_colorgroup",_controlDef = "NodeType", label = "Node Types", help = "Define custom Node Types" }
 
 [_ui.nodeDefs.notes]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -105,7 +105,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.info]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -113,7 +113,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.infoSource]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -122,73 +122,73 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 
 [_ui.nodeDefs.degrees]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.created]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.createdBy]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.updated]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.updatedBy]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.revision]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.edgeDefs]
-_control = "composite" 
+_control = "in_composite" 
 
 [_ui.edgeDefs.id]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.source]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.target]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.type]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
@@ -196,14 +196,14 @@ hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 options = { _control = "in_colorgroup", label = "Edge Types", help = "Define custom Edge Types" }
 
 [_ui.edgeDefs.notes]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.weight]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isRequired = { _control = "in_boolean", label = "label", help = "help|tooltip" }
@@ -212,7 +212,7 @@ isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip"
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.infoOrigin]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
@@ -220,63 +220,63 @@ isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip"
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.citation]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.category]
-_control = "composite"
+_control = "in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 isProvenance = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.created]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.createdBy]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.updated]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.updatedBy]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.revision]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.sourceLabel]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.edgeDefs.targetLabel]
-_control = "// composite"
+_control = "// in_composite"
 displayLabel = { _control = "in_string", label = "label", help = "help|tooltip" }
 help = { _control = "in_string", label = "label", help = "help|tooltip" }
 includeInGraphTooltip = { _control = "in_boolean", label = "label", help = "help|tooltip" }
@@ -284,7 +284,11 @@ hidden = { _control = "in_boolean", label = "label", help = "help|tooltip" }
 
 [_ui.commentTypes]
 _control = "in_array"
-_controLDef = "CommentType"
+_controlDef = "CommentType"
+
+  [_ui.commentTypes.prompts]
+  _control = "in_array"
+  _controlDef = "PromptType"
 
 [citation]
 text = "No citation set"

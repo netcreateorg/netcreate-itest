@@ -42,7 +42,7 @@ function m_ExtractColorArrayProps(controlData) {
     propField,
     sourceData,
     sourceMeta,
-    controlDef: _controlDef || {}
+    controlDef: _controlDef
   };
 }
 

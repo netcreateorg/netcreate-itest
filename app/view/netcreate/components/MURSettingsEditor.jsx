@@ -88,12 +88,10 @@ function MURSettingsEditor() {
   // note: template global settings not grouped, so prepend as special case group=""
   const GroupList = [
     <CompositeGroup propDef="nodeDefs" open={false} key="nodeDefs" />,
-    <CompositeGroup propDef="edgeDefs" open={false} key="edgeDefs" />,
-    <div key="commentTypes">[ CommentTypes Will Go Here ]</div>
+    <CompositeGroup propDef="edgeDefs" open={false} key="edgeDefs" />
+    // <CompositeGroup propDef="commentTypes" open={true} key="commentTypes" />
   ];
   GroupList.unshift(<CompositeGroup propDef="" open={false} key="global-settings" />);
-
-  //
 
   return (
     <SettingsContext.Provider value={value}>

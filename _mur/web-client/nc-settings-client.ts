@@ -99,6 +99,10 @@ function DecodePropDef(propDef: string) {
   if (type === 'arrayIndex') {
     if (fieldID) return [groupID, propID, name, index]; // 3-part
     return [groupID, name, fieldID, index]; // 2-part
+  } else if (type === 'array') {
+    // special case return [] at end
+    if (fieldID) return [groupID, propID, fieldID, index]; // 3-part
+    return [groupID, propID, fieldID];
   }
   return [groupID, propID, fieldID];
 }

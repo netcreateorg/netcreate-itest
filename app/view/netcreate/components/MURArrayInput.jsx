@@ -49,7 +49,7 @@ function m_ExtractArrayProps(controlData) {
   const { sourceMeta, sourceData } = controlData;
   const controlDef = sourceMeta._controlDef;
 
-  if (!Array.isArray(sourceData)) return { error: 'sourceData must be an array' };
+  if (!Array.isArray(sourceData)) return { error: `sourceData must be an array` };
 
   return {
     groupName,
@@ -73,7 +73,9 @@ function ArrayInput(props) {
 
   if (arrayProps.error) {
     return (
-      <div style={{ color: 'red', padding: '1rem' }}>Error: {arrayProps.error}</div>
+      <div style={{ color: 'red', padding: '1rem' }}>
+        Error: {arrayProps.error} ({propDef})
+      </div>
     );
   }
 
@@ -81,9 +83,10 @@ function ArrayInput(props) {
   const { sourceMeta, sourceData, controlDef } = arrayProps;
   const isDisabled = !hasLock;
 
+  // if (sourceData.length > 0)
+  //   console.log('good sourceData', JSON.stringify(sourceData));
+
   // Render child inputs for each item in the array
-  if (sourceData.length > 0)
-    console.log('good sourceData', JSON.stringify(sourceData));
   const ArrayItems = sourceData.map((item, index) => {
     const itemKey = `item-${index}`;
     const itemPropDef = `${propDef}[${index}]`;
@@ -94,40 +97,58 @@ function ArrayInput(props) {
     );
 
     if (!itemControlData || !itemControlData.sourceMeta) {
-      console.warn(`No control data for item ${itemPropDef}`, itemControlData);
-      return null;
+      return <p key={itemKey}>No controldata found for item {itemPropDef}</p>;
     }
 
     const control = itemControlData.sourceMeta._control;
-    if (control) {
-      // console.log(`Rendering item ${itemKey}`, itemControlData);
-    } else {
-      console.warn(`No control value found for ${itemKey}`);
-      return null;
+    const controlDef = itemControlData.sourceMeta._controlDef;
+    const itemMeta = RSB.GetUIDefForType(draft.pending || draft.template, controlDef);
+
+    if (!control) {
+      return <p key={itemKey}>No controlvalue defined for {itemKey}</p>;
     }
     // handle unsupported control types
-    return <div key={itemKey}>{itemKey}</div>;
+    return (
+      <div
+        key={itemKey}
+        style={{
+          margin: '0.5rem 0',
+          padding: '0.5rem 0',
+          borderBottom: '1px dotted #00000040'
+        }}
+      >
+        <span style={{ fontWeight: 'bold' }}>
+          {itemKey} - {controlDef}
+        </span>
+        <br />
+        <span style={{ fontWeight: 'bold' }}>itemData</span>
+        &nbsp;{JSON.stringify(item)}
+        <br />
+        <span style={{ fontWeight: 'bold' }}>itemMeta</span>
+        &nbsp;{JSON.stringify(itemMeta)}
+      </div>
+    );
   });
 
   /// RENDER ///
 
-  return <p>Do You Even Render, Bro</p>;
+  // return <p>Do You Even Render, Bro</p>;
 
-  // return (
-  //   <div style={arrayContainerStyle}>
-  //     {sourceMeta.label && (
-  //       <div style={{ marginBottom: '0.5rem' }}>
-  //         <h4 style={{ margin: 0, fontWeight: 'bold' }}>{sourceMeta.label}</h4>
-  //       </div>
-  //     )}
-  //     {sourceMeta.help && (
-  //       <div style={{ marginBottom: '1rem', color: '#666', fontSize: '0.9em' }}>
-  //         {sourceMeta.help}
-  //       </div>
-  //     )}
-  //     <p>Do you even render, bro?</p>
-  //   </div>
-  // );
+  return (
+    <div style={arrayContainerStyle}>
+      {sourceMeta.label && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          <h4 style={{ margin: 0, fontWeight: 'bold' }}>{sourceMeta.label}</h4>
+        </div>
+      )}
+      {sourceMeta.help && (
+        <div style={{ marginBottom: '1rem', color: '#666', fontSize: '0.9em' }}>
+          {sourceMeta.help}
+        </div>
+      )}
+      {ArrayItems}
+    </div>
+  );
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
