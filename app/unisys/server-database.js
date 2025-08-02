@@ -53,8 +53,8 @@ let TEMPLATE;
 let m_locked_nodes; // map key = nodeID, value = uaddr initiating the lock
 let m_locked_edges; // map key = edgeID, value = uaddr initiating the lock
 let m_locked_comments; // map key = commentID, value = uaddr initiating the lock
-let m_template_locks; // set of uaddr that have locks on template setting editing
 let m_open_editors = []; // array of template, node, or edge editors
+let m_template_locked_by; // set of uaddr that have locks on template setting editing
 /// formatting
 const BL = s => `\x1b[1;34m${s}\x1b[0m`;
 const RD = s => `\x1b[1;31m${s}\x1b[0m`;
@@ -280,7 +280,7 @@ async function m_LoadTemplate() {
   }
 
   // don't clear the locks of a reload of template happens post-init
-  if (m_template_locks === undefined) m_template_locks = new Set();
+  if (m_template_locked_by === undefined) m_template_locked_by = new Set();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// removed deprecated deprecated_MigrateTemplate()
@@ -735,7 +735,7 @@ DB.PKT_RequestUnlockAll = function (pkt) {
   m_locked_nodes = new Map();
   m_locked_edges = new Map();
   m_locked_comments = new Map();
-  m_template_locks = new Set();
+  m_template_locked_by = new Set();
   m_open_editors = [];
   return { unlocked: true };
 };
@@ -754,9 +754,9 @@ DB.UnlockByUADDR = function (uaddr) {
   m_locked_comments.forEach((value, key) => {
     if (value === uaddr) m_locked_comments.delete(key);
   });
-  if (m_template_locks.has(uaddr)) {
+  if (m_template_locked_by.has(uaddr)) {
     console.log(PR, `template lock ${uaddr}' released`);
-    m_template_locks.delete(uaddr);
+    m_template_locked_by.delete(uaddr);
   }
 };
 
@@ -1383,10 +1383,10 @@ DB.WriteDbJSON = function (filePath) {
 /** called by SRV_REQ_TEMPLATE_LOCK. Returns { error, success, uaddr,
  *  lockedBy } */
 DB.PKT_RequestLockTemplate = pkt => {
-  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  if (m_template_locked_by === undefined) return { error: 'template not yet loaded' };
   const uaddr = pkt.s_uaddr;
-  if (m_template_locks.size > 0) {
-    const uaddrs = [...m_template_locks.keys()];
+  if (m_template_locked_by.size > 0) {
+    const uaddrs = [...m_template_locked_by.keys()];
     if (uaddrs.includes(pkt.s_uaddr)) return { success: true, uaddr: pkt.s_uaddr };
     else
       return {
@@ -1396,7 +1396,7 @@ DB.PKT_RequestLockTemplate = pkt => {
       };
   }
   // if we're not locked, lock it!
-  m_template_locks.add(uaddr);
+  m_template_locked_by.add(uaddr);
   console.log(PR, `${uaddr} locked template`);
   return { success: true, uaddr };
 };
@@ -1404,14 +1404,14 @@ DB.PKT_RequestLockTemplate = pkt => {
 /** called by SRV_REQ_TEMPLATE_UNLOCK. Returns { error, success, uaddr,
  *  lockedBy } */
 DB.PKT_RequestUnlockTemplate = pkt => {
-  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  if (m_template_locked_by === undefined) return { error: 'template not yet loaded' };
   const uaddr = pkt.s_uaddr;
-  if (m_template_locks.has(uaddr)) {
-    m_template_locks.delete(uaddr);
+  if (m_template_locked_by.has(uaddr)) {
+    m_template_locked_by.delete(uaddr);
     console.log(PR, `${uaddr} unlocked template`);
     return { success: true, uaddr };
   }
-  const uaddrs = [...m_template_locks.keys()];
+  const uaddrs = [...m_template_locked_by.keys()];
   return { error: `template not locked by ${uaddr}`, lockedBy: uaddrs, uaddr };
 };
 
