@@ -73,6 +73,7 @@ function CompositeGroup(props) {
     : [];
   // HACK: Remove commentTypes because this is defined at the top level
   propNames = propNames.filter(p => p !== 'commentTypes');
+  // HACK: See also MURSettingsEditor commented-out CompositeGroup
 
   // override propNames if there are no keys, as this could be an in_array
   // control. In this case, the propNames should just contain the propDef[]
