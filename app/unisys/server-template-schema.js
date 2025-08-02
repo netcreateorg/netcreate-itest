@@ -5,6 +5,27 @@
   This module contains all the schema definitions and reference data
   structures used for validating TOML template files.
 
+  // TODO
+
+  There is related discussion
+  github.com/netcreateorg/netcreate-itest/pull/414#issuecomment-3085969754
+
+  There are four "types" of NodeDefs and EdgeDefs fields that we need to support:
+  - required fields like id, node label, etc.
+  - built-in metadata fields like revision, created, modified that are created
+    and modified by loki
+  - built-in "optional" metadata fields like degrees, createdBy that can be
+    hidden, but have functionality built into the NCNode/NCEdge editors
+  - "custom/optional" fields that can be added and changed and removed
+    like info, and notes
+
+  In the current implementation of Template Validation, the "custom/optional"
+  cannot be removed or added. e.g. if I decided that I want to add a NodeDef url
+  field and remove the info field, .nc-validate will complain and the project
+  cannot be run without disabling USE_VALIDATOR (in server-database)
+
+  WORKAROUND: The validator ignores EXTRA keys in its templateOK return status
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 /// UI CONTROL SCHEMAS ////////////////////////////////////////////////////////

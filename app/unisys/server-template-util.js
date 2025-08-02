@@ -437,8 +437,8 @@ function Validate(template) {
     console.log(`${CRT}* missing _ui_defs metadata in template${NRM}`);
   }
 
-  const templateOK =
-    INVALID.length === 0 && EXTRA.length === 0 && MISSING.length === 0;
+  const templateOK = INVALID.length === 0 && MISSING.length === 0;
+  // note EXTRA isn't checked because these could be custom attributes
   return { VALID, INVALID, EXTRA, MISSING, WARNINGS, templateOK };
 }
 

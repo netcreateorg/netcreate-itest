@@ -236,18 +236,20 @@ async function m_LoadTemplate() {
     process.exit(1);
   }
   // validate the default template, as this is our single source of truth
-  const [defaultOk, defaultReport] =
-    TemplateUtil.GetTOMLValidation(defaultTemplatePath);
-  if (!defaultOk) {
-    console.error(PR, RD(`Invalid default template`), `'${defaultTemplatePath}'`);
-    console.error(
-      PR,
-      YL(`Correct using ${YL(`./nc-validate.js -vv`)}, then restart server.\n`)
-    );
-    console.error(defaultReport);
-    process.exit(1);
-  } else {
-    console.log(PR, BL('Default template validated'), `'${defaultTemplatePath}'`);
+  if (USE_VALIDATOR) {
+    const [defaultOk, defaultReport] =
+      TemplateUtil.GetTOMLValidation(defaultTemplatePath);
+    if (!defaultOk) {
+      console.error(PR, RD(`Invalid default template`), `'${defaultTemplatePath}'`);
+      console.error(
+        PR,
+        YL(`Correct using ${YL(`./nc-validate.js -vv`)}, then restart server.\n`)
+      );
+      console.error(defaultReport);
+      process.exit(1);
+    } else {
+      console.log(PR, BL('Default template validated'), `'${defaultTemplatePath}'`);
+    }
   }
   const TOMLPath = m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(TOMLPath));
@@ -260,7 +262,7 @@ async function m_LoadTemplate() {
   TEMPLATE = json;
 
   if (USE_VALIDATOR) {
-    // validate the loaded template
+    // validate the loaded template (ignoring EXTRA which could be custom attributes)
     const [templateOK, report] = TemplateUtil.GetValidation(TEMPLATE);
     if (!templateOK) {
       const shortPath = PATH.basename(TOMLPath).split('.')[0];
