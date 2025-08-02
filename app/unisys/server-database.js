@@ -735,6 +735,7 @@ DB.PKT_RequestUnlockAll = function (pkt) {
   m_locked_nodes = new Map();
   m_locked_edges = new Map();
   m_locked_comments = new Map();
+  m_template_locks = new Set();
   m_open_editors = [];
   return { unlocked: true };
 };
