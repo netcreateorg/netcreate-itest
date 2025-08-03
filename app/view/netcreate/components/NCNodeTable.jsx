@@ -480,6 +480,7 @@ function NCNodeTable({ isOpen }) {
         isOpen={isOpenRef.current}
         data={TABLEDATA}
         columns={VISIBLECOLUMNDEFS}
+        defaultSortIdx={2} // default sort by label
       />
     </div>
   );
