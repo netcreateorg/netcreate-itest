@@ -57,6 +57,7 @@ const HILITEMGR = require('./hilite-mgr'); // handles UI hilite events
 const CMTMGR = require('./comment-mgr');
 const FILTER = require('./components/filter/FilterEnums');
 import PANELMGR from './panel-mgr';
+import TBLCOLSTATE from './table-column-state'; // inits TBLCOLSTATE for app, but not used in this component
 import NCInfoPanel from './components/NCInfoPanel';
 import NCHelpPanel from './components/NCHelpPanel';
 import NCAdvancedPanel from './components/NCAdvancedPanel';
