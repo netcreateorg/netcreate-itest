@@ -21,7 +21,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import UNISYS from 'unisys/client';
 import NCUI from '../nc-ui';
 import UTILS from '../nc-utils';
@@ -29,10 +29,13 @@ import FILTER from './filter/FilterEnums';
 import CMTMGR from '../comment-mgr';
 
 import URTable from './URTable';
+import URTableColumnPanel from './URTableColumnPanel';
+import URButtonToggle from './URButtonToggle';
 import URCommentVBtn from './URCommentVBtn';
 
 import { BUILTIN_FIELDS_EDGE } from 'system/util/enum';
 import { ICON_PENCIL, ICON_VIEW } from 'system/util/constant';
+import { TABLETYPE } from '../../../system/util/enum';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,6 +49,7 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NCEdgeTable({ isOpen }) {
   const isOpenRef = useRef(isOpen);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -54,7 +58,16 @@ function NCEdgeTable({ isOpen }) {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
     const SESSION = UDATA.AppState('SESSION');
     const NCDATA = UDATA.AppState('NCDATA');
+
+    const columnDefs = DeriveColumnDefs(TEMPLATE.edgeDefs);
+
+    // Show all columns by default when first opened
+    const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+    TBLCOLSTATE.edgeDisplayedColumnIDs = columnDefs.map(col => col.data);
+    UDATA.SetAppState('TBLCOLSTATE', TBLCOLSTATE);
+
     setState({
+      columnDefs,
       edgeDefs: TEMPLATE.edgeDefs,
       edges: NCDATA.edges,
       nodes: [], // needed for dereferencing source/target
@@ -65,10 +78,12 @@ function NCEdgeTable({ isOpen }) {
     UDATA.OnAppStateChange('FILTEREDNCDATA', urstate_FILTEREDNCDATA);
     UDATA.OnAppStateChange('SESSION', urstate_SESSION);
     UDATA.OnAppStateChange('TEMPLATE', urstate_TEMPLATE);
+    UDATA.OnAppStateChange('TBLCOLSTATE', urstate_TBLCOLSTATE);
     return () => {
       UDATA.AppStateChangeOff('FILTEREDNCDATA', urstate_FILTEREDNCDATA);
       UDATA.AppStateChangeOff('SESSION', urstate_SESSION);
       UDATA.AppStateChangeOff('TEMPLATE', urstate_TEMPLATE);
+      UDATA.AppStateChangeOff('TBLCOLSTATE', urstate_TBLCOLSTATE);
     };
   }, []);
 
@@ -111,6 +126,10 @@ function NCEdgeTable({ isOpen }) {
       edgeDefs: data.edgeDefs,
       selectedEdgeColor: data.sourceColor
     }));
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function urstate_TBLCOLSTATE(TBLCOLSTATE) {
+    forceUpdate();
   }
 
   /// COLUMN DEFINTION GENERATION /////////////////////////////////////////////
@@ -205,6 +224,7 @@ function NCEdgeTable({ isOpen }) {
           aria-label="View Edge"
           onClick={event => ui_ClickViewNode(event, value.id)}
         >
+          {/* <span style={{ color: 'blue' }}>{value.label}</span> */}
           <span>{value.label}</span>
         </button>
       );
@@ -308,6 +328,8 @@ function NCEdgeTable({ isOpen }) {
       },
       ...ATTRIBUTE_COLUMNDEFS
     );
+    // REVIEW: `type='weight'` is actually not necessary the way this is written
+    // It relies on checking directly for the field name
     if (defs['weight'] && !defs['weight'].hidden)
       COLUMNDEFS.push({
         title: defs['weight'].displayLabel,
@@ -348,7 +370,7 @@ function NCEdgeTable({ isOpen }) {
         data: 'updated'
       }); // Comment is last
     COLUMNDEFS.push({
-      title: ' ',
+      title: 'Cmt',
       data: 'commentVBtnDef',
       type: 'text',
       width: 40, // in px
@@ -472,17 +494,51 @@ function NCEdgeTable({ isOpen }) {
     });
   }
 
+  /// UI HANDLERS ////////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_ToggleColumnPanelIsOpen() {
+    const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+    TBLCOLSTATE.edgeColumnPanelIsOpen = !TBLCOLSTATE.edgeColumnPanelIsOpen;
+    UDATA.SetAppState('TBLCOLSTATE', TBLCOLSTATE);
+  }
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if (state.edges === undefined) return `loading...waiting for edges ${state.edges}`;
   if (state.edgeDefs === undefined)
     return `loading...waiting for nodeDefs ${state.edgeDefs}`;
 
-  const COLUMNDEFS = DeriveColumnDefs();
+  // After columns are defined, the table column manager is used to
+  // simplify the table, removing columns that the user wants to hide
+  // temporarily.
+  const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+  const VISIBLECOLUMNDEFS = state.columnDefs.filter(col =>
+    TBLCOLSTATE.edgeDisplayedColumnIDs.includes(col.data)
+  );
+
   const TABLEDATA = DeriveTableData({ edgeDefs: state.edgeDefs, edges: state.edges });
+
   return (
     <div id="NCEdgeTable">
-      <URTable isOpen={isOpenRef.current} data={TABLEDATA} columns={COLUMNDEFS} />
+      <div display={{ position: 'relative' }}>
+        <URTableColumnPanel
+          tableType={TABLETYPE.EDGE}
+          columnDefs={state.columnDefs}
+          visibleColumnIDs={TBLCOLSTATE.edgeDisplayedColumnIDs}
+        />
+        <URButtonToggle
+          title="Show/Hide Column Manager"
+          className="colmgr-btn"
+          selected={TBLCOLSTATE.edgeColumnPanelIsOpen}
+          onClick={ui_ToggleColumnPanelIsOpen}
+        >
+          ⛭
+        </URButtonToggle>
+      </div>
+      <URTable
+        isOpen={isOpenRef.current}
+        data={TABLEDATA}
+        columns={VISIBLECOLUMNDEFS}
+      />
     </div>
   );
 }

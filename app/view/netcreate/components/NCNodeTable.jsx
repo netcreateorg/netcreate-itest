@@ -22,7 +22,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import UNISYS from 'unisys/client';
 import NCUI from '../nc-ui';
 import UTILS from '../nc-utils';
@@ -30,9 +30,11 @@ import FILTER from './filter/FilterEnums';
 import CMTMGR from '../comment-mgr';
 
 import URTable from './URTable';
+import URTableColumnPanel from './URTableColumnPanel';
+import URButtonToggle from './URButtonToggle';
 import URCommentVBtn from './URCommentVBtn';
 
-import { BUILTIN_FIELDS_NODE } from 'system/util/enum';
+import { TABLETYPE, BUILTIN_FIELDS_NODE } from 'system/util/enum';
 import { ICON_PENCIL, ICON_VIEW } from 'system/util/constant';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -47,6 +49,7 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NCNodeTable({ isOpen }) {
   const isOpenRef = useRef(isOpen);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
   const [state, setState] = useState({});
 
   /// USEEFFECT ///////////////////////////////////////////////////////////////
@@ -55,7 +58,16 @@ function NCNodeTable({ isOpen }) {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
     const SESSION = UDATA.AppState('SESSION');
     const NCDATA = UDATA.AppState('NCDATA');
+
+    const columnDefs = DeriveColumnDefs(TEMPLATE.nodeDefs);
+
+    // Show all columns by default when first opened
+    const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+    TBLCOLSTATE.nodeDisplayedColumnIDs = columnDefs.map(col => col.data);
+    UDATA.SetAppState('TBLCOLSTATE', TBLCOLSTATE);
+
     setState({
+      columnDefs,
       nodeDefs: TEMPLATE.nodeDefs,
       nodes: NCDATA.nodes,
       disableEdit: false,
@@ -65,10 +77,12 @@ function NCNodeTable({ isOpen }) {
     UDATA.OnAppStateChange('FILTEREDNCDATA', urstate_FILTEREDNCDATA);
     UDATA.OnAppStateChange('SESSION', urstate_SESSION);
     UDATA.OnAppStateChange('TEMPLATE', urstate_TEMPLATE);
+    UDATA.OnAppStateChange('TBLCOLSTATE', urstate_TBLCOLSTATE);
     return () => {
       UDATA.AppStateChangeOff('FILTEREDNCDATA', urstate_FILTEREDNCDATA);
       UDATA.AppStateChangeOff('SESSION', urstate_SESSION);
       UDATA.AppStateChangeOff('TEMPLATE', urstate_TEMPLATE);
+      UDATA.AppStateChangeOff('TBLCOLSTATE', urstate_TBLCOLSTATE);
     };
   }, []);
 
@@ -113,6 +127,10 @@ function NCNodeTable({ isOpen }) {
       selectedNodeColor: data.sourceColor,
       hilitedNodeColor: data.searchColor
     }));
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function urstate_TBLCOLSTATE(TBLCOLSTATE) {
+    forceUpdate();
   }
 
   /// COLUMN DEFINTION GENERATION /////////////////////////////////////////////
@@ -197,6 +215,7 @@ function NCNodeTable({ isOpen }) {
           aria-label={`View ${value} Node`}
           onClick={event => ui_ClickViewNode(event, tdata.id)}
         >
+          {/* <span style={{ color: 'blue' }}>{value}</span> */}
           <span>{value}</span>
         </button>
       );
@@ -301,7 +320,7 @@ function NCNodeTable({ isOpen }) {
       });
     // Comment is last
     COLUMNDEFS.push({
-      title: ' ',
+      title: 'Cmt',
       data: 'commentVBtnDef',
       width: 40, // in px
       renderer: col_RenderCommentBtn,
@@ -416,17 +435,52 @@ function NCNodeTable({ isOpen }) {
     });
   }
 
+  /// UI HANDLERS ////////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function ui_ToggleColumnPanelIsOpen() {
+    const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+    TBLCOLSTATE.nodeColumnPanelIsOpen = !TBLCOLSTATE.nodeColumnPanelIsOpen;
+    UDATA.SetAppState('TBLCOLSTATE', TBLCOLSTATE);
+  }
+
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if (state.nodes === undefined) return `loading...waiting for nodes ${state.nodes}`;
   if (state.nodeDefs === undefined)
     return `loading...waiting for nodeDefs ${state.nodeDefs}`;
 
-  const COLUMNDEFS = DeriveColumnDefs();
+  // After columns are defined, the table column manager is used to
+  // simplify the table, removing columns that the user wants to hide
+  // temporarily.
+  const TBLCOLSTATE = UDATA.AppState('TBLCOLSTATE');
+  const VISIBLECOLUMNDEFS = state.columnDefs.filter(col =>
+    TBLCOLSTATE.nodeDisplayedColumnIDs.includes(col.data)
+  );
+
   const TABLEDATA = DeriveTableData({ nodeDefs: state.nodeDefs, nodes: state.nodes });
+
   return (
     <div id="NCNodeTable">
-      <URTable isOpen={isOpenRef.current} data={TABLEDATA} columns={COLUMNDEFS} />
+      <div display={{ position: 'relative' }}>
+        <URTableColumnPanel
+          tableType={TABLETYPE.NODE}
+          columnDefs={state.columnDefs}
+          visibleColumnIDs={TBLCOLSTATE.nodeDisplayedColumnIDs}
+        />
+        <URButtonToggle
+          title="Show/Hide Column Manager"
+          className="colmgr-btn"
+          selected={TBLCOLSTATE.nodeColumnPanelIsOpen}
+          onClick={ui_ToggleColumnPanelIsOpen}
+        >
+          ⛭
+        </URButtonToggle>
+      </div>
+      <URTable
+        isOpen={isOpenRef.current}
+        data={TABLEDATA}
+        columns={VISIBLECOLUMNDEFS}
+      />
     </div>
   );
 }

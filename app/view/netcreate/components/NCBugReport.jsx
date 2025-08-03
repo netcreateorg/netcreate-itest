@@ -63,7 +63,7 @@ function NCBugReport() {
     <URPopover
       title={`Bug Report ${new Date().toLocaleString()}`}
       onClose={ui_CloseBugReport}
-      classOverride="NCBugReport"
+      className="NCBugReport"
     >
       <i>Take a screenshot and send it to Net.Create staff.</i>
       <div className="key-value-pair">

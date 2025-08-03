@@ -15,6 +15,10 @@ ENUM.EDITORTYPE = {
   EDGE: 'edge', // parameter sent with packet, listed here for coverage
   COMMENT: 'comment'
 };
+ENUM.TABLETYPE = {
+  NODE: 'nodeTable',
+  EDGE: 'edgeTable'
+};
 // BUILT-IN FIELDS
 ENUM.BUILTIN_FIELDS_NODE = [
   'id',
