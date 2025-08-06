@@ -69,8 +69,10 @@ function URTableColumnPanel({ tableType, columnDefs, visibleColumnIDs }) {
   // Split out standard and provenance columns
   const standardColumnDefs = [];
   const provenanceDefs = [];
+  const cmtDefs = [];
   filteredColumnDefs.forEach(col => {
     if (col.isProvenance) provenanceDefs.push(col);
+    else if (col.isComment) cmtDefs.push(col);
     else standardColumnDefs.push(col);
   });
 
@@ -97,6 +99,8 @@ function URTableColumnPanel({ tableType, columnDefs, visibleColumnIDs }) {
         {standardColumnDefs.map(renderColumnCheckbox)}
         <hr />
         {provenanceDefs.map(renderColumnCheckbox)}
+        <hr />
+        {cmtDefs.map(renderColumnCheckbox)}
       </div>
     </URPopover>
   );

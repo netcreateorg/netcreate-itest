@@ -290,7 +290,7 @@ function NCEdgeTable({ isOpen }) {
         title: defs[key].displayLabel,
         type: defs[key].type,
         data: key,
-        isProvenance: true // show in provenance section
+        isProvenance: true // show in provenance section of URTableColumnPanel
       };
     });
     const COLUMNDEFS = [
@@ -348,7 +348,7 @@ function NCEdgeTable({ isOpen }) {
         type: 'text-case-insensitive',
         width: 60, // in px
         data: 'createdBy',
-        isProvenance: true
+        isProvenance: true // show in provenance section of URTableColumnPanel
       });
     if (defs['created'] && !defs['created'].hidden)
       COLUMNDEFS.push({
@@ -356,7 +356,7 @@ function NCEdgeTable({ isOpen }) {
         type: 'timestamp-short',
         width: 60, // in px
         data: 'created',
-        isProvenance: true
+        isProvenance: true // show in provenance section of URTableColumnPanel
       });
     if (defs['updatedBy'] && !defs['updatedBy'].hidden)
       COLUMNDEFS.push({
@@ -364,7 +364,7 @@ function NCEdgeTable({ isOpen }) {
         type: 'text-case-insensitive',
         width: 60, // in px
         data: 'updatedBy',
-        isProvenance: true
+        isProvenance: true // show in provenance section of URTableColumnPanel
       });
     if (defs['updated'] && !defs['updated'].hidden)
       COLUMNDEFS.push({
@@ -372,7 +372,7 @@ function NCEdgeTable({ isOpen }) {
         type: 'timestamp-short',
         width: 60, // in px
         data: 'updated',
-        isProvenance: true
+        isProvenance: true // show in provenance section of URTableColumnPanel
       }); // Comment is last
     COLUMNDEFS.push({
       title: 'Cmt',
@@ -382,7 +382,7 @@ function NCEdgeTable({ isOpen }) {
       renderer: col_RenderCommentBtn,
       sorter: col_SortCommentsByCount,
       tipDisabled: true,
-      isProvenance: true
+      isComment: true // show in comemnt section of URTableColumnPanel
     });
     return COLUMNDEFS;
   }
