@@ -533,7 +533,7 @@ function URTable({ isOpen, data, columns, defaultSortIdx = 0 }) {
                 className={_sortColumnIdx === idx ? 'selected' : ''}
                 width={`${_columnWidths[idx]}`}
               >
-                <div onClick={e => ui_SetSelectedColumn(e, idx)}>
+                <div onClick={e => ui_SetSelectedColumn(e, idx)} title={coldef.title}>
                   {coldef.title}&nbsp;
                   {jsx_SortBtn(coldef, idx)}
                 </div>
