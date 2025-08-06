@@ -1,7 +1,7 @@
 #popover.URTableColumnPanel {
   position: fixed;
   width: 200px;
-  height: 300px;
+  height: inherit;
   top: inherit;
   right: inherit; /* Override URPopover default right alignment */
   margin-top: 2rem; /* Show below the table head */
