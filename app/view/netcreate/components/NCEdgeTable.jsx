@@ -290,7 +290,7 @@ function NCEdgeTable({ isOpen }) {
         title: defs[key].displayLabel,
         type: defs[key].type,
         data: key,
-        isProvenance: true
+        isProvenance: true // show in provenance section
       };
     });
     const COLUMNDEFS = [
