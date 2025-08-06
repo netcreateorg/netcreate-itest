@@ -5,7 +5,8 @@
   top: inherit;
   right: inherit; /* Override URPopover default right alignment */
   margin-top: 2rem; /* Show below the table head */
-  color: var(--clr-base-font);
+  color: var(--clr-fg);
+  background-color: var(--clr-system-light);
 }
 #popover.URTableColumnPanel .popover-content {
   flex-direction: column;
