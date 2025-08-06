@@ -1,6 +1,6 @@
 #popover.NCBugReport {
   width: 300px;
-  height: 200px;
+  height: max-content;
   top: inherit;
   bottom: 0;
   left: 0;
