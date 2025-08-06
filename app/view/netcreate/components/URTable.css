@@ -37,6 +37,10 @@
   color: var(--clr-cat-fg);
   background-color: var(--clr-cat-bg);
 }
+.URTable th > div {
+  max-height: 2rem; /* keep header height consistent, max of 2 lines */
+  overflow: hidden;
+}
 .URTable thead,
 .URTable thead > tr,
 .URTable thead > tr > th {
