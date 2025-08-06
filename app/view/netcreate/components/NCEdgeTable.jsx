@@ -289,7 +289,8 @@ function NCEdgeTable({ isOpen }) {
       return {
         title: defs[key].displayLabel,
         type: defs[key].type,
-        data: key
+        data: key,
+        isProvenance: true
       };
     });
     const COLUMNDEFS = [
@@ -346,28 +347,32 @@ function NCEdgeTable({ isOpen }) {
         title: defs['createdBy'].displayLabel,
         type: 'text-case-insensitive',
         width: 60, // in px
-        data: 'createdBy'
+        data: 'createdBy',
+        isProvenance: true
       });
     if (defs['created'] && !defs['created'].hidden)
       COLUMNDEFS.push({
         title: defs['created'].displayLabel,
         type: 'timestamp-short',
         width: 60, // in px
-        data: 'created'
+        data: 'created',
+        isProvenance: true
       });
     if (defs['updatedBy'] && !defs['updatedBy'].hidden)
       COLUMNDEFS.push({
         title: defs['updatedBy'].displayLabel,
         type: 'text-case-insensitive',
         width: 60, // in px
-        data: 'updatedBy'
+        data: 'updatedBy',
+        isProvenance: true
       });
     if (defs['updated'] && !defs['updated'].hidden)
       COLUMNDEFS.push({
         title: defs['updated'].displayLabel,
         type: 'timestamp-short',
         width: 60, // in px
-        data: 'updated'
+        data: 'updated',
+        isProvenance: true
       }); // Comment is last
     COLUMNDEFS.push({
       title: 'Cmt',
@@ -376,7 +381,8 @@ function NCEdgeTable({ isOpen }) {
       width: 40, // in px
       renderer: col_RenderCommentBtn,
       sorter: col_SortCommentsByCount,
-      tipDisabled: true
+      tipDisabled: true,
+      isProvenance: true
     });
     return COLUMNDEFS;
   }

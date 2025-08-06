@@ -66,6 +66,27 @@ function URTableColumnPanel({ tableType, columnDefs, visibleColumnIDs }) {
     col => col.title !== undefined && col.title.trim() !== ''
   );
 
+  // Split out standard and provenance columns
+  const standardColumnDefs = [];
+  const provenanceDefs = [];
+  filteredColumnDefs.forEach(col => {
+    if (col.isProvenance) provenanceDefs.push(col);
+    else standardColumnDefs.push(col);
+  });
+
+  function renderColumnCheckbox(colDef) {
+    return (
+      <div key={colDef.data} className="key-value-pair">
+        <input
+          type="checkbox"
+          data-column-id={colDef.data}
+          checked={visibleColumnIDs.includes(colDef.data)}
+          onChange={ui_ToggleColumnVisibility}
+        />
+        <label>{colDef.title}</label>
+      </div>
+    );
+  }
   return (
     <URPopover
       title={`Show/Hide Columns`}
@@ -73,17 +94,9 @@ function URTableColumnPanel({ tableType, columnDefs, visibleColumnIDs }) {
       className="URTableColumnPanel"
     >
       <div>
-        {filteredColumnDefs.map((colDef, index) => (
-          <div key={index} className="key-value-pair">
-            <input
-              type="checkbox"
-              data-column-id={colDef.data}
-              checked={visibleColumnIDs.includes(colDef.data)}
-              onChange={ui_ToggleColumnVisibility}
-            />
-            <label>{colDef.title}</label>
-          </div>
-        ))}
+        {standardColumnDefs.map(renderColumnCheckbox)}
+        <hr />
+        {provenanceDefs.map(renderColumnCheckbox)}
       </div>
     </URPopover>
   );
