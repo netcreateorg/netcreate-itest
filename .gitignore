@@ -8,7 +8,6 @@
 # NetCreate ignored directories
 /app-data/*
 /runtime
-netcreate-config.js
 
 # _ur packages
 _dist
@@ -35,6 +34,8 @@ tmp-*
 # Ignore all generated files
 npm-debug.log
 *.tmproj
+git-info.js
+netcreate-config.js
 
 # Numerous always-ignore extensions
 *~

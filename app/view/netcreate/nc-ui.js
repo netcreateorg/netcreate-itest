@@ -82,6 +82,7 @@ function Markdownify(str = '') {
   const htmlString = MD.render(str);
   // HACK!!! MDPARSE does not give us direct access to the dom elements, so just
   // hack it by adding to the parsed html string
+  // Add target="_blank" to all links
   const hackedHtmlString = htmlString.replace(/<a href/g, `<a target="_blank" href`);
   return MDPARSE(hackedHtmlString);
 }
@@ -651,6 +652,11 @@ function m_RenderNumberInput(key, value, cb, helpText) {
 /** There are two levels of callbacks necessary here.
  *  1. The `onChange` handler (in this module) processes the input's onChange event, and...
  *  2. ...then passes the resulting value to the `cb` function in the parent module.
+ *
+ *  If there isn't a default "" option, add one so that the user can clear the selection.
+ *  Otherwise, the default "" option will appear to be selected, but in fact is not selected.
+ *  Try to show the help text in the select dropdown.
+ *  If the help text is not defined, it will use the `displayLabel`
  *  @param {string} key
  *  @param {string} value
  *  @param {function} cb
@@ -659,6 +665,8 @@ function m_RenderNumberInput(key, value, cb, helpText) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RenderOptionsInput(key, value, defs, cb, helpText) {
   const options = defs[key].options;
+  // If there isn't a default "" option, add one
+  if (!options.some(o => o.label === '')) options.unshift({ label: '', value: '' });
   return (
     <div key={`${key}div`}>
       <div className="help">{helpText}</div>

@@ -6,6 +6,8 @@
   status of panel components, including:
   - NCVocabulary
   - NCHelp
+  - NCAdvancedPanel
+  - NCBugReport
 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
@@ -38,7 +40,8 @@ function m_Init() {
   const PANELSTATE = {
     advancedIsOpen: false,
     helpIsOpen: false,
-    vocabIsOpen: false
+    vocabIsOpen: false,
+    bugreportIsOpen: false
   };
   UDATA.SetAppState('PANELSTATE', PANELSTATE);
 }
@@ -53,6 +56,9 @@ function HelpIsOpen() {
 }
 function VocabIsOpen() {
   return UDATA.AppState('PANELSTATE').vocabIsOpen;
+}
+function BugreportIsOpen() {
+  return UDATA.AppState('PANELSTATE').bugreportIsOpen;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function ToggleAdvanced() {
@@ -76,6 +82,13 @@ function ToggleVocabulary() {
     vocabIsOpen: !PANELSTATE.vocabIsOpen
   });
 }
+function ToggleBugreport() {
+  const PANELSTATE = UDATA.AppState('PANELSTATE');
+  UDATA.SetAppState('PANELSTATE', {
+    ...PANELSTATE,
+    bugreportIsOpen: !PANELSTATE.bugreportIsOpen
+  });
+}
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -83,7 +96,9 @@ module.exports = {
   AdvancedIsOpen,
   HelpIsOpen,
   VocabIsOpen,
+  BugreportIsOpen,
   ToggleAdvanced,
   ToggleHelp,
-  ToggleVocabulary
+  ToggleVocabulary,
+  ToggleBugreport
 };
