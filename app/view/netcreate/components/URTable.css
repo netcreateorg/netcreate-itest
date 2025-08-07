@@ -23,6 +23,7 @@
   border-bottom: 1px solid var(--clr-system-fadedmost);
 }
 .URTable th {
+  height: 2rem; /* keep header height consistent, max of 2 lines */
   padding: 2px var(--padding-horizontal);
   /* border-right: 1px solid #999; */
   background-color: var(--bg-thead-clr);
