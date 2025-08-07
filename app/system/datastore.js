@@ -300,18 +300,17 @@ DSTOR.PromiseTOMLFile = function (tomlFile) {
   return promise;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Load D3 Database
- */
+/** API: Load D3 data, template data, comment data, and the readby table */
 DSTOR.PromiseDataset = function () {
   // UDATA.Call() returns a promise
+  // return payload is { nodes, edges, template, comments, readby }
   return UDATA.Call('SRV_DBGET', {}); // server.js
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Write Template file to Server
- */
+/** API: send template object to server for saving to the toml template file */
 DSTOR.SaveTemplateFile = template => {
   // UDATA.Call() returns a promise
-  return UDATA.Call('SRV_TEMPLATESAVE', { template }); // server.js
+  return UDATA.Call('SRV_TEMPLATE_SAVE', { template }); // server.js
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get Template File Path.

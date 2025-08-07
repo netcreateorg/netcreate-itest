@@ -27,13 +27,13 @@ type PropGroupStruct = {
 /** client value submissions submit either a value or array of values.
  *  These are decoded into a PropToken object on the server */
 type PropSubmitValue = {
-  [dotProp: string]: ValueType;
+  [propDef: string]: ValueType;
 } & SchemaMeta;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** client metadata changes submit an object of metadata properties
  *  These are decoded into a PropToken object on the server */
 type PropSubmitMeta = {
-  [dotProp: string]: {
+  [propDef: string]: {
     [meta: string]: ValueType;
   };
 };
@@ -66,22 +66,22 @@ type PropToken = {
 
 /// DECODE/ENCODE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a dotProp is a string with a groupID and a propID separated by a period */
-function DecodeDotProp(dotProp: string): PropToken {
-  const [groupID, propID, ...extra] = dotProp.split('.');
-  if (extra.length > 0) return { error: `invalid dotProp: ${dotProp}` };
+/** a propDef is a string with a groupID and a propID separated by a period */
+function DecodePropDef(propDef: string): PropToken {
+  const [groupID, propID, ...extra] = propDef.split('.');
+  if (extra.length > 0) return { error: `invalid propDef: ${propDef}` };
   if (!IsCamelCase(groupID)) return { error: `invalid group name: ${groupID}` };
   if (!IsCamelCase(propID)) return { error: `invalid prop name: ${propID}` };
   return { groupID, propID, parts: [groupID, propID] };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a prop submit object is a single key object with a dotProp key and a value,
+/** a prop submit object is a single key object with a propDef key and a value,
  *  where the value could values or an object of metadata properties */
 function DecodePropObject(psObj: any): PropToken {
   if (!CHK.IsObject(psObj)) return { error: `expected object` };
   if (!CHK.HasSingularKey(psObj)) return { error: `bad obj structure` };
   const pKey = Object.keys(psObj)[0];
-  const { groupID, propID, error } = DecodeDotProp(pKey);
+  const { groupID, propID, error } = DecodePropDef(pKey);
   if (error) return { error };
   const pVal = psObj[pKey];
   if (!CHK.HasSingularKey(pVal)) return { error: `expected simple value` };
@@ -118,7 +118,7 @@ function IsMetaSubmitObj(msObj: PropSubmitMeta): boolean {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   //
-  DecodeDotProp, // (dotProp: DotProp) => PropToken
+  DecodePropDef, // (propDef: DotProp) => PropToken
   DecodePropObject, // (psObj: PropSubmitValue) => PropToken
   //
   IsValueSubmitObj, // (psObj: PropSubmitValue) => boolean

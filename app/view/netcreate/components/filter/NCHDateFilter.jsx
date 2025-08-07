@@ -161,7 +161,7 @@ function NCHDateFilter({
           ))}
         </select>
         <URDateField
-          id={key}
+          id={`${group}${key}`}
           key={`${key}value`}
           value={state.inputval}
           isFilter={true}

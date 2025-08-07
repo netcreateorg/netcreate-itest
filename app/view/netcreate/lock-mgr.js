@@ -37,7 +37,7 @@ const { EDITORTYPE } = require('system/util/enum');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'lock-mgr: ';
-const LOG = console.log.bind(console);
+const LOG = DBG ? console.log.bind(console) : () => {};
 
 /// MODULE INITIALIZATION /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

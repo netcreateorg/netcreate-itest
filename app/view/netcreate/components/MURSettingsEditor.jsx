@@ -3,24 +3,13 @@
   MUR Property Editor Panel
   (replacement for deprecated `NCTemplate.jsx`)
 
-  Concept: This design assumes "Property Groups" that contain "Properties"
-  in a data object, which is different than how TEMPLATE is organized.
-  The MURSettingsEditor figures out what Property Groups are available,
-  and writes PropertyGroup components that themselves render the specific
-  Input components for each property.
-
-  Unfortunately, React itself does not lend itself to this kind of top-
-  down data sharing, so we have to jump through hoops to make it work
-  through various hooks and context providers.
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
 // components
-const PropertyGroup = require('./MURPropertyGroup');
-const ToDoList = require('./MURSettingsToDo');
+const CompositeGroup = require('./MURCompositeGroup');
 const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
@@ -35,11 +24,9 @@ function MURSettingsEditor() {
   /// SETUP ///
 
   const initialState = { template: RSB.GetTemplate() };
-  const [showToDo, setShowToDo] = React.useState(false);
   const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
   const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
   const value = { hasLock, draft, dispatch };
-  const { globalsList, groupList } = RSB.GetUISettingsList(draft.template._ui);
 
   /// LOCKING ///
 
@@ -78,33 +65,64 @@ function MURSettingsEditor() {
 
   // save, revert, toggle
   const ButtonBar = hasLock ? (
-    <div>
-      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
-        Save Changes
-      </button>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}
+    >
       <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
-        Revert Changes
+        Cancel Settings Changes
       </button>
-      &nbsp;
-      <button style={opBtnStyle} onClick={() => setShowToDo(!showToDo)}>
-        {showToDo ? 'ShowWIP' : 'ShowToDo'}
+      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
+        Save Settings Changes
       </button>
     </div>
   ) : (
-    <p>Template is locked by another user.</p>
+    <p style={{ color: 'red', fontWeight: 'bold' }}>
+      Template is locked by another user.
+    </p>
   );
 
   // note: template global settings not grouped, so prepend as special case group=""
-  const GroupList = groupList.map(gn => <PropertyGroup groupName={gn} key={gn} />);
-  GroupList.unshift(<PropertyGroup groupName="" key="global-settings" />);
-
-  //
+  const GroupList = [
+    <CompositeGroup propDef="nodeDefs" open={false} key="nodeDefs" />,
+    <CompositeGroup propDef="edgeDefs" open={false} key="edgeDefs" />
+    // <CompositeGroup propDef="commentTypes" open={true} key="commentTypes" />
+  ];
+  GroupList.unshift(<CompositeGroup propDef="" open={false} key="global-settings" />);
+  // HACK there is a check for global commentTypes in MURCompositeGroup
 
   return (
     <SettingsContext.Provider value={value}>
-      {ButtonBar}
-      {!showToDo && GroupList}
-      {showToDo && ToDoList}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%'
+        }}
+      >
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            padding: '0.5rem 0 0.5rem 0',
+            borderBottom: '1px solid #ccc'
+          }}
+        >
+          {ButtonBar}
+        </div>
+        <div
+          style={{
+            flex: 1,
+            overflow: 'auto'
+          }}
+        >
+          {GroupList}
+        </div>
+      </div>
     </SettingsContext.Provider>
   );
 }

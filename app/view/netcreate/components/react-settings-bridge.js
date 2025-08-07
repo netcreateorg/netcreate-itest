@@ -39,6 +39,29 @@ const UDATA = UNISYS.NewDataLink(MOD);
 function $(strOrNum) {
   return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** extended typeof to handle arrays */
+function u_typeof(obj) {
+  if (Array.isArray(obj)) {
+    return `array`;
+  }
+  return typeof obj;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return true if the object is a simple value type */
+const value_types = ['string', 'number', 'boolean'];
+function is_valueType(obj) {
+  const type = u_typeof(obj);
+  return value_types.includes(type);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return by value for simple types, or clone of object for complex types */
+function u_clone(obj) {
+  if (is_valueType(obj)) return obj; // simple value type, return as-is
+  if (Array.isArray(obj)) return [...obj]; // clone array
+  if (typeof obj === 'object') return { ...obj }; // clone object
+  throw Error(`u_clone: unsupported type ${u_typeof(obj)}`);
+}
 
 /// DISPATCHER API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,88 +88,227 @@ function PersistTemplate(templateObj) {
   return DATASTORE.SaveTemplateFile(templateObj);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: splits a dotProp string into groupName and propName */
-function DecodeDotProp(dotProp) {
-  return Settings.DecodeDotProp(dotProp);
+/** API HELPER: splits a propDef string into groupName and propName */
+function DecodePropDef(propDef) {
+  return Settings.DecodePropDef(propDef);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: create a dotProp string from groupName and propName */
-function EncodeDotProp(groupName, propName) {
-  return Settings.EncodeDotProp(groupName, propName);
+/** API HELPER: create a propDef string from groupName and propName */
+function EncodePropDef(groupName, propName, propField) {
+  return Settings.EncodePropDef(groupName, propName, propField);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: Given a settings object and dotProp, return all UI-relevant
- *  data. The settings object could be TEMPLATE or from React Context value.
- *  Since this is a legacy codebase, we don't have access to ?. operators */
-function DecodeUIData(setObj, dotProp) {
-  const fn = 'DecodeUIData:';
-  if (typeof setObj !== 'object') throw Error(`${fn} arg1 must be a settings object`);
-  if (typeof dotProp !== 'string') throw Error(`${fn} arg2 must be a dotProp string`);
-  const [groupName, propName] = DecodeDotProp(dotProp); // throws error if not valid
-  // determine value stored in the settings object
-  const setUI = setObj._ui;
-  let value;
-  let uiData;
-  if (groupName === undefined) {
-    // case 1: no groupName, just propName
-    value = setObj[propName];
-    if (value === undefined) return { value, error: `no value for ${dotProp}` };
-    if (!setUI || !setUI[propName])
-      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
-    uiData = setUI[propName];
-    return { value, ...uiData };
-  } else {
-    // case 2: groupName and propName
-    if (
-      setObj[groupName] === undefined ||
-      setObj[groupName][propName] === undefined
-    ) {
-      return { value: undefined, error: `no value for ${dotProp}` };
+/** API CRITICAL HELPER: Given a settings object and propDef, return all
+ *  UI-relevant data scoped to that propDef. This data will be specific to the
+ *  type of control */
+function GetDataForProp(template, propDef) {
+  const fn = 'GetDataForProp:';
+
+  /// FIRST: BASIC DEFENSIVE CHECKS ///
+
+  if (typeof template !== 'object')
+    throw Error(`${fn} arg1 must be an object based on a template.toml file`);
+  if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
+  //
+  let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
+  //
+  if (propName !== undefined && typeof propName !== 'string')
+    return { error: `${fn} invalid propName (string required)` };
+  //
+  if (typeof template._ui !== 'object')
+    return { error: `${fn} t_ui _ui is not available` };
+
+  // got this far, we have a valid template and template._ui
+  let t_ui = template._ui; // _ui is the metadata source
+  let sourceMeta, sourceData;
+
+  const strIndex = index !== undefined ? `[${index}]` : '';
+  // LOG(...PR(propDef, `= ${groupName}.${propName}.${propField} ${strIndex}`));
+
+  /// CASE 0: GROUP NAME IS '', i.e. a global setting ///
+
+  if (groupName === '' && propName === undefined) {
+    // return filtered metadata containing only global properties plus _groupMeta
+    const { globalsList } = GetUISettingsList(t_ui);
+    sourceMeta = {};
+    globalsList.forEach(p => (sourceMeta[p] = u_clone(t_ui[p])));
+    // Include _groupMeta for root-level group metadata
+    if (t_ui._groupMeta) {
+      sourceMeta._groupMeta = u_clone(t_ui._groupMeta);
     }
-    value = setObj[groupName][propName];
-    if (!setUI || !setUI[groupName] || !setUI[groupName][propName]) {
-      return { groupName, propName, value, error: `no UI data for ${dotProp}` };
-    }
-    uiData = setUI[groupName][propName];
-    return { groupName, propName, value, ...uiData };
+    sourceData = template;
+    return {
+      groupName: '',
+      propName: undefined,
+      propField: undefined,
+      sourceMeta,
+      sourceData
+    };
   }
+
+  /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+
+  if (groupName === undefined || groupName === '') {
+    if (!template[propName])
+      return { error: `(1) no value for ${propName} (${propDef})` };
+    // has metadata
+    if (t_ui[propName] !== undefined) {
+      sourceMeta = u_clone(t_ui[propName]);
+      if (index !== undefined) {
+        sourceData = template[propName] && template[propName][index];
+        sourceMeta._controlDef = 'CommentType';
+      } else {
+        sourceData = template[propName];
+      }
+      return {
+        groupName,
+        propName,
+        propField,
+        sourceMeta,
+        sourceData
+      };
+    }
+    // no metadata for this prop, return error
+    return {
+      groupName: undefined,
+      propName,
+      error: `no UI data for ${propDef}`
+    };
+  }
+
+  /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
+
+  if (propField !== undefined) {
+    // if there's a propfield, then check for array
+    if (t_ui[groupName] === undefined)
+      return { error: `(2) no UI metadata for group ${groupName} (${propDef})` };
+    if (t_ui[groupName][propName] === undefined)
+      return {
+        error: `(2) group ${groupName} no metadata for ${propName} (${propDef})`
+      };
+    if (t_ui[groupName][propName][propField] === undefined)
+      return {
+        error: `(2) composite ${groupName}.${propName} no metadata for field ${propField} (${propDef})`
+      };
+
+    if (Number.isInteger(index)) {
+      // find sourceData
+      sourceData =
+        template[groupName] &&
+        template[groupName][propName] &&
+        template[groupName][propName][propField]
+          ? template[groupName][propName][propField][index]
+          : undefined;
+      // find sourceMeta
+    } else {
+      // find sourceData
+      sourceData =
+        template[groupName] && template[groupName][propName]
+          ? template[groupName][propName][propField]
+          : undefined;
+    }
+
+    sourceMeta = u_clone(t_ui[groupName][propName][propField]);
+
+    // handle indexed array access
+    return {
+      groupName,
+      propName,
+      propField,
+      sourceMeta,
+      sourceData
+    };
+  }
+
+  /// CASE 3: TWO-LEVEL GROUP NAME AND PROP NAME AVAILABLE ///
+
+  t_ui = t_ui[groupName][propName];
+  if (t_ui === undefined)
+    return {
+      error: `(3) group ${groupName} no metadata for ${propName} (${propDef})`
+    };
+  // if got this far, t_ui now has a object keys for each type of
+  // "editable setting" which can have multiple properties:
+  //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
+  // and each key in the id setting look like this:
+  //   displayLabel = { _control, labelKey, helpKey }
+  sourceMeta = u_clone(t_ui);
+  // handle indexed array access
+  if (index !== undefined) {
+    sourceData =
+      template[groupName][propName] && template[groupName][propName][index];
+  } else {
+    sourceData = template[groupName][propName];
+  }
+  return {
+    groupName,
+    propName,
+    propField,
+    sourceMeta,
+    sourceData
+  };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: determine if passed object is a ui object which has a type */
+/** API CRITICAL HELPER - given a uiDef, return the data found in
+ *  template._ui_def[uiDef]. Used to look up things like _controlDef which
+ *  is used in components like in_array (but not in_colorgroup, which can use
+ *  the hardcoded expectation of what its sourceData is shaped like */
+function GetUIDefForType(template, uiDef) {
+  const fn = 'GetUIDefForType';
+  if (!template || typeof template !== 'object')
+    throw Error(`${fn}: template must be an object`);
+  if (!template._ui_defs || typeof template._ui_defs !== 'object')
+    throw Error(`${fn}: template._ui_defs missing or not an object`);
+  if (!uiDef || typeof uiDef !== 'string')
+    throw Error(`${fn}: uiDef must be a string`);
+  return template._ui_defs[uiDef];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: Shallow check that this is a UI object, not group of UIObjects */
 function IsUIObj(uobj) {
   // either a property or property in a group
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
-  return typeof uobj.type === 'string';
+  if (typeof uobj._control !== 'string')
+    throw Error('uobj._control is missing or not string');
+  if (Object.keys(uobj).length === 0) return false; // empty object
+  return uobj._control !== 'in_composite'; // not a in_composite control
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: determine if passed object is a ui group which has properties */
+/** HELPER: Shallow check that this is a UI group */
 function IsUIGroup(uobj) {
   // a group is an object with properties, not a property itself
   if (uobj === undefined || typeof uobj !== 'object')
     throw Error('uobj must be an object');
   if (Object.keys(uobj).length === 0) return false; // empty group
-  if (uobj.type !== undefined) return false; // not a group, it's a property
-  // got this far so it's probably a valid group
-  return Object.keys(uobj).some(key => IsUIObj(uobj[key]));
+  return uobj._control === 'in_composite';
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API HELPER: Given a uiData object, return a list of global settings and
- *  a list of groups found without further decoding the group properties */
-function GetUISettingsList(uiData) {
-  if (uiData === undefined || typeof uiData !== 'object')
-    return { error: 'uiData is not anobject' };
-  if (Object.keys(uiData).length === 0)
-    return { globalsList: [], groupList: [], error: 'uiData is empty' };
+/** API HELPER: Given a uiMeta object, return a list of global settings and
+ *  a list of groups found without further decoding the group properties.*/
+function GetUISettingsList(uiMeta) {
+  if (uiMeta === undefined || typeof uiMeta !== 'object')
+    return { error: 'uiMeta is not an object' };
+  if (Object.keys(uiMeta).length === 0) return { error: 'uiMeta is empty' };
   const globalsList = [];
   const groupList = [];
-  Object.keys(uiData).forEach(g => {
-    const entry = uiData[g];
-    if (IsUIObj(entry)) globalsList.push(g);
-    else if (IsUIGroup(entry)) groupList.push(g);
+  const unknownList = [];
+  Object.keys(uiMeta).forEach(uiKey => {
+    try {
+      if (uiKey.startsWith('_')) return; // skip internal keys
+      const entry = uiMeta[uiKey];
+      if (IsUIObj(entry)) globalsList.push(uiKey);
+      else if (IsUIGroup(entry)) groupList.push(uiKey);
+      else unknownList.push(`${uiKey} = ${JSON.stringify(entry)}`);
+      // LOG(...PR(`GetUISettingsList: processed ${uiKey}`, entry));
+    } catch (err) {
+      LOG(`%c${err}`, 'color:red', `for entry '${uiKey}'`, uiMeta[uiKey]);
+    }
   });
-  return { globalsList, groupList };
+  if (DBG && unknownList.length > 0) {
+    LOG(...PR(`GetUISettingsList: non-UI objs found`), unknownList);
+  }
+  return { globalsList, groupList, unknownList };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Check if there are any pending changes in the settings object,
@@ -221,7 +383,7 @@ const modColor = '#ffff00a0';
 // itemGrid is for the container of a label and input
 const itemGrid = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(200px,max-content) auto',
+  gridTemplateColumns: 'minmax(0, 200px) 1fr',
   alignItems: 'baseline',
   margin
 };
@@ -272,8 +434,9 @@ module.exports = {
   Dispatch, // state, action
   GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
   PersistTemplate, // dataObj => { template: dataObj }
-  DecodeUIData, // setObj, dotProp => { value, ...uiData }
-  GetUISettingsList, // uiData => { globalsList, groupSettings }
+  GetDataForProp, // template, propDef => { groupName, propName, sourceMeta, sourceData }
+  GetUISettingsList, // uiMeta => { globalsList, groupSettings }
+  GetUIDefForType, // template, uiDef => template._ui_defs[uiDef]
   HasPendingChanges, // return true if there are pending changes
   // Locking API
   GetLockState, // ()=>AppState('LOCKSTATE')
@@ -281,8 +444,8 @@ module.exports = {
   LockTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   ReleaseTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
   // PropDef and MetaDef helpers
-  DecodeDotProp, // 'group.prop' => { groupName, propName }
-  EncodeDotProp, // { groupName, propName } => 'group.prop'
+  DecodePropDef, // 'group.prop' => { groupName, propName }
+  EncodePropDef, // { groupName, propName } => 'group.prop'
   IsUIObj, // uobj => true if it has a type
   IsUIGroup, // uobj => true if it has properties
   // Styling API

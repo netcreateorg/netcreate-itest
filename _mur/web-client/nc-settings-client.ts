@@ -15,6 +15,7 @@
 import { produce, current, enableMapSet } from 'immer';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { EventMachine } from '../common/class-event-machine.ts';
+import { IsInteger } from '../common/util-data-check.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,6 +35,12 @@ type DraftObj = {
   isDirty?: boolean; // true if there are pending changes
   changeSet?: Set<string>; // set of changed propDefs
 };
+type DecodedArrayProp = {
+  type?: 'array' | 'arrayIndex' | '';
+  name?: string; // property name without brackets
+  index?: number; // index if type is 'arrayIndex'
+  error?: string; // error message if malformed
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,39 +50,98 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EM = new EventMachine('settings_client');
 
-/// HELPER METHODS //////////////////////////////////////////////////////////
+/// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple decoder for a valid dotProp string. If there is only one
+/** HELPER: looks for bracket expression either [] or [n] at the end of the
+ *  string, return typeof 'array' or 'arrayIndex' */
+function u_DecodeArrayProp(propSeg: string): DecodedArrayProp {
+  const fn = 'u_decodeArrayProp:';
+  // quit if this doesn't look like an array
+  if (propSeg[propSeg.length - 1] !== ']') return { type: '', name: propSeg };
+  const match = propSeg.match(/^(.*)\[(\d*)\]$/);
+  if (match) {
+    if (match[2])
+      return { type: 'arrayIndex', name: match[1], index: parseInt(match[2]) };
+    return { type: 'array', name: match[1] };
+  }
+  // if it doesn't match, then it's a malformed array prop
+  return { error: `${fn} Malformed array prop ${propSeg}` };
+}
+
+/// UTILITY METHODS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: simple decoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will assume it's a propName and will
- *  return [ undefined, propName ]. Otherwise it will return [groupID, propID] */
-function DecodeDotProp(propDef: string) {
+ *  return [ undefined, propName ]. Otherwise it will return [groupID, propID]
+ *  or [groupID, propID, fieldID */
+function DecodePropDef(propDef: string) {
+  // guard checks
   if (typeof propDef !== 'string')
-    throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  if (propDef.length === 0)
-    throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  const [groupID, propID, ...extra] = propDef.split('.');
+    throw Error(`Invalid propDef ${propDef}, expected dotted string`);
+  if (propDef.length === 0) return [''];
+  const [groupID, propID, fieldID, ...extra] = propDef.split('.');
   if (extra.length > 0)
     throw Error(`Invalid propDef ${propDef}, expected 'group.prop'`);
-  if (propID === undefined) return [undefined, groupID];
-  return [groupID, propID];
+  // check that none of the parts are purely numeric
+  if (IsInteger(groupID) || IsInteger(propID) || IsInteger(fieldID)) {
+    throw Error(`Invalid propDef ${propDef}, numeric parts not allowed`);
+  }
+  // if there is only one part, then it's a propID
+  if (propID === undefined) {
+    const { type, name, index } = u_DecodeArrayProp(groupID);
+    if (type === 'arrayIndex') return [undefined, name, undefined, index];
+    return [undefined, groupID, undefined];
+  }
+  // if there are two or more parts, then check the last defined part for
+  // array-ness
+  const lastProp = fieldID || propID || groupID;
+  const { type, name, index } = u_DecodeArrayProp(lastProp);
+  if (type === 'arrayIndex') {
+    if (fieldID) return [groupID, propID, name, index]; // 3-part
+    return [groupID, name, fieldID, index]; // 2-part
+  } else if (type === 'array') {
+    // special case return [] at end
+    if (fieldID) return [groupID, propID, fieldID, index]; // 3-part
+    return [groupID, propID, fieldID];
+  }
+  return [groupID, propID, fieldID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: simple encoder for a valid dotProp string. If there is only one
+/** UTILITY: simple encoder for a valid propDef string. If there is only one
  *  prop (without a dot), then it will return just the propName. Otherwise
- * it will return 'groupID.propID' */
-function EncodeDotProp(groupID: string | undefined, propID: string): string {
-  const fn = 'EncodeDotProp:';
-  // single arg? then assume it's a propID
+ * it will return 'groupID.propID' or 'groupID.propID.fieldID' */
+function EncodePropDef(
+  groupID: string | undefined,
+  propID: string,
+  fieldID?: string | undefined,
+  index?: number | undefined
+): string {
+  const fn = 'EncodePropDef:';
+
+  // guard checks
   const gidOK =
     groupID !== undefined && typeof groupID === 'string' && groupID.length > 0;
   const pidOK =
     propID !== undefined && typeof propID === 'string' && propID.length > 0;
-  if (propID === undefined && gidOK) return groupID;
-  // if (undefined, propID) then return propID
-  if (pidOK && !gidOK) return propID;
-  // got this far, ppropID should be a string
-  if (!pidOK) throw Error(`${fn} bad propID ${propID}`);
-  return `${groupID}.${propID}`;
+  const fldOK =
+    fieldID !== undefined && typeof fieldID === 'string' && fieldID.length > 0;
+  const idxOK = index !== undefined && IsInteger(index);
+
+  // if just groupID, this is actually a propID without a group
+  if (gidOK && !pidOK) return idxOK ? `${groupID}[${index}]` : groupID;
+  // if (undefined, propID) then return propID (callee may unexpectedly use this)
+  if (!gidOK && pidOK) return idxOK ? `${propID}[${index}]` : propID;
+  // missing groupID and propID is an error!
+  if (!gidOK && !pidOK)
+    throw Error(`${fn} bad groupID ${groupID} or propID ${propID}`);
+  // got this far, so we have a valid groupID and propID so check fieldID
+  if (fldOK) {
+    return idxOK
+      ? `${groupID}.${propID}.${fieldID}[${index}]`
+      : `${groupID}.${propID}.${fieldID}`;
+  }
+  // otherwise it's a boring groupID.propID
+  return idxOK ? `${groupID}.${propID}[${index}]` : `${groupID}.${propID}`;
 }
 
 /// DISPATCHER API ////////////////////////////////////////////////////////////
@@ -93,22 +159,35 @@ function GetDispatcher() {
   enableMapSet(); // enable Map and Set support in immer
   m_dispatcher = produce((draft: DraftObj, action: ActionObj) => {
     const { op, propDef, value, saveFunction } = action;
-    let group, prop;
-    switch (op) {
-      // update is called by individual property editors like TextInput
-      case 'update':
-        if (!draft.pending) {
-          if (DBG) LOG(...PR('create pending copy'));
-          draft.pending = JSON.parse(JSON.stringify(draft.template));
-          draft.isDirty = false;
-          draft.changeSet = new Set();
-        }
-        [group, prop] = DecodeDotProp(propDef);
-        // groupless properties are at the top level of the template
-        if (group === undefined) {
-          if (DBG) LOG(...PR('update no group'), { prop, value });
-          if (draft.pending === draft.template)
-            throw Error(`${fn} pending/template are the same`);
+    let group, prop, field, index;
+
+    if (!draft.pending) {
+      if (DBG) LOG(...PR('create pending copy'));
+      draft.pending = JSON.parse(JSON.stringify(draft.template));
+      draft.isDirty = false;
+      draft.changeSet = new Set();
+    }
+
+    /// UPDATE OP ///
+
+    if (op === 'update') {
+      [group, prop, field, index] = DecodePropDef(propDef);
+      const isArray = index !== undefined;
+      // NOTE: u_ResolveProp(dataObj, metaObj, group, prop, field) => { metadata, data, error } could go here and replace decode logic
+      // groupless properties are at the top level of the template
+      if (group === undefined) {
+        if (DBG) LOG(...PR('update no group'), { prop, value });
+        if (draft.pending === draft.template)
+          throw Error(`${fn} pending/template are the same`);
+        if (isArray) {
+          const orig = current(draft).template[prop][index];
+          const curr = current(draft).pending[prop][index];
+          if (curr !== value) {
+            draft.pending[prop][index] = value;
+            draft.changeSet.add(prop);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', prop));
+        } else {
           const orig = current(draft).template[prop];
           const curr = current(draft).pending[prop];
           if (curr !== value) {
@@ -116,14 +195,50 @@ function GetDispatcher() {
             draft.changeSet.add(prop);
             draft.isDirty = value !== orig;
           } else if (DBG) LOG(...PR('- no change for', prop));
-          if (DBG) LOG(...PR(`   orig[${prop}]`, orig), `curr[${prop}]`, curr);
         }
-        // grouped properties are nested in the template
-        else {
-          if (DBG) LOG(...PR('update with group'), { group, prop, value });
-          if (draft.pending[group] === undefined) {
-            throw Error(`${fn} invalid group referenced in ${propDef}`);
-          }
+      }
+      // three-level properties for composite field updates (group.prop.field)
+      else if (field !== undefined) {
+        if (DBG) LOG(...PR('update composite field'), { group, prop, field, value });
+        if (draft.pending[group] === undefined) {
+          throw Error(`${fn} invalid group referenced in ${propDef}`);
+        }
+        if (draft.pending[group][prop] === undefined) {
+          throw Error(`${fn} invalid prop referenced in ${propDef}`);
+        }
+        if (isArray) {
+          const orig = current(draft).template[group][prop][field][index];
+          const curr = current(draft).pending[group][prop][field][index];
+          if (curr !== value) {
+            draft.pending[group][prop][field][index] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        } else {
+          const orig = current(draft).template[group][prop][field];
+          const curr = current(draft).pending[group][prop][field];
+          if (curr !== value) {
+            draft.pending[group][prop][field] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        }
+      }
+      // two-level grouped properties are nested in the template
+      else {
+        if (DBG) LOG(...PR('update with group'), { group, prop, value });
+        if (draft.pending[group] === undefined) {
+          throw Error(`${fn} invalid group referenced in ${propDef}`);
+        }
+        if (isArray) {
+          const orig = current(draft).template[group][prop][index];
+          const curr = current(draft).pending[group][prop][index];
+          if (curr !== value) {
+            draft.pending[group][prop][index] = value;
+            draft.changeSet.add(propDef);
+            draft.isDirty = value !== orig;
+          } else if (DBG) LOG(...PR('- no change for', propDef));
+        } else {
           const orig = current(draft).template[group][prop];
           const curr = current(draft).pending[group][prop];
           if (curr !== value) {
@@ -132,53 +247,61 @@ function GetDispatcher() {
             draft.isDirty = value !== orig;
           } else if (DBG) LOG(...PR('- no change for', propDef));
         }
-        break;
-      // revert is called by the MURSettingsEditor Revert Changes button
-      case 'revert':
-        // on revert, clear pending and isDirty, no write done
-        if (draft.pending) {
-          if (DBG) LOG(...PR('revert changes', current(draft).changeSet));
-          draft.pending = null;
-          draft.isDirty = false;
-          draft.changeSet.clear();
-        } else {
-          if (DBG) LOG(...PR('revert: no pending changes'));
-          if (DBG) LOG(...PR('- template', current(draft).template));
-        }
-        break;
-      // submit is called by the MURSettingsEditor Save Changes button
-      case 'submit':
-        if (typeof saveFunction !== 'function') {
-          throw Error(`${fn} no saveFunction provided for submit`);
-        }
-        // on submit, copy pending to template
-        // immer handles object immutability
-        if (draft.pending && draft.isDirty) {
-          if (DBG) LOG(...PR('submit changes', current(draft).changeSet));
-          draft.template = JSON.parse(JSON.stringify(draft.pending));
-          draft.pending = null;
-          draft.isDirty = false;
-          draft.changeSet.clear();
-          // invoke save function passed in the action
-          saveFunction(current(draft).template)
-            .then((result: OpResult) => {
-              if (result.OK) {
-                if (DBG) LOG(...PR('submit: success', result));
-              } else if (DBG) LOG(...PR('submit: error', result));
-            })
-            .catch(err => {
-              if (DBG) LOG(...PR('submit: error', err));
-            });
-        } else {
-          if (DBG) LOG(...PR('submit: no pending changes'));
-          if (DBG) LOG(...PR('- template', current(draft).template));
-        }
-        break;
-      default:
-        throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
+      }
+      return draft;
     }
+
+    /// REVERT OP ///
+
+    if (op === 'revert') {
+      // on revert, clear pending and isDirty, no write done
+      if (draft.pending) {
+        if (DBG) LOG(...PR('revert changes', current(draft).changeSet));
+        draft.pending = null;
+        draft.isDirty = false;
+        draft.changeSet.clear();
+      } else {
+        if (DBG) LOG(...PR('revert: no pending changes'));
+        if (DBG) LOG(...PR('- template', current(draft).template));
+      }
+      return draft;
+    }
+
+    /// SUBMIT OP ///
+
+    if (op === 'submit') {
+      if (typeof saveFunction !== 'function') {
+        throw Error(`${fn} no saveFunction provided for submit`);
+      }
+      // on submit, copy pending to template
+      // immer handles object immutability
+      if (draft.pending && draft.isDirty) {
+        if (DBG) LOG(...PR('submit changes', current(draft).changeSet));
+        draft.template = JSON.parse(JSON.stringify(draft.pending));
+        draft.pending = null;
+        draft.isDirty = false;
+        draft.changeSet.clear();
+        // invoke save function passed in the action
+        saveFunction(current(draft).template)
+          .then((result: OpResult) => {
+            if (result.OK) {
+              if (DBG) LOG(...PR('submit: success', result));
+            } else if (DBG) LOG(...PR('submit: error', result));
+          })
+          .catch(err => {
+            if (DBG) LOG(...PR('submit: error', err));
+          });
+      } else {
+        if (DBG) LOG(...PR('submit: no pending changes'));
+        if (DBG) LOG(...PR('- template', current(draft).template));
+      }
+      return draft;
+    }
+
+    /// UNKNOWN OP ///
+
+    throw Error(`${fn} Unknown operation '${op}' for propDef ${propDef}`);
     // return the modified draft object
-    return draft;
   });
 }
 
@@ -229,8 +352,8 @@ function Unsubscribe(scope: string = '*', evHdl: SNA_EvtHandler) {
 export {
   Dispatch, // (state, action) => newState
   HasPendingChanges, // () => boolean
-  DecodeDotProp,
-  EncodeDotProp,
+  DecodePropDef,
+  EncodePropDef,
   //
   Subscribe, // (scope: string, evHdl: SNA_EvtHandler) => void
   Unsubscribe // (scope: string, evHdl: SNA_EvtHandler) => void
