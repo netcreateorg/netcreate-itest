@@ -112,7 +112,7 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
-[_ui.nodeDefs.infoSource]
+[_ui.nodeDefs.infoOrigin]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -363,10 +363,10 @@ includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
-[nodeDefs.infoSource]
+[nodeDefs.infoOrigin]
 type = "infoOrigin"
-displayLabel = "Info Source"
-exportLabel = "InfoSource"
+displayLabel = "Info Origin"
+exportLabel = "infoOrigin"
 help = "Who created this?  (aka Source)"
 includeInGraphTooltip = true
 isProvenance = true

@@ -153,7 +153,7 @@ const NODES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
-  infoSource: {
+  infoOrigin: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
