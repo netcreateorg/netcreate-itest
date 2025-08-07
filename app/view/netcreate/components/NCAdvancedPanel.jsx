@@ -66,10 +66,15 @@ const VIEWS = {
 function NCAdvancedPanel() {
   // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   // this completely bypasses the adminPassword checks //
-  const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState('importexport');
-  // const [isOpen, setIsOpen] = useState(true);
-  // const [openTab, setOpenTab] = useState('settings');
+  let isOpen, setIsOpen;
+  let openTab, setOpenTab;
+  if (!DBG) {
+    [isOpen, setIsOpen] = useState(false);
+    [openTab, setOpenTab] = useState('importexport');
+  } else {
+    [isOpen, setIsOpen] = useState(true);
+    [openTab, setOpenTab] = useState('settings');
+  }
   // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);

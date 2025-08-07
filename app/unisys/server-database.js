@@ -11,6 +11,7 @@
 /* eslint-disable no-unused-vars */
 
 const DBG = false;
+const USE_VALIDATOR = true;
 
 /// LOAD LIBRARIES ////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -18,6 +19,7 @@ const Loki = require('lokijs');
 const PATH = require('path');
 const FSE = require('fs-extra');
 const TOML = require('@iarna/toml');
+const TemplateUtil = require('./server-template-util');
 
 /// CONSTANTS /////////////////////////////////////////////////////////////////
 /// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -51,8 +53,8 @@ let TEMPLATE;
 let m_locked_nodes; // map key = nodeID, value = uaddr initiating the lock
 let m_locked_edges; // map key = edgeID, value = uaddr initiating the lock
 let m_locked_comments; // map key = commentID, value = uaddr initiating the lock
-let m_template_locks; // set of uaddr that have locks on template setting editing
 let m_open_editors = []; // array of template, node, or edge editors
+let m_template_locked_by; // set of uaddr that have locks on template setting editing
 /// formatting
 const BL = s => `\x1b[1;34m${s}\x1b[0m`;
 const RD = s => `\x1b[1;31m${s}\x1b[0m`;
@@ -208,8 +210,6 @@ DB.InitializeDataset = function (options = {}) {
     // load non-database assets from dataset.toml, creating
     // it if necessary
     await m_LoadTemplate();
-    m_MigrateTemplate();
-    m_ValidateTemplate();
   } // end async_DatabaseInitialize
 
   // UTILITY FUNCTION
@@ -229,6 +229,28 @@ DB.InitializeDataset = function (options = {}) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Load Template */
 async function m_LoadTemplate() {
+  // make sure default template exists and is valid
+  const defaultTemplatePath = m_DefaultTemplatePath();
+  if (!FSE.existsSync(defaultTemplatePath)) {
+    console.error(PR, `Default template not found at ${defaultTemplatePath}`);
+    process.exit(1);
+  }
+  // validate the default template, as this is our single source of truth
+  if (USE_VALIDATOR) {
+    const [defaultOk, defaultReport] =
+      TemplateUtil.GetTOMLValidation(defaultTemplatePath);
+    if (!defaultOk) {
+      console.error(PR, RD(`Invalid default template`), `'${defaultTemplatePath}'`);
+      console.error(
+        PR,
+        YL(`Correct using ${YL(`./nc-validate.js -vv`)}, then restart server.\n`)
+      );
+      console.error(defaultReport);
+      process.exit(1);
+    } else {
+      console.log(PR, BL('Default template validated'), `'${defaultTemplatePath}'`);
+    }
+  }
   const TOMLPath = m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(TOMLPath));
   if (!FSE.existsSync(TOMLPath)) {
@@ -238,236 +260,35 @@ async function m_LoadTemplate() {
   const data = FSE.readFileSync(TOMLPath, 'utf8');
   const json = TOML.parse(data);
   TEMPLATE = json;
+
+  if (USE_VALIDATOR) {
+    // validate the loaded template (ignoring EXTRA which could be custom attributes)
+    const [templateOK, report] = TemplateUtil.GetValidation(TEMPLATE);
+    if (!templateOK) {
+      const shortPath = PATH.basename(TOMLPath).split('.')[0];
+      console.error(PR, RD(`Invalid dataset template`), `'${TOMLPath}'`);
+      console.error(
+        PR,
+        `Correct using ${YL(
+          `./nc-validate.js ${shortPath} -vv`
+        )} script, then restart server.`
+      );
+      console.error(PR, `Report follows:\n`);
+      console.error(report);
+      process.exit(1);
+    } else {
+      console.log(PR, BL('Dataset template validated'), `'${TOMLPath}'`);
+    }
+  }
+
   // don't clear the locks of a reload of template happens post-init
-  if (m_template_locks === undefined) m_template_locks = new Set();
-
-  console.log(PR, 'Template loaded', BL(TOMLPath));
+  if (m_template_locked_by === undefined) m_template_locked_by = new Set();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Migrate the in-memory TEMPLATE object to latest schema version. These
- *  changes are not persisted unless the template is saved through the UI. */
-function m_MigrateTemplate() {
-  //
-  const T = TEMPLATE;
-  const EDF = T.edgeDefs;
-  const NDF = T.nodeDefs;
-  const nset = prop => prop === undefined;
-
-  /*/ SRI NOTE:
-      using short messages because these get overwritten anyway
-  /*/
-
-  // Migrate 1.0 to 1.1
-  if (nset(T.duplicationWarning)) T.duplicationWarning = 'Duplicate node detected';
-  if (nset(T.nodeIsLockedMessage)) T.nodeIsLockedMessage = 'Node is locked';
-  if (nset.edgeIsLockedMessage) T.edgeIsLockedMessage = 'Edge is locked';
-  if (nset(T.templateIsLockedMessage))
-    T.templateIsLockedMessage = 'Template is locked';
-  if (nset(T.importIsLockedMessage)) T.importIsLockedMessage = 'Import is locked';
-
-  // Migrate 1.4 to 1.5 Core Preferences
-  // -- v1.5 core defaults -- added 2023-0628 #31
-  if (nset(T.searchColor)) T.searchColor = '#008800';
-  if (nset(T.sourceColor)) T.sourceColor = '#FFa500';
-
-  // -- v1.5 Filter Labels -- added 2023-0602 #117
-  // See branch `dev-bl/template-filter-labels`, and fb28fa6
-  if (nset(T.filterFade)) T.filterFade = 'Fade';
-  if (nset(T.filterReduce)) T.filterReduce = 'Reduce';
-  if (nset(T.filterFocus)) T.filterFocus = 'Focus';
-  if (nset(T.filterFadeHelp)) T.filterFadeHelp = 'Fade Filters';
-  if (nset(T.filterReduceHelp)) T.filterReduceHelp = 'Reduce Filters';
-  if (nset(T.filterFocusHelp)) T.filterFocusHelp = 'Focus Filters';
-
-  // -- v1.5 max sizes -- added 2023-0605 #117
-  // See branch `dev-bl/max-size
-  if (nset(T.nodeSizeDefault)) T.nodeSizeDefault = 5;
-  if (nset(T.nodeSizeMax)) T.nodeSizeMax = 50;
-  if (nset(T.edgeSizeDefault)) T.edgeSizeDefault = 1;
-  if (nset(T.edgeSizeMax)) T.edgeSizeMax = 25;
-
-  /*/ SRI NOTE:
-      EDF is T.edgeDefs
-      NDF is T.nodeDefs
-  /*/
-
-  // Migrate v1.4 to v1.5 Nodes and Edges
-  // hides them by default if they were not previously added
-  // SRI NOTE: these related to JSONEditor so needs rework since
-  // a lot of this is just used by dead code that hasn't been pruned.
-  // I've pruned some of it, but this is an outlier that needs to be handled
-  // by a different mechanism in an updated prop editor
-  if (nset(EDF.weight))
-    EDF.weight = {
-      type: 'number',
-      default: 1,
-      label: 'Weight',
-      exportLabel: 'Weight',
-      help: 'Weight of edge',
-      description: 'Weight of this edge',
-      includeInGraphTooltip: true,
-      isRequired: true,
-      isProvenance: false,
-      hidden: false
-    };
-
-  // v1.5 added `provenance` and `comments` so we add the template definitions
-  // Sri notes: this doesn't exist in the template-schema.js output at all, so
-  // there is nothing to migrate
-  // if (ndef(NDEF?.provenance)) {}
-  // if (ndef(NDEF?.comments)) {}
-  // if (ndef(EDF?.provenance)) {}
-  // if (ndef(EDF?.comments)) {}
-
-  // Migrate 1.5 to 2.0 Template Version
-  T._schemaVersion = '2.0';
-
-  // Migrate 2.0 to 2.1 - Add missing _ui defaults from _default.template.toml
-  // Load the default template to get _ui defaults
-  T._schemaVersion = '2.1';
-  const defaultTemplatePath = m_DefaultTemplatePath();
-  if (FSE.existsSync(defaultTemplatePath)) {
-    try {
-      const defaultTemplateContent = FSE.readFileSync(defaultTemplatePath, 'utf8');
-      const defaultTemplate = TOML.parse(defaultTemplateContent);
-
-      // Copy _ui defaults if they don't exist in current template
-      if (defaultTemplate._ui) {
-        if (nset(T._ui)) T._ui = {};
-
-        // Deep merge _ui section from default template
-        Object.keys(defaultTemplate._ui).forEach(key => {
-          if (nset(T._ui[key])) {
-            T._ui[key] = defaultTemplate._ui[key];
-          }
-        });
-      }
-    } catch (err) {
-      console.warn(
-        PR,
-        'Failed to load default template for _ui migration:',
-        err.message
-      );
-    }
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Validate Template Object. This checks that the in-memory TEMPLATE object has
- *  expected values and types and throws errors for showstopping discrepancies.
- *  Note that this does not actually persist the template back to disk. */
-function m_ValidateTemplate() {
-  try {
-    // 1. Validate built-in fields
-    // nodeDefs
-    let nodeDefs = TEMPLATE.nodeDefs;
-    if (nodeDefs === undefined) {
-      throw 'Missing `nodeDefs` nodeDefs=' + nodeDefs;
-    }
-    if (nodeDefs.label === undefined)
-      throw 'Missing `nodeDefs.label` label=' + nodeDefs.label;
-    // edgeDefs
-    let edgeDefs = TEMPLATE.edgeDefs;
-    if (edgeDefs === undefined) throw 'Missing `edgeDefs` edgeDefs=' + edgeDefs;
-    if (edgeDefs.source === undefined)
-      throw 'Missing `edgeDefs.source` source=' + edgeDefs.source;
-    if (edgeDefs.target === undefined)
-      throw 'Missing `edgeDefs.target` label=' + edgeDefs.target;
-
-    // 2. Validate deprecated fields
-    //    `TEMPLATE._schemaVersion` was added after 2.0.
-    if (!TEMPLATE._schemaVersion) {
-      // nodeDefs
-      if (nodeDefs.type === undefined)
-        throw 'Missing `nodeDefs.type` type= ' + nodeDefs.type;
-      if (
-        nodeDefs.type.options === undefined ||
-        !Array.isArray(nodeDefs.type.options)
-      ) {
-        throw (
-          'Missing or bad `nodeDefs.type.options` options=' + nodeDefs.type.options
-        );
-      }
-      if (nodeDefs.notes === undefined)
-        throw 'Missing `nodeDefs.notes` notes=' + nodeDefs.notes;
-      if (nodeDefs.info === undefined)
-        throw 'Missing `nodeDefs.info` info=' + nodeDefs.info;
-      // Version 1.5+ Fields
-      // if (nodeDefs.provenance === undefined) // v2 provenance removed
-      //   throw 'Missing `nodeDefs.provenance` provenance=' + nodeDefs.provenance;
-      if (nodeDefs.provenance)
-        // v2 provenance removed
-        console.log(
-          RD(
-            'Template is using deprecated node definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
-          ),
-          JSON.stringify(nodeDefs.provenance, null, 2)
-        );
-      if (nodeDefs.comments === undefined)
-        throw 'Missing `nodeDefs.comments` comments=' + nodeDefs.comments;
-
-      // edgeDefs
-      if (edgeDefs.type === undefined)
-        throw 'Missing `edgeDefs.type` type= ' + edgeDefs.type;
-      if (
-        edgeDefs.type.options === undefined ||
-        !Array.isArray(edgeDefs.type.options)
-      ) {
-        throw (
-          'Missing or bad `edgeDefs.type.options` options=' + edgeDefs.type.options
-        );
-      }
-      if (edgeDefs.notes === undefined)
-        throw 'Missing `edgeDefs.notes` notes=' + edgeDefs.notes;
-      if (edgeDefs.info === undefined)
-        throw 'Missing `edgeDefs.info` info=' + edgeDefs.info;
-      // Version 1.5+ Fields
-      // if (edgeDefs.provenance === undefined) // v2 provenance removed
-      //   throw 'Missing `edgeDefs.provenance` provenance=' + edgeDefs.provenance;
-      if (edgeDefs.provenance)
-        // v2 provenance removed
-        console.log(
-          RD(
-            'Template is using deprecated edge definition `provenance` which might result in errors when saving a node. Update the template and convert the data.'
-          ),
-          JSON.stringify(edgeDefs.provenance, null, 2)
-        );
-      if (edgeDefs.comments === undefined)
-        throw 'Missing `edgeDefs.comments` comments=' + edgeDefs.comments;
-      // -- End 1.5+
-      if (edgeDefs.citation === undefined)
-        throw 'Missing `edgeDefs.citation` info=' + edgeDefs.citation;
-      if (edgeDefs.category === undefined)
-        throw 'Missing `edgeDefs.category` info=' + edgeDefs.category;
-    } else {
-      // Placeholder for future version checks
-      // if (TEMPLATE._schemaVersion <= "2.0") {
-      //   // do something
-      // }
-    }
-
-    // 3. Validate _ui section (v2.1+)
-    if (TEMPLATE._ui === undefined) {
-      console.warn(
-        PR,
-        'Missing `_ui` section in template. UI field definitions will not be available.'
-      );
-    } else {
-      // Check for core _ui field definitions that should be present
-      const coreUIFields = ['name', 'description', 'secretKey', 'adminPassword'];
-      coreUIFields.forEach(field => {
-        if (TEMPLATE._ui[field] === undefined) {
-          console.warn(
-            PR,
-            `Missing _ui definition for core field '${field}'. Default UI behavior will be used.`
-          );
-        }
-      });
-    }
-  } catch (error) {
-    const templateFileName = m_GetTemplateTOMLFilePath();
-    console.error('Error loading template `', templateFileName, '`::::', error);
-  }
-}
+/// removed deprecated deprecated_MigrateTemplate()
+/// removed deprecated deprecated_ValidateTemplate()
+/// replaced by server-template-util.js and server-template-schema.js
+/// last commit before removal: 7a9f280d
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: load database
  *  note: InitializeDataset() was already called on system initialization
@@ -756,7 +577,7 @@ DB.PKT_RequestLockNode = function (pkt) {
     return m_MakeLockError(`nodeID ${nodeID} is already locked`);
   // SUCCESS
   // single matching node exists and is not yet locked, so lock it
-  m_locked_nodes.set(uaddr);
+  m_locked_nodes.set(nodeID, uaddr); // PR#416
   return { nodeID, locked: true };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -916,6 +737,7 @@ DB.PKT_RequestUnlockAll = function (pkt) {
   m_locked_nodes = new Map();
   m_locked_edges = new Map();
   m_locked_comments = new Map();
+  m_template_locked_by = new Set();
   m_open_editors = [];
   return { unlocked: true };
 };
@@ -934,9 +756,9 @@ DB.UnlockByUADDR = function (uaddr) {
   m_locked_comments.forEach((value, key) => {
     if (value === uaddr) m_locked_comments.delete(key);
   });
-  if (m_template_locks.has(uaddr)) {
+  if (m_template_locked_by.has(uaddr)) {
     console.log(PR, `template lock ${uaddr}' released`);
-    m_template_locks.delete(uaddr);
+    m_template_locked_by.delete(uaddr);
   }
 };
 
@@ -1563,10 +1385,10 @@ DB.WriteDbJSON = function (filePath) {
 /** called by SRV_REQ_TEMPLATE_LOCK. Returns { error, success, uaddr,
  *  lockedBy } */
 DB.PKT_RequestLockTemplate = pkt => {
-  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  if (m_template_locked_by === undefined) return { error: 'template not yet loaded' };
   const uaddr = pkt.s_uaddr;
-  if (m_template_locks.size > 0) {
-    const uaddrs = [...m_template_locks.keys()];
+  if (m_template_locked_by.size > 0) {
+    const uaddrs = [...m_template_locked_by.keys()];
     if (uaddrs.includes(pkt.s_uaddr)) return { success: true, uaddr: pkt.s_uaddr };
     else
       return {
@@ -1576,7 +1398,7 @@ DB.PKT_RequestLockTemplate = pkt => {
       };
   }
   // if we're not locked, lock it!
-  m_template_locks.add(uaddr);
+  m_template_locked_by.add(uaddr);
   console.log(PR, `${uaddr} locked template`);
   return { success: true, uaddr };
 };
@@ -1584,20 +1406,20 @@ DB.PKT_RequestLockTemplate = pkt => {
 /** called by SRV_REQ_TEMPLATE_UNLOCK. Returns { error, success, uaddr,
  *  lockedBy } */
 DB.PKT_RequestUnlockTemplate = pkt => {
-  if (m_template_locks === undefined) return { error: 'template not yet loaded' };
+  if (m_template_locked_by === undefined) return { error: 'template not yet loaded' };
   const uaddr = pkt.s_uaddr;
-  if (m_template_locks.has(uaddr)) {
-    m_template_locks.delete(uaddr);
+  if (m_template_locked_by.has(uaddr)) {
+    m_template_locked_by.delete(uaddr);
     console.log(PR, `${uaddr} unlocked template`);
     return { success: true, uaddr };
   }
-  const uaddrs = [...m_template_locks.keys()];
+  const uaddrs = [...m_template_locked_by.keys()];
   return { error: `template not locked by ${uaddr}`, lockedBy: uaddrs, uaddr };
 };
 
 /// TEMPLATE READ+WRITE METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** called by Template Editor and DB.WriteTemplateTOML */
+/** called by Template Editor and DB.PKT_WriteTemplateTOML */
 function m_GetTemplateTOMLFileName() {
   return NC_CONFIG.dataset + TEMPLATE_EXT;
 }
@@ -1617,9 +1439,9 @@ DB.GetTemplateTOMLFileName = () => {
  *                        other specific template.
  *  WARN: Loads the template after saving!
  */
-DB.WriteTemplateTOML = pkt => {
+DB.PKT_WriteTemplateTOML = pkt => {
   if (pkt.data === undefined)
-    throw 'DB.WriteTemplateTOML pkt received with no `data`';
+    throw 'DB.PKT_WriteTemplateTOML pkt received with no `data`';
   const templateFilePath = pkt.data.path || m_GetTemplateTOMLFilePath();
   FSE.ensureDirSync(PATH.dirname(templateFilePath));
   // first back-up the old template file
@@ -1672,7 +1494,7 @@ DB.RegenerateDefaultTemplate = () => {
     }
   };
   const toml = TOML.stringify(pkt.data.template);
-  return DB.WriteTemplateTOML(pkt);
+  return DB.PKT_WriteTemplateTOML(pkt);
 };
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

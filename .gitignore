@@ -13,10 +13,11 @@
 _dist
 _ur_addons/_public
 
-# Also ignore build system directories
+# Also ignore build system directories and -dist files
 .npmignore
 /.parcel-cache
 /public*
+*-dist.js
 
 # the code-workspace file also hides node_modules from file list
 **/node_modules
@@ -55,5 +56,5 @@ nbproject
 Thumbs.db
 
 # Ignore AI agent files
-CLAUDE.md
+CLAUDE*.md
 .claude

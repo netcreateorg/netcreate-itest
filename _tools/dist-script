@@ -1,0 +1,156 @@
+#!/usr/bin/env node
+
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*
+
+  Build script to create a standalone nc-validate bundle using esbuild.
+  This creates a single executable file that includes all dependencies.
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+const esbuild = require('esbuild');
+const path = require('path');
+const fs = require('fs');
+
+/// CONFIGURATION ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const LOG = console.log.bind(console);
+const BRT = '\x1b[1m'; // bright
+const GRY = '\x1b[90m'; // grey
+const YLW = '\x1b[33m'; // yellow
+const NRM = '\x1b[0m'; // normal
+const BLU = '\x1b[34m'; // blue
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const args = process.argv.slice(2);
+const m_script = path.basename(process.argv[1]);
+const m_source = args[0] || '';
+const f_docopy = args.includes('--copy') || args.includes('-c');
+const f_showhelp = args.includes('--help') || args.includes('-h');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DOFF = '../'; // directory up one level
+const ROOT_DIR = path.resolve(__dirname, DOFF);
+const OUTPUT_DIR = path.join(__dirname, 'dist');
+const USAGE = `  ${GRY}./${m_script} <root-relative-sourcefile.js> [--copy]${NRM}`;
+if (!m_source) {
+  LOG(`❌ No source file specified.`);
+  LOG(USAGE);
+  process.exit(1);
+}
+if (f_showhelp) {
+  LOG('Utility to package a CLI node utility into a standalone bundle.');
+  LOG(USAGE);
+  LOG('Options:');
+  LOG(`  ${GRY}--copy, -c${NRM}   Copy the output bundle to source's directory`);
+  LOG(`  ${GRY}--help, -h${NRM}   Show this help message`);
+  process.exit(0);
+}
+const ENTRY_POINT = path.join(ROOT_DIR, m_source);
+let OUTPUT_NAME;
+if (!m_source.endsWith('.js')) {
+  OUTPUT_NAME = m_source + '-dist.js';
+} else {
+  OUTPUT_NAME = m_source.replace(/\.js$/, '-dist.js');
+}
+const OUTPUT_FILE = path.join(OUTPUT_DIR, OUTPUT_NAME);
+
+/// HELPER FUNCTIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_EnsureDirExists(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function u_short(filePath) {
+  // Returns a shortened path for display purposes
+  if (filePath.startsWith(ROOT_DIR)) {
+    return filePath.slice(ROOT_DIR.length + 1);
+  }
+  return filePath;
+}
+
+/// BUILD PROCESS /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function BuildStandalone() {
+  try {
+    LOG('');
+    LOG(`${BLU}${BRT}Building standalone ${m_source} bundle...${NRM}`);
+    LOG('');
+    LOG(`Source Script: ${BRT}${DOFF}${u_short(ENTRY_POINT)}${NRM}`);
+    LOG(`Output Bundle: ${BRT}${u_short(OUTPUT_FILE)}${NRM}`);
+    LOG('');
+
+    // ensure entry point exists
+    if (!fs.existsSync(ENTRY_POINT)) {
+      LOG(`❌ Entry point does not exist: ${DOFF}${u_short(ENTRY_POINT)}`);
+      process.exit(1);
+    }
+
+    // Ensure output directory exists
+    m_EnsureDirExists(OUTPUT_DIR);
+
+    // Build with esbuild
+    await esbuild.build({
+      entryPoints: [ENTRY_POINT],
+      bundle: true,
+      platform: 'node',
+      target: 'node14',
+      outfile: OUTPUT_FILE,
+      format: 'cjs',
+      external: [],
+      banner: {
+        js: '/* eslint-disable */'
+      },
+      minify: false, // Keep readable for debugging
+      sourcemap: false,
+      define: {
+        '__dirname': `__dirname`,
+        '__filename': `__filename`
+      }
+    });
+
+    LOG('✅ Build completed successfully!');
+    LOG(`📦 Standalone executable: ${u_short(OUTPUT_FILE)}`);
+    LOG('');
+    if (f_docopy) {
+      LOG(`${BRT}${BLU}Copying output to current directory...${NRM}`);
+      LOG('');
+      // Copy the output file to the current directory
+      const destPath = path.resolve(ROOT_DIR, u_short(OUTPUT_NAME));
+      if (fs.existsSync(destPath)) {
+        LOG(`  🔔 ${YLW}Overwriting existing file:${NRM} ${u_short(destPath)}`);
+      } else {
+        LOG(`  📂 Copying to: ${u_short(destPath)}`);
+      }
+      fs.copyFileSync(OUTPUT_FILE, destPath);
+      LOG(`  ✅ Copy completed: ${u_short(destPath)}`);
+      LOG('');
+    }
+    LOG(`${BRT}${BLU}Distribution Tips${NRM}`);
+    LOG('');
+    const domain = 'https://your-server.com/path/to';
+    LOG(`To distribute, upload to your webserver at a location like:`);
+    LOG(`  ${GRY}${domain}/${u_short(OUTPUT_NAME)}${NRM}`);
+    LOG(`Use curl to download to whatever the correct directory is:`);
+    LOG(`  ${GRY}curl -O ${domain}/${u_short(OUTPUT_NAME)}${NRM}`);
+    LOG(`  ${GRY}chmod +x ${u_short(OUTPUT_NAME)}${NRM}`);
+    LOG(`Then run:`);
+    LOG(`  ${GRY}./${u_short(OUTPUT_NAME)}${NRM}`);
+    LOG('or use node to run it:');
+    LOG(`  ${GRY}node ${u_short(OUTPUT_NAME)}${NRM}`);
+  } catch (error) {
+    LOG('');
+    console.error('❌ Build failed:', error);
+    process.exit(1);
+  }
+  LOG('');
+}
+
+/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if (require.main === module) {
+  BuildStandalone();
+}
+
+/// EXPORTS ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+module.exports = { BuildStandalone };

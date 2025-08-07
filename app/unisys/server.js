@@ -142,9 +142,9 @@ UNISYS.RegisterHandlers = () => {
     return UDB.RegenerateDefaultTemplate();
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  UNET.HandleMessage('SRV_TEMPLATESAVE', pkt => {
+  UNET.HandleMessage('SRV_TEMPLATE_SAVE', pkt => {
     if (DBG) console.log(PR, sprint_message(pkt));
-    const result = UDB.WriteTemplateTOML(pkt);
+    const result = UDB.PKT_WriteTemplateTOML(pkt);
     if (result.OK) {
       UNET.NetSend('NET_TEMPLATE_UPDATE', pkt.data.template);
     } else {
@@ -339,7 +339,13 @@ UNISYS.RegisterHandlers = () => {
     return UDB.PKT_IsCommentLocked(pkt);
   });
 
-  /// SUPER UNLOCKING EVERYTHING ////////////////////////////////
+  /// SUPER ALL OPERATIONS //////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** Update all EXISTING nodes/edges after a Template edit */
+  UNET.HandleMessage('SRV_DBUPDATE_ALL', function (pkt) {
+    if (DBG) console.log(PR, sprint_message(pkt));
+    return UDB.PKT_UpdateDatabase(pkt);
+  });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   UNET.HandleMessage('SRV_DBUNLOCKALL', function (pkt) {
     if (DBG) console.log(PR, sprint_message(pkt));

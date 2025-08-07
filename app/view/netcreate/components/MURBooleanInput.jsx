@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  MUR Text Input Component
+  MUR Boolean Input Component
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -12,7 +12,7 @@ const { ConsoleStyler } = require('ursys-min');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('InText', 'TagBlue');
+const PR = ConsoleStyler('InBool', 'TagBlue');
 
 /// STYLING OBJECTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -20,7 +20,7 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function u_ExtractInputProps(controlData) {
+function u_ExtractBooleanProps(controlData) {
   if (typeof controlData !== 'object')
     return { error: `arg1 must be an object, got ${typeof controlData}` };
 
@@ -33,9 +33,12 @@ function u_ExtractInputProps(controlData) {
   // resolve useful ui data
   let fValue, fLabel, fHelp, fTooltip;
 
-  // special case ... this is always a sourceData extraction
-  if (valueKey) fValue = sourceData[valueKey];
-  if (fValue === undefined) fValue = sourceData[propName] || sourceData;
+  // special case: if a boolean property is not defined, we assume false
+  if (sourceData === undefined) fValue = false;
+  else {
+    if (valueKey) fValue = sourceData[valueKey];
+    if (fValue === undefined) fValue = sourceData[propName] || sourceData;
+  }
 
   // if labelKey exists, use it. Otherwise meta has to provide a label
   if (labelKey) fLabel = sourceData[labelKey];
@@ -60,33 +63,35 @@ function u_ExtractInputProps(controlData) {
   };
 }
 
-/// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
+/// BOOLEAN INPUT COMPONENT ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** A TextInput component */
-function TextInput(props) {
+/** A BooleanInput component */
+function BooleanInput(props) {
   // propName, groupName.propName, or groupName.propName.fieldName
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
   // controlData contains what's needed to render this input component
   const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const { name, label, tooltip, help, placeholder, value } =
-    u_ExtractInputProps(controlData);
-  const defValue = undefined; // TODO: handle default values
+    u_ExtractBooleanProps(controlData);
+  const defValue = false; // default boolean value
 
   // declare reactive render state
   // note that this only runs on the FIRST render, which is why
   // we need the useEffect() to work around it
   const [labelColor, setLabelColor] = React.useState('black');
   const [tooltipStyle, setTooltipStyle] = React.useState({ ...popupStyle });
-  const templateValue = value || defValue;
-  const [inputValue, setInputValue] = React.useState(value || defValue);
+  const templateValue = value !== undefined ? value : defValue;
+  const [inputValue, setInputValue] = React.useState(
+    value !== undefined ? value : defValue
+  );
 
   // this is a workaround for React's stupidity about dataflow, state
   // retention with hooks, and other bullshit.
   React.useEffect(() => {
     if (!draft.pending) {
-      const { value } = u_ExtractInputProps(controlData);
-      setInputValue(value || defValue);
+      const { value } = u_ExtractBooleanProps(controlData);
+      setInputValue(value !== undefined ? value : defValue);
     }
   }, [draft.pending]);
 
@@ -94,7 +99,7 @@ function TextInput(props) {
 
   // send data to draft object, which will trigger rerender
   const submitToSettings = async event => {
-    const value = String(event.target.value);
+    const value = Boolean(event.target.checked);
     dispatch({
       op: 'update',
       propDef,
@@ -104,15 +109,11 @@ function TextInput(props) {
 
   /// LOCAL EVENT UPDATES ///
 
-  // input changes will update the current templateValue =value || defValue;
-  const handleTyping = event => {
-    const value = event.target.value;
+  // checkbox changes will update the current value and submit immediately
+  const handleChange = event => {
+    const value = event.target.checked;
     setInputValue(value);
-  };
-
-  // input key return will submit the value to draft object
-  const handleEnterKey = async event => {
-    if (event.key === 'Enter') submitToSettings(event);
+    submitToSettings(event);
   };
 
   // hovering over label will show tooltip
@@ -135,28 +136,23 @@ function TextInput(props) {
 
   /// RENDER ///
 
-  // conditional flags based on templateValue =value || defValue;
+  // conditional flags based on templateValue
   const mod = templateValue !== inputValue;
   const bgColor = mod ? modColor : 'white';
-  const pad = mod ? '1rem' : '0';
 
   const InputField = hasLock ? (
     <input
-      type="text"
+      type="checkbox"
       name={`${name}`}
       style={{
         ...inputStyle,
-        color: labelColor,
-        backgroundColor: bgColor,
-        paddingRight: pad
+        backgroundColor: bgColor
       }}
-      value={inputValue}
-      onKeyDown={handleEnterKey}
-      onBlur={submitToSettings}
-      onChange={handleTyping}
+      checked={inputValue}
+      onChange={handleChange}
     />
   ) : (
-    <p>{inputValue}</p>
+    <p>{inputValue ? 'true' : 'false'}</p>
   );
 
   return (
@@ -177,4 +173,4 @@ function TextInput(props) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = TextInput;
+module.exports = BooleanInput;
