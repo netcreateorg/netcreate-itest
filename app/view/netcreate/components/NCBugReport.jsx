@@ -59,14 +59,20 @@ function NCBugReport() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if (!isOpen) return null;
 
+  // Get user token
+  const { routeProps } = SETTINGS.GetRouteInfoFromURL();
+  const token = (routeProps && routeProps.token) || 'Not Logged In';
+
   return (
     <URPopover
       title={`Bug Report ${new Date().toLocaleString()}`}
       onClose={ui_CloseBugReport}
-      classOverride="NCBugReport"
+      className="NCBugReport"
     >
-      <i>Take a screenshot and send it to Net.Create staff.</i>
+      <i>Take a screenshot of the whole screen and send it to Net.Create staff.</i>
       <div className="key-value-pair">
+        <label>Logged in as</label>
+        <div>{token}</div>
         <label>Loki file</label>
         <div>{window.NC_CONFIG.dataset}.loki</div>
         <label>Template file</label>

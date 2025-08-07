@@ -19,13 +19,20 @@ const PR = 'URButtonToggle';
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function URButtonToggle({ title, selected, onClick, children, tabindex }) {
+function URButtonToggle({
+  title,
+  selected,
+  onClick,
+  children,
+  tabindex,
+  className = ''
+}) {
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   return (
     <button
-      className={`URButtonToggle icon ${selected ? 'selected' : ''}`}
+      className={`URButtonToggle icon ${selected ? 'selected' : ''} ${className}`}
       type="button"
       role="switch"
       aria-label={title}

@@ -1,0 +1,36 @@
+#popover.URTableColumnPanel {
+  position: fixed;
+  width: 200px;
+  height: inherit;
+  top: inherit;
+  right: inherit; /* Override URPopover default right alignment */
+  margin-top: 2rem; /* Show below the table head */
+  color: var(--clr-fg);
+  background-color: var(--clr-system-light);
+}
+#popover.URTableColumnPanel .popover-content {
+  flex-direction: column;
+  font-size: var(--font-size-xs);
+}
+#popover.URTableColumnPanel .key-value-pair {
+  display: grid;
+  grid-template-columns: 25px auto;
+  column-gap: 0.5rem;
+  align-items: center;
+  text-align: center;
+}
+#popover.URTableColumnPanel .key-value-pair label {
+  text-align: left;
+}
+
+/* Column Manager Button */
+#NCNodeTable .colmgr-btn,
+#NCEdgeTable .colmgr-btn {
+  position: fixed;
+  z-index: 110;
+  margin: 5px;
+}
+#NCNodeTable button.icon.colmgr-btn,
+#NCEdgeTable button.icon.colmgr-btn {
+  font-size: 1.5rem;
+}
