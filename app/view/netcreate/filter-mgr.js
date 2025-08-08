@@ -543,10 +543,9 @@ function m_MatchString(needle, haystack, contains = true) {
 }
 function m_MatchStringSnippet(needle, haystack, contains = true) {
   // Normalize and strip diacritics
-  const normalize = str => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  needle = normalize(needle);
-  haystack = normalize(haystack);
+  needle = UTILS.RemoveDiacriticMarks(needle);
+  haystack = UTILS.RemoveDiacriticMarks(haystack);
 
   const regex = new RegExp(/*'^'+*/ needle, 'i');
   let matches;
