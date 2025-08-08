@@ -1012,10 +1012,19 @@ MOD.FindMatchingNodesByLabel = label => {
 };
 function m_FindMatchingNodesByLabel(str = '') {
   if (!str) return [];
+  // Normalize and remove diacritics from input
+  str = str
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
   str = u_EscapeRegexChars(str.trim());
   if (str === '') return [];
   const regex = new RegExp(/*'^'+*/ str, 'i');
-  return NCDATA.nodes.filter(node => regex.test(node.label));
+  return NCDATA.nodes.filter(node => {
+    // Normalize and remove diacritics from node label
+    const label = node.label.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return regex.test(label);
+  });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Set nodes that PARTIALLY match 'str' to 'yes' props.
