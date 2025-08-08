@@ -542,6 +542,12 @@ function m_MatchString(needle, haystack, contains = true) {
   return contains ? ResultsAND : !ResultsAND;
 }
 function m_MatchStringSnippet(needle, haystack, contains = true) {
+  // Normalize and strip diacritics
+  const normalize = str => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  needle = normalize(needle);
+  haystack = normalize(haystack);
+
   const regex = new RegExp(/*'^'+*/ needle, 'i');
   let matches;
   if (needle === '') {
