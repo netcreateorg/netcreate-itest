@@ -53,11 +53,32 @@ const UDATAOwner = { name: 'NCAdvancedPanel' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const VIEWS = {
-  template: 'Template',
-  importexport: 'Import/Export',
-  usertokens: 'User Tokens',
-  settings: 'Settings'
+const TABS = {
+  EXPORT: {
+    id: 'export',
+    label: 'Export',
+    adminRequired: false
+  },
+  IMPORT_EXPORT: {
+    id: 'importexport',
+    label: 'Import/Export',
+    adminRequired: true
+  },
+  TEMPLATE: {
+    id: 'template',
+    label: 'Template',
+    adminRequired: true
+  },
+  SETTINGS: {
+    id: 'settings',
+    label: 'Settings',
+    adminRequired: true
+  },
+  USER_TOKENS: {
+    id: 'usertokens',
+    label: 'User Tokens',
+    adminRequired: true
+  }
 };
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -140,6 +161,7 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_PasswordClear() {
+    setOpenTab('export'); // Revert to default export tab
     setPassword('');
   }
 
@@ -148,23 +170,25 @@ function NCAdvancedPanel() {
   const TABS = hasAdminPermissions
     ? VIEWS // show all tabs to admin
     : { export: 'Export' }; // show "Export" only
+  const activeTabs = Object.values(TABS).filter(tab =>
+    hasAdminPermissions ? tab.adminRequired : !tab.adminRequired
+  );
 
   let jsx;
   switch (openTab) {
-    case 'template':
+    case TABS.TEMPLATE.id:
       jsx = <NCTemplate />;
       break;
-    case 'importexport':
-    case 'export':
-      jsx = <NCImportExport isAdmin={hasAdminPermissions} />;
-      break;
-    case 'usertokens':
+    case TABS.USER_TOKENS.id:
       jsx = <NCUserTokens />;
       break;
-    case 'settings':
+    case TABS.SETTINGS.id:
       jsx = <MURSettingEditor />;
       break;
+    case TABS.IMPORT_EXPORT.id:
+    case TABS.EXPORT.id:
     default:
+      jsx = <NCImportExport isAdmin={hasAdminPermissions} />;
       break;
   }
 
@@ -172,15 +196,18 @@ function NCAdvancedPanel() {
 
   let adminStatus;
   if (hasAdminPermissions === undefined) {
+    // Admin Mode is disabled because the adminPassword has not been defined
     adminStatus = <span>Admin Mode Disabled</span>;
     console.log(`NOTE: "adminPassword" is not set (premature mount?)`);
   } else if (hasAdminPermissions === false)
+    // Admin Mode is disabled, show password
     adminStatus = (
       <label>
         admin: <input type="password" id="password" onChange={ui_PasswordChange} />
       </label>
     );
   else if (hasAdminPermissions === true)
+    // Admin Mode is enabled, show "Reset Password" button
     adminStatus = (
       <button type="button" onClick={ui_PasswordClear}>
         Admin Logout
@@ -191,17 +218,17 @@ function NCAdvancedPanel() {
     <URPopover title="Advanced" onClose={ui_CloseAdvanced}>
       <div id="NCTabPanel" className="NCAdvancedPanel">
         <div className="tabs" role="tablist">
-          {Object.keys(TABS).map(k => (
+          {activeTabs.map(tab => (
             <button
-              key={k}
+              key={tab.id}
               role="tab"
-              className={openTab === k ? 'selected' : ''}
-              aria-selected={openTab === k}
-              aria-controls={k}
-              tabIndex={openTab === k ? '0' : '-1'}
-              onClick={() => ui_SelectTab(k)}
+              className={openTab === tab.id ? 'selected' : ''}
+              aria-selected={openTab === tab.id}
+              aria-controls={tab.id}
+              tabIndex={openTab === tab.id ? '0' : '-1'}
+              onClick={() => ui_SelectTab(tab.id)}
             >
-              {TABS[k]}
+              {tab.label}
             </button>
           ))}
         </div>
