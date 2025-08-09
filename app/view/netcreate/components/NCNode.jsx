@@ -764,8 +764,10 @@ class NCNode extends UNISYS.Component {
         <div className="view" style={{ background: bgcolor }}>
           {/* BUILT-IN - - - - - - - - - - - - - - - - - */}
           <div className="titlebar">
-            <div className="nodenumber">NODE {id}</div>
-            <div className="nodelabel">{NCUI.RenderLabel('label', label)}</div>
+            <div className="nodelabel">
+              {NCUI.RenderLabel('label', label)}
+              <span className="nodenumber">#{id}</span>
+            </div>
             <URCommentVBtn cref={collection_ref} key={collection_ref} />
             {/* use key to make sure URCommentVBtn refreshes */}
           </div>

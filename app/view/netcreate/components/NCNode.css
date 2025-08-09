@@ -218,21 +218,29 @@
 }
 
 /* Type View */
-.nccomponent.ncedge .formview.typeview,
-.nccomponent.ncedge .typeview label,
-.nccomponent.ncedge .typeview div {
-  display: inline;
-  padding-right: 0.25rem;
-  line-height: 1.25rem;
-}
 .nccomponent .formview.typeview {
   /* match .formview with column gap*/
-  grid-template-columns: 50px auto;
+  display: flex;
+  column-gap: 0.5rem;
 }
 .nccomponent .formview.typeview label {
+  text-align: left; /* override regular formview */
+  padding-left: 0.5rem; /* match .titlebar */
   color: #666;
   opacity: 1;
 }
+
+.nccomponent.ncedge .formview.typeview,
+.nccomponent.ncedge .formview.typeview div {
+  display: inline;
+  line-height: 1.25rem;
+}
+.nccomponent.ncedge .formview.typeview label {
+  display: inline;
+  padding-left: 0; /* override ncnode typeview */
+  padding-right: 0.25rem;
+}
+
 .nccomponent .formview .edgetypeRow {
   display: grid;
   grid-template-columns: 22px 1fr;
@@ -324,17 +332,16 @@
 
 .nccomponent .titlebar {
   display: grid;
-  grid-template-columns: 60px auto 34px;
+  grid-template-columns: auto 34px;
   align-items: center;
-  /* display: flex;
-  justify-content: space-between;
-  align-items: baseline; */
+  padding-left: 0.5rem;
 }
 .nccomponent .titlebar .nodenumber {
   font-size: 10px;
+  font-weight: var(--font-weight-normal);
   line-height: 26px; /* match CommmentBtn */
   color: #666;
-  padding-right: 0.4em;
+  padding-left: 1rem;
 }
 .nccomponent .titlebar .nodelabel label {
   margin-bottom: 0; /* override bootstrap */

@@ -937,8 +937,9 @@ class NCEdge extends UNISYS.Component {
         >
           {/* BUILT-IN - - - - - - - - - - - - - - - - - */}
           <div className="titlebar" style={{ marginBottom: '3px' }}>
-            <div className="nodenumber">EDGE {id} </div>
-            <div></div>
+            <div className="nodelabel">
+              <div className="nodenumber">EDGE #{id} </div>
+            </div>
             <URCommentVBtn cref={collection_ref} key={collection_ref} />
           </div>
           <div className="formview">
