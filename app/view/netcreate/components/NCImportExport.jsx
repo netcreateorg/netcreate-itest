@@ -387,7 +387,11 @@ class NCImportExport extends UNISYS.Component {
                 project
               </p>
               <ul>
-                <li>Existing objects will be removed</li>
+                <li style={{ color: `var(--clr-warning)` }}>
+                  WARNING: All existing nodes and edges will be removed before new
+                  nodes and edges are imported. If you do not include an Edges file,
+                  all edges will be removed.
+                </li>
               </ul>
             </div>
           </fieldset>
