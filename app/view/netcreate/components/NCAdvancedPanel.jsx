@@ -85,18 +85,8 @@ const TABS = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
-  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
-  // this completely bypasses the adminPassword checks //
-  let isOpen, setIsOpen;
-  let openTab, setOpenTab;
-  if (!DBG) {
-    [isOpen, setIsOpen] = useState(false);
-    [openTab, setOpenTab] = useState('importexport');
-  } else {
-    [isOpen, setIsOpen] = useState(true);
-    [openTab, setOpenTab] = useState('settings');
-  }
-  // HACK MAKE SURE TO CHANGE BACK BEFORE PR SUBMISSION -
+  const [isOpen, setIsOpen] = useState(false);
+  const [openTab, setOpenTab] = useState('importexport');
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
@@ -131,16 +121,8 @@ function NCAdvancedPanel() {
       );
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
-    if (!DBG) setHasAdminPermissions(isAdmin);
-    // HACK: disable admin password for prop-settings-2
-    else {
-      console.log(
-        '%c*** DBG Mode: AdminPassword Bypassed ***',
-        'color: red; font-weight: bold;'
-      );
-      setHasAdminPermissions(true);
-    }
-    // HACK END
+
+    setHasAdminPermissions(isAdmin);
 
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
     UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
@@ -167,9 +149,6 @@ function NCAdvancedPanel() {
 
   // COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  const TABS = hasAdminPermissions
-    ? VIEWS // show all tabs to admin
-    : { export: 'Export' }; // show "Export" only
   const activeTabs = Object.values(TABS).filter(tab =>
     hasAdminPermissions ? tab.adminRequired : !tab.adminRequired
   );
