@@ -348,30 +348,11 @@ class NCImportExport extends UNISYS.Component {
           <fieldset>
             <label>
               <input
-                id="import-replace"
-                type="radio"
-                name="importtype"
-                value={IMPORTTYPE.REPLACE}
-                defaultChecked
-              />
-              Replace
-            </label>
-            <div>
-              <p>
-                {' '}
-                <b>Replace</b> existing nodes and edges. Use this to <b>load</b> a new
-                project
-              </p>
-              <ul>
-                <li>Existing objects will be removed</li>
-              </ul>
-            </div>
-            <label>
-              <input
                 id="import-merge"
                 type="radio"
                 name="importtype"
                 value={IMPORTTYPE.MERGE}
+                defaultChecked
               />
               Merge
             </label>
@@ -388,6 +369,25 @@ class NCImportExport extends UNISYS.Component {
                   Existing objects that do not match imported nodes/edges will not be
                   modified or removed
                 </li>
+              </ul>
+            </div>
+            <label>
+              <input
+                id="import-replace"
+                type="radio"
+                name="importtype"
+                value={IMPORTTYPE.REPLACE}
+              />
+              Replace
+            </label>
+            <div>
+              <p>
+                {' '}
+                <b>Replace</b> existing nodes and edges. Use this to <b>load</b> a new
+                project
+              </p>
+              <ul>
+                <li>Existing objects will be removed</li>
               </ul>
             </div>
           </fieldset>
