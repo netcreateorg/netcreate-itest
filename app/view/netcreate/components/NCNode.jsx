@@ -46,6 +46,7 @@ const { BUILTIN_FIELDS_NODE } = require('system/util/enum');
 const { EDGE_NOT_SET_LABEL, ARROW_RIGHT } = require('system/util/constant');
 const NCLOGIC = require('../nc-logic');
 const NCUI = require('../nc-ui');
+const UTILS = require('../nc-utils');
 const NCEdge = require('./NCEdge');
 const NCDialogCitation = require('./NCDialogCitation');
 const SETTINGS = require('settings');
@@ -749,7 +750,7 @@ class NCNode extends UNISYS.Component {
     const TEMPLATE = this.AppState('TEMPLATE');
     const defs = TEMPLATE.nodeDefs;
     const uShowCitationButton = TEMPLATE.citation && !TEMPLATE.citation.hidden;
-    const bgcolor = uBackgroundColor + '44'; // hack opacity
+    const bgcolor = UTILS.hex2rgba(uBackgroundColor, 0.5); // hack opacity
     const citation =
       `NetCreate ${TEMPLATE.name} network, ` +
       `Node: "${label}" (ID ${id}). ` +
@@ -869,7 +870,7 @@ class NCNode extends UNISYS.Component {
       type
     } = this.state;
     const defs = this.AppState('TEMPLATE').nodeDefs;
-    const bgcolor = uBackgroundColor + '66'; // hack opacity
+    const bgcolor = UTILS.hex2rgba(uBackgroundColor, 0.6); // hack opacity
     const matchList = matchingNodes
       ? matchingNodes.map(n => (
           <div key={`${n.label}${n.id}`} value={n.id}>
@@ -1005,7 +1006,7 @@ class NCNode extends UNISYS.Component {
             label: EDGE_NOT_SET_LABEL
           };
           const color = EDGEMGR.LookupEdgeColor(e, TEMPLATE);
-          const bgcolor = color + '33'; // opacity hack
+          const bgcolor = UTILS.hex2rgba(color, 0.33); // opacity hack
           if (e.id === selectedEdgeId) {
             return <NCEdge edgeId={e.id} parentNodeId={id} key={e.id} />;
           } else {
