@@ -341,7 +341,37 @@ includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
+  # 2.1 bright
+  # Paul Tol https://cran.r-project.org/web/packages/khroma/vignettes/tol.html
+
   [[nodeDefs.type.options]]
+  color = "#bbbbbb"
+  label = ""
+
+  [[nodeDefs.type.options]]
+  color = "#4477aa"
+  label = "Blue"
+
+  [[nodeDefs.type.options]]
+  color = "#66ccee"
+  label = "Cyan"
+
+  [[nodeDefs.type.options]]
+  color = "#228833"
+  label = "Green"
+
+  [[nodeDefs.type.options]]
+  color = "#ccbb44"
+  label = "Yellow"
+
+  [[nodeDefs.type.options]]
+  color = "#ee6677"
+  label = "Red"
+
+  [[nodeDefs.type.options]]
+  color = "#aa3377"
+  label = "Purple"
+
   color = "#eeeeee"
   label = ""
 
@@ -452,9 +482,36 @@ help = "Type of edge connection"
 isProvenance = false
 hidden = false
 
+  # 2.1 bright
+  # Paul Tol https://cran.r-project.org/web/packages/khroma/vignettes/tol.html
+
   [[edgeDefs.type.options]]
-  color = "#eeeeee"
+  color = "#bbbbbb"
   label = ""
+
+  [[edgeDefs.type.options]]
+  color = "#4477aa"
+  label = "Blue"
+
+  [[edgeDefs.type.options]]
+  color = "#66ccee"
+  label = "Cyan"
+
+  [[edgeDefs.type.options]]
+  color = "#228833"
+  label = "Green"
+
+  [[edgeDefs.type.options]]
+  color = "#ccbb44"
+  label = "Yellow"
+
+  [[edgeDefs.type.options]]
+  color = "#ee6677"
+  label = "Red"
+
+  [[edgeDefs.type.options]]
+  color = "#aa3377"
+  label = "Purple"
 
 [edgeDefs.notes]
 type = "string"

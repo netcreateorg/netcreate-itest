@@ -89,6 +89,36 @@ function RecalculateAllEdgeSizes(data) {
 function DeriveInfoOriginString(author, ms) {
   return `Created by ${author} on ${new Date(ms).toLocaleString()}`;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API METHOD
+ * Converts a hex color to an rgba string.
+ * @param {string} hex - The hex color string (e.g., "#ff0000").
+ * @param {number} [alpha=1] - The alpha value for the rgba color (default is 1).
+ * @returns {string} The rgba color string (e.g., "rgba(255, 0, 0, 1)").
+ * @example
+ * const rgbaColor = hex2rgba("#ff0000", 0.5); // "rgba(255, 0, 0, 0.5)"
+ * const rgbaColor = hex2rgba("#00ff00"); // "rgba(0, 255, 0, 1)"
+ * const rgbaColor = hex2rgba("#0000ff", 0.8); // "rgba(0, 0, 255, 0.8)"
+ */
+function hex2rgba(hex, alpha = 1) {
+  // Remove the hash if present
+  hex = hex.replace('#', '');
+
+  // Handle 3-digit hex colors by expanding them to 6-digit
+  if (hex.length === 3) {
+    hex = hex
+      .split('')
+      .map(char => char + char)
+      .join('');
+  }
+
+  // Parse RGB values
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /// MODULE EXPORTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,5 +126,6 @@ module.exports = {
   GenerateUUID,
   RecalculateAllNodeDegrees,
   RecalculateAllEdgeSizes,
-  DeriveInfoOriginString
+  DeriveInfoOriginString,
+  hex2rgba
 };
