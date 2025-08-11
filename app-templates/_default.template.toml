@@ -234,6 +234,13 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
+[_ui.edgeDefs.othertext]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+
 [_ui.edgeDefs.created]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
@@ -553,6 +560,14 @@ displayLabel = "Citation"
 exportLabel = "Citation"
 help = 'Source Book.Chapter (e.g. "Part 2 06.03")'
 isProvenance = true
+hidden = false
+
+[edgeDefs.othertext]
+type = "string"
+displayLabel = "Other Text"
+exportLabel = "Other Text"
+help = "Additional information about the connection"
+isProvenance = false
 hidden = false
 
 [edgeDefs.created]
