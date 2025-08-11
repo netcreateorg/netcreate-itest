@@ -135,7 +135,7 @@ const NODES_SCHEMA20 = {
     hidden: 'boolean',
     options: 'nodeType[]'
   },
-  notes: {
+  description: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -144,7 +144,7 @@ const NODES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
-  info: {
+  othertext: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -153,7 +153,17 @@ const NODES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
-  infoOrigin: {
+  sometype: {
+    type: 'string',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    includeInGraphTooltip: 'boolean',
+    isProvenance: 'boolean',
+    hidden: 'boolean',
+    options: 'nodeType[]'
+  },
+  somenumber: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -162,7 +172,7 @@ const NODES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
-  degrees: {
+  citation: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -201,6 +211,15 @@ const NODES_SCHEMA20 = {
     exportLabel: 'string',
     help: 'string',
     includeInGraphTooltip: 'boolean',
+    hidden: 'boolean'
+  },
+  degrees: {
+    type: 'string',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    includeInGraphTooltip: 'boolean',
+    isProvenance: 'boolean',
     hidden: 'boolean'
   },
   revision: {
@@ -248,7 +267,7 @@ const EDGES_SCHEMA20 = {
     hidden: 'boolean',
     options: 'edgeType[]'
   },
-  notes: {
+  description: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -256,35 +275,16 @@ const EDGES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
-  weight: {
-    type: 'string',
-    defaultValue: 'number',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isRequired: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  infoOrigin: {
+  sometype: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
     help: 'string',
-    includeInGraphTooltip: 'boolean',
     isProvenance: 'boolean',
-    hidden: 'boolean'
+    hidden: 'boolean',
+    options: 'edgeType[]'
   },
   citation: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  category: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
@@ -296,7 +296,6 @@ const EDGES_SCHEMA20 = {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
     help: 'string',
     hidden: 'boolean'
   },
@@ -304,7 +303,6 @@ const EDGES_SCHEMA20 = {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
     help: 'string',
     hidden: 'boolean'
   },
@@ -312,7 +310,6 @@ const EDGES_SCHEMA20 = {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
     help: 'string',
     hidden: 'boolean'
   },
@@ -320,14 +317,22 @@ const EDGES_SCHEMA20 = {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
     help: 'string',
+    hidden: 'boolean'
+  },
+  weight: {
+    type: 'string',
+    defaultValue: 'number',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    isRequired: 'boolean',
+    isProvenance: 'boolean',
     hidden: 'boolean'
   },
   revision: {
     displayLabel: 'string',
     exportLabel: 'string',
-    includeInGraphTooltip: 'boolean',
     help: 'string',
     hidden: 'boolean'
   }

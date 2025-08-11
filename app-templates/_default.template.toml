@@ -96,7 +96,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 options = { _control = "in_colorgroup",_controlDef = "NodeType", label = "Node Types", help = "Define custom Node Types" }
 
-[_ui.nodeDefs.notes]
+[_ui.nodeDefs.description]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -104,7 +104,7 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
-[_ui.nodeDefs.info]
+[_ui.nodeDefs.othertext]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -112,7 +112,24 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
-[_ui.nodeDefs.infoOrigin]
+[_ui.nodeDefs.sometype]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+options = { _control = "in_colorgroup",_controlDef = "NodeType", label = "Node Types", help = "Define custom Node Types" }
+
+[_ui.nodeDefs.somenumber]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+
+[_ui.nodeDefs.citation]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -120,13 +137,6 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
-
-[_ui.nodeDefs.degrees]
-_control = "// in_composite"
-displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
-help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.created]
 _control = "// in_composite"
@@ -150,6 +160,13 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.updatedBy]
+_control = "// in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+
+[_ui.nodeDefs.degrees]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -195,38 +212,22 @@ isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Wheth
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 options = { _control = "in_colorgroup", label = "Edge Types", help = "Define custom Edge Types" }
 
-[_ui.edgeDefs.notes]
+[_ui.edgeDefs.description]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
-[_ui.edgeDefs.weight]
-_control = "// in_composite"
-displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
-help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-isRequired = { _control = "in_boolean", label = "Is Required", help = "Whether this field is required" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
-hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
-
-[_ui.edgeDefs.infoOrigin]
+[_ui.edgeDefs.sometype]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+options = { _control = "in_colorgroup", label = "Edge Types", help = "Define custom Edge Types" }
 
 [_ui.edgeDefs.citation]
-_control = "in_composite"
-displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
-help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
-hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
-
-[_ui.edgeDefs.category]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -237,45 +238,35 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.createdBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.updated]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.updatedBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+
+[_ui.edgeDefs.weight]
+_control = "// in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+isRequired = { _control = "in_boolean", label = "Is Required", help = "Whether this field is required" }
+isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.revision]
-_control = "// in_composite"
-displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
-help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
-
-[_ui.edgeDefs.sourceLabel]
-_control = "// in_composite"
-displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
-help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
-hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
-
-[_ui.edgeDefs.targetLabel]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -313,6 +304,8 @@ label = "Evidence Critique or Suggestion"
   prompt = "Tell me more"
   help = "Can you tell me more about ... "
   feedback = ""
+
+# NODES
 
 [nodeDefs.id]
 type = "number"
@@ -372,43 +365,53 @@ hidden = false
   color = "#aa3377"
   label = "Purple"
 
-  color = "#eeeeee"
-  label = ""
-
-[nodeDefs.notes]
-type = "string"
-displayLabel = "Notes"
-exportLabel = "Notes"
+[nodeDefs.description]
+type = "markdown"
+displayLabel = "Description"
+exportLabel = "Description"
 help = "General purpose notes text field"
 includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
-[nodeDefs.info]
+[nodeDefs.othertext]
+type = "markdown"
+displayLabel = "OtherText"
+exportLabel = "OtherText"
+help = "General purpose notes text field"
+includeInGraphTooltip = true
+isProvenance = false
+hidden = false
+
+[nodeDefs.sometype]
+type = "select"
+displayLabel = "SomeType"
+exportLabel = "SomeType"
+help = "Select a category"
+includeInGraphTooltip = true
+isProvenance = false
+hidden = false
+
+  [[nodeDefs.sometype.options]]
+  color = "#bbbbbb"
+  label = ""
+
+[nodeDefs.somenumber]
 type = "number"
-displayLabel = "Number"
-exportLabel = "Info"
+displayLabel = "SomeNumber"
+exportLabel = "SomeNumber"
 help = "Some number comparison"
 includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
-[nodeDefs.infoOrigin]
-type = "infoOrigin"
-displayLabel = "Info Origin"
-exportLabel = "infoOrigin"
-help = "Who created this?  (aka Source)"
+[nodeDefs.citation]
+type = "string"
+displayLabel = "Citation"
+exportLabel = "Citation"
+help = 'Source Book.Chapter (e.g. "Part 2 06.03")'
 includeInGraphTooltip = true
 isProvenance = true
-hidden = false
-
-[nodeDefs.degrees]
-type = "number"
-displayLabel = "Degrees"
-exportLabel = "Degrees"
-help = "Number of edges connected to this node"
-includeInGraphTooltip = true
-isProvenance = false
 hidden = false
 
 [nodeDefs.created]
@@ -443,6 +446,15 @@ help = "Author who updated the node"
 includeInGraphTooltip = true
 hidden = false
 
+[nodeDefs.degrees]
+type = "number"
+displayLabel = "Degrees"
+exportLabel = "Degrees"
+help = "Number of edges connected to this node"
+includeInGraphTooltip = true
+isProvenance = false
+hidden = false
+
 [nodeDefs.revision]
 type = "string"
 displayLabel = "Revision"
@@ -450,6 +462,8 @@ exportLabel = "Revision"
 help = "Number of times this node has been revised"
 includeInGraphTooltip = true
 hidden = true
+
+# EDGES
 
 [edgeDefs.id]
 type = "number"
@@ -513,12 +527,60 @@ hidden = false
   color = "#aa3377"
   label = "Purple"
 
-[edgeDefs.notes]
+[edgeDefs.description]
 type = "string"
-displayLabel = "Notes"
-exportLabel = "Notes"
-help = "Significance of the connection"
+displayLabel = "Description"
+exportLabel = "Description"
+help = "Description of the connection"
 isProvenance = false
+hidden = false
+
+[edgeDefs.sometype]
+type = "select"
+displayLabel = "SomeType"
+exportLabel = "SomeType"
+help = "Type of edge connection"
+isProvenance = false
+hidden = false
+
+  [[edgeDefs.sometype.options]]
+  color = "#bbbbbb"
+  label = ""
+
+[edgeDefs.citation]
+type = "string"
+displayLabel = "Citation"
+exportLabel = "Citation"
+help = 'Source Book.Chapter (e.g. "Part 2 06.03")'
+isProvenance = true
+hidden = false
+
+[edgeDefs.created]
+type = "timestamp"
+displayLabel = "Created"
+exportLabel = "Created"
+help = "Date and time edge was created"
+hidden = false
+
+[edgeDefs.createdBy]
+type = "string"
+displayLabel = "Created By"
+exportLabel = "Created By"
+help = "Author who created the edge"
+hidden = false
+
+[edgeDefs.updated]
+type = "timestamp"
+displayLabel = "Updated"
+exportLabel = "Updated"
+help = "Date and time edge was last modified"
+hidden = false
+
+[edgeDefs.updatedBy]
+type = "string"
+displayLabel = "Updated By"
+exportLabel = "Updated By"
+help = "Author who updated the edge"
 hidden = false
 
 [edgeDefs.weight]
@@ -527,71 +589,12 @@ defaultValue = 1
 displayLabel = "Weight"
 exportLabel = "Weight"
 help = "Weight of edge"
-includeInGraphTooltip = true
 isRequired = true
 isProvenance = false
-hidden = false
-
-[edgeDefs.infoOrigin]
-type = "string"
-displayLabel = "Info Origin"
-exportLabel = "InfoOrigin"
-help = "Who created this?  (aka Source)"
-includeInGraphTooltip = true
-isProvenance = true
-hidden = false
-
-[edgeDefs.citation]
-type = "string"
-displayLabel = "Citation"
-exportLabel = "Citation"
-help = 'Source Book.Chapter (e.g. "Part 2 06.03")'
-isProvenance = false
-hidden = false
-
-[edgeDefs.category]
-type = "string"
-displayLabel = "Category"
-exportLabel = "Category"
-help = "Category (deprecated)"
-isProvenance = false
-hidden = true
-
-[edgeDefs.created]
-type = "timestamp"
-displayLabel = "Created"
-exportLabel = "Created"
-includeInGraphTooltip = true
-help = "Date and time edge was created"
-hidden = false
-
-[edgeDefs.createdBy]
-type = "string"
-displayLabel = "Created By"
-exportLabel = "Created By"
-includeInGraphTooltip = true
-help = "Author who created the edge"
-hidden = false
-
-[edgeDefs.updated]
-type = "timestamp"
-displayLabel = "Updated"
-exportLabel = "Updated"
-includeInGraphTooltip = true
-help = "Date and time edge was last modified"
-hidden = false
-
-[edgeDefs.updatedBy]
-type = "string"
-displayLabel = "Updated By"
-exportLabel = "Updated By"
-includeInGraphTooltip = true
-help = "Author who updated the nodedgee"
 hidden = false
 
 [edgeDefs.revision]
 displayLabel = "Revision"
 exportLabel = "Revision"
-includeInGraphTooltip = true
 help = "Number of times this edge has been revised"
 hidden = true
