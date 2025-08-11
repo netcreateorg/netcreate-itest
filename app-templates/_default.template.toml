@@ -366,7 +366,7 @@ hidden = false
   label = "Purple"
 
 [nodeDefs.description]
-type = "markdown"
+type = "string"
 displayLabel = "Description"
 exportLabel = "Description"
 help = "General purpose notes text field"
@@ -375,7 +375,7 @@ isProvenance = false
 hidden = false
 
 [nodeDefs.othertext]
-type = "markdown"
+type = "string"
 displayLabel = "OtherText"
 exportLabel = "OtherText"
 help = "General purpose notes text field"
