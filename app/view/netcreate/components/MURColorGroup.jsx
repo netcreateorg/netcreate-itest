@@ -52,7 +52,7 @@ function m_ExtractColorArrayProps(controlData) {
 function ColorGroup(props) {
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
-  const [sortType, setSortType] = React.useState('a-z');
+  const [sortType, setSortType] = React.useState('none');
 
   const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
   const colorProps = m_ExtractColorArrayProps(controlData);
@@ -81,13 +81,23 @@ function ColorGroup(props) {
   const handleSortChange = e => {
     const newSortType = e.target.value;
     setSortType(newSortType);
-    const sortedArray = [...sourceData].sort((a, b) => {
-      const labelA = (a.label || '').toLowerCase();
-      const labelB = (b.label || '').toLowerCase();
-      return newSortType === 'a-z'
-        ? labelA.localeCompare(labelB)
-        : labelB.localeCompare(labelA);
-    });
+    let sortedArray;
+
+    if (newSortType === 'none') {
+      // Revert to original template order by accessing the original template data
+      const originalControlData = RSB.GetDataForProp(draft.template, propDef);
+      const originalProps = m_ExtractColorArrayProps(originalControlData);
+      sortedArray = [...(originalProps.sourceData || [])];
+    } else {
+      // Sort current data
+      sortedArray = [...sourceData].sort((a, b) => {
+        const labelA = (a.label || '').toLowerCase();
+        const labelB = (b.label || '').toLowerCase();
+        return newSortType === 'a-z'
+          ? labelA.localeCompare(labelB) //  'a-z'
+          : labelB.localeCompare(labelA); // 'z-a'
+      });
+    }
     dispatch({
       op: 'update',
       propDef,
@@ -172,6 +182,7 @@ function ColorGroup(props) {
           value={sortType}
           onChange={handleSortChange}
         >
+          <option value="none">No</option>
           <option value="a-z">A-Z</option>
           <option value="z-a">Z-A</option>
         </select>
