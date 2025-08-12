@@ -292,6 +292,14 @@ const EDGES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
+  othertext: {
+    type: 'string',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    isProvenance: 'boolean',
+    hidden: 'boolean'
+  },
   created: {
     type: 'string',
     displayLabel: 'string',
