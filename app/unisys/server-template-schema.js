@@ -181,6 +181,15 @@ const NODES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean'
   },
+  infoOrigin: {
+    type: 'string',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    includeInGraphTooltip: 'boolean',
+    isProvenance: 'boolean',
+    hidden: 'boolean'
+  },
   created: {
     type: 'string',
     displayLabel: 'string',
@@ -285,6 +294,14 @@ const EDGES_SCHEMA20 = {
     options: 'edgeType[]'
   },
   citation: {
+    type: 'string',
+    displayLabel: 'string',
+    exportLabel: 'string',
+    help: 'string',
+    isProvenance: 'boolean',
+    hidden: 'boolean'
+  },
+  infoOrigin: {
     type: 'string',
     displayLabel: 'string',
     exportLabel: 'string',

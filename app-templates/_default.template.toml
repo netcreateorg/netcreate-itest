@@ -134,9 +134,18 @@ _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+
+[_ui.nodeDefs.infoOrigin]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
 [_ui.nodeDefs.created]
 _control = "// in_composite"
@@ -228,6 +237,13 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 options = { _control = "in_colorgroup", label = "Edge Types", help = "Define custom Edge Types" }
 
 [_ui.edgeDefs.citation]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+
+[_ui.edgeDefs.infoOrigin]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
@@ -421,6 +437,15 @@ includeInGraphTooltip = true
 isProvenance = true
 hidden = false
 
+[nodeDefs.infoOrigin]
+type = "infoOrigin"
+displayLabel = "Info Source"
+exportLabel = "InfoSource"
+help = "Who created this?  (aka Source)"
+includeInGraphTooltip = true
+isProvenance = true
+hidden = false
+
 [nodeDefs.created]
 type = "timestamp"
 displayLabel = "Created"
@@ -559,6 +584,14 @@ type = "string"
 displayLabel = "Citation"
 exportLabel = "Citation"
 help = 'Source Book.Chapter (e.g. "Part 2 06.03")'
+isProvenance = true
+hidden = false
+
+[edgeDefs.infoOrigin]
+type = "infoOrigin"
+displayLabel = "Info Source"
+exportLabel = "InfoSource"
+help = "Who created this?  (aka Source)"
 isProvenance = true
 hidden = false
 
