@@ -5,18 +5,20 @@
 ### Latest Session
 This is a concise summary what happened in the more recent session. Include the Session Time, key decisions made (architectural choices may go here), files modified (for quick reference), what was tested, and what worked.
 
-**Session Time:** 11:30PM - 12:15AM (August 1-2, 2025)
+**Session Time:** 3:30PM - 4:15PM (August 13, 2025)
 
-**Template Placeholder Cleanup & Development Round Closure**
-- **Activity**: Final cleanup session to close this development round, disabled commentTypes feature and updated template placeholder text
-- **Files modified**: MURSettingsEditor.jsx (disabled commentTypes on line 92), _default.template.toml (updated all edgeDefs placeholder labels/help text), changed _control pattern from "composite" to "in_composite" for consistency
-- **Key decisions**: Explicitly NOT implementing commentTypes support or rewriting GetDataForProp() routines as mentioned in previous session notes
-- **Template improvements**: Replaced all "label"/"help|tooltip" placeholders in edgeDefs sections with proper descriptive text based on team-propset.template.toml patterns
-- **Status**: Development round complete, ready for next phase
+**Templating System Documentation Session**
+- **Activity**: Created comprehensive documentation for the MUR Settings Editor extension system including recipe book and architectural analysis
+- **Files modified**: @_agent_sri/template-editor-recipes.md (created MUR extension recipe book with 5 recipes and system architecture appendix)
+- **Key decisions**: Documented propDef resolution algorithm, established clear patterns for extension development, provided concrete examples with file references
+- **Architecture analysis**: Traced propDef resolution through react-settings-bridge.js GetDataForProp(), analyzed related modules including nc-settings-client.ts and server-template-util.js
+- **Documentation approach**: Recipe-book format targeting non-architect developers while maintaining architectural rigor, covered state management, control types, schema definitions, and array handling
+- **Status**: Complete documentation package ready for developer onboarding and extension development
 
 ### Previous Sessions
 This is a concise summary of previous sessions, created from information in Latest Session above when this file is updated at the close of a session. The information is compacted to a single line. Retain the total duration of each session in each summary.
 
+- **Template Placeholder Cleanup & Development Round Closure**: Final cleanup session to close this development round, disabled commentTypes feature and updated template placeholder text, replaced all edgeDefs placeholder labels/help text with proper descriptive text (45m)
 - **GetDataForProp Architecture Analysis & Metadata-First Resolver Design**: Diagnosed nested array resolution failure in GetDataForProp, designed metadata-first resolver architecture to replace brittle case-based logic, created nc-template-resolver.ts stub, documented complete architecture (90m) The file CLAUDE-ARCH.md details what the resolver architecture should implement, as does the file nc-template-resolver.ts
 - **TOML Template Metadata Architecture Decision & _control Semantic Rule**: Analyzed nested array metadata placement problem for CommentType.prompts, established architectural rule for _control field interpretation, ready for implementation with clear parsing rule (30m)
 - **MURArrayInput PropDef Architecture Fix & Metadata Resolution**: Fixed propDef mismatch in ArrayInput, implemented proper array bracket notation handling, added metadata resolution for dynamic item types, ArrayInput now displays array data successfully (225m)
