@@ -123,6 +123,7 @@ function NCEdgeTable({ isOpen }) {
   function urstate_TEMPLATE(data) {
     setState(prevState => ({
       ...prevState,
+      columnDefs: DeriveColumnDefs(data.edgeDefs), // re-derive column defs after template changes
       edgeDefs: data.edgeDefs,
       selectedEdgeColor: data.sourceColor
     }));

@@ -123,6 +123,7 @@ function NCNodeTable({ isOpen }) {
   function urstate_TEMPLATE(data) {
     setState(prevState => ({
       ...prevState,
+      columnDefs: DeriveColumnDefs(data.nodeDefs), // re-derive column defs after template changes
       nodeDefs: data.nodeDefs,
       selectedNodeColor: data.sourceColor,
       hilitedNodeColor: data.searchColor
