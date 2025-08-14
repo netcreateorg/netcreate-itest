@@ -44,6 +44,7 @@ const UDATAOwner = { name: 'NCEdgeTable' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 
 const DBG = false;
+const PR = 'NCEdgeTable';
 
 /// REACT FUNCTIONAL COMPONENT ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,6 +96,7 @@ function NCEdgeTable({ isOpen }) {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /// FILTEREDNCDATA is the reduced list of nodes, not ALL edges
   function urstate_FILTEREDNCDATA(data) {
+    if (DBG) console.log(PR, 'urstate_FILTEREDNCDATA', data);
     // skip update if not open
     if (!isOpenRef.current) return;
 
@@ -113,6 +115,7 @@ function NCEdgeTable({ isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_SESSION(decoded) {
+    if (DBG) console.log(PR, 'urstate_SESSION', decoded);
     const isLocked = !decoded.isValid;
     if (isLocked === state.isLocked) {
       return;
@@ -121,6 +124,7 @@ function NCEdgeTable({ isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_TEMPLATE(data) {
+    if (DBG) console.log(PR, 'urstate_TEMPLATE', data);
     setState(prevState => ({
       ...prevState,
       columnDefs: DeriveColumnDefs(data.edgeDefs), // re-derive column defs after template changes
@@ -130,13 +134,14 @@ function NCEdgeTable({ isOpen }) {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urstate_TBLCOLSTATE(TBLCOLSTATE) {
+    if (DBG) console.log(PR, 'urstate_TBLCOLSTATE', TBLCOLSTATE);
     forceUpdate();
   }
 
   /// COLUMN DEFINTION GENERATION /////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function DeriveColumnDefs(incomingEdgeDefs) {
-    const { edges, edgeDefs, disableEdit, isLocked } = state;
+    const { edgeDefs, disableEdit, isLocked } = state;
     const defs = incomingEdgeDefs || edgeDefs;
 
     // Only include built in fields
