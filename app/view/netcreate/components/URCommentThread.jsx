@@ -144,7 +144,7 @@ function URCommentThread({ uiref, cref, uid, x, y }) {
   const showAddCommentClickTarget = !CMTMGR.GetCommentsAreBeingEdited();
 
   return (
-    <Draggable>
+    <Draggable cancel="input, textarea, select, button, .no-drag">
       <div
         className="commentThread"
         style={{ left: `${x}px`, top: `${y}px`, maxHeight: commentMaxHeight }}

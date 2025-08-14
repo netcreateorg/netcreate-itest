@@ -38,6 +38,7 @@ const LOG_CONFIG = {
 };
 const LOGGER = Tracer.colorConsole(LOG_CONFIG);
 let fs_log = null;
+let current_log_filename = null;
 // enums for outputing dates
 const e_weekday = [
   'Sunday',
@@ -56,6 +57,7 @@ var dir = PATH.resolve(PATH.join(__dirname, LOG_DIR));
 FSE.ensureDir(dir, function (err) {
   if (err) throw new Error('could not make ' + dir + ' directory');
   var logname = str_TimeDatedFilename('log') + '.txt';
+  current_log_filename = logname; // Store for client access
   var pathname = dir + '/' + logname;
   fs_log = FSE.createWriteStream(pathname);
 
@@ -187,6 +189,12 @@ LOG.Write = LogLine;
  */
 LOG.WriteRLog = function (info = { uaddr: '', group: '' }, ...args) {
   LogResearchLine(info, ...args);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Get current log filename
+ */
+LOG.GetCurrentLogFilename = function() {
+  return current_log_filename;
 }
 
 /// EXPORT MODULE DEFINITION //////////////////////////////////////////////////

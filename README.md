@@ -115,6 +115,7 @@ This is currently tagged v1.5.0, but in fact, this is the developer's "NetCreate
 Note: 
 
 * The default branch is **dev**, not master. 
+* There is a new branch `deploy-terraform` that is used for deploying and redeploying code to DigitalOcean droplets.  Droplets might be created at any point in time, so the `deploy-terraform` branch must always be working and error free.  Do NOT merge into `deploy-terraform` until the code has been throroughly tested or you may break an existing droplet.
 * When creating pull requests in GitHub, make sure that it's referring to _this repository_ and the the parent repository
 
 

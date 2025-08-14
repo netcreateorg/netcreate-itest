@@ -10,6 +10,7 @@
       2001  NCDialog .screen ==========
       2000  comment-bar
       1500  FiltersPanel
+       110  URTable col-mgr Button
        101  URTable tabletip
        100  Node/EdgeTable thead
         15  NCAutoSuggest .matchlist
@@ -33,6 +34,7 @@
   --clr-system-disabled: #526b78; /* dark navy for UI/system labels */
   --clr-system-faded: #35586999; /* transparent UI/system labels */
   --clr-system-fadedmore: #35586966; /* transparent UI/system labels */
+  --clr-system-fadedmost: #35586933; /* transparent UI/system labels */
   --clr-base-font: #161616;
   --font-size-xs: 0.625rem; /* 10px */
   --font-size-sm: 0.75rem; /* 12px */
@@ -125,6 +127,12 @@ body {
   text-align: center;
 }
 
+.nc-bugreport-btn {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+}
+
 /* NC Navbar -------------------------------------------------------------- */
 .nc-navbar {
   top: 0;
@@ -149,7 +157,7 @@ body {
   cursor: pointer;
 }
 
-/* SVG styles */
+/* SVG styles -------------------------------------------------------------- */
 svg#netgraph {
   flex-basis: 100%;
   min-width: 200px;
@@ -268,7 +276,7 @@ button svg {
   display: block;
   left: 1px;
   right: 10px;
-  background-color: #eafcff;
+  background-color: var(--clr-fg);
   font-size: 0.75em;
 }
 

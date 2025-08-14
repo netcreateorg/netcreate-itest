@@ -20,20 +20,58 @@ const { itemGrid, labelStyle, inputStyle, popupStyle, modColor } = RSB.GetStyles
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** quote a string or return as-is number */
-function $(strOrNum) {
-  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+function u_ExtractInputProps(controlData) {
+  if (typeof controlData !== 'object')
+    return { error: `arg1 must be an object, got ${typeof controlData}` };
+
+  const { groupName, propName, propField } = controlData;
+  const { sourceMeta, sourceData } = controlData;
+
+  const { label, tooltip, help } = sourceMeta;
+  const { labelKey, tooltipKey, helpKey, valueKey } = sourceMeta;
+
+  // resolve useful ui data
+  let fValue, fLabel, fHelp, fTooltip;
+
+  // special case ... this is always a sourceData extraction
+  if (valueKey) fValue = sourceData[valueKey];
+  if (fValue === undefined) fValue = sourceData[propName] || sourceData;
+
+  // if labelKey exists, use it. Otherwise meta has to provide a label
+  if (labelKey) fLabel = sourceData[labelKey];
+  if (!fLabel) fLabel = label || '<label not in template>';
+
+  // if helpKey exists, use it. Otherwise meta has to provide a help text
+  if (helpKey) fHelp = sourceData[helpKey];
+  if (!fHelp) fHelp = help || '';
+
+  // if tooltipKey exists, use it. Otherwise meta has to provide a tooltip
+  if (tooltipKey) fTooltip = sourceData[tooltipKey];
+  if (!fTooltip) fTooltip = tooltip || fHelp || '';
+
+  return {
+    groupName,
+    propName,
+    propField,
+    value: fValue,
+    label: fLabel,
+    tooltip: fTooltip,
+    help: fHelp
+  };
 }
 
 /// TEXT INPUT COMPONENT //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A TextInput component */
 function TextInput(props) {
+  // propName, groupName.propName, or groupName.propName.fieldName
   const { propDef } = props;
   const { draft, hasLock, dispatch } = React.useContext(RSB.SettingsContext);
-  const data = RSB.DecodeUIData(draft.template, propDef);
-  const { name, value, default: defValue } = data;
-  const { label, tooltip, help, placeholder } = data;
+  // controlData contains what's needed to render this input component
+  const controlData = RSB.GetDataForProp(draft.pending || draft.template, propDef);
+  const { name, label, tooltip, help, placeholder, value } =
+    u_ExtractInputProps(controlData);
+  const defValue = undefined; // TODO: handle default values
 
   // declare reactive render state
   // note that this only runs on the FIRST render, which is why
@@ -47,8 +85,8 @@ function TextInput(props) {
   // retention with hooks, and other bullshit.
   React.useEffect(() => {
     if (!draft.pending) {
-      const data = RSB.DecodeUIData(draft.template, propDef);
-      setInputValue(data.value || data.default);
+      const { value } = u_ExtractInputProps(controlData);
+      setInputValue(value || defValue);
     }
   }, [draft.pending]);
 
@@ -116,7 +154,6 @@ function TextInput(props) {
       onKeyDown={handleEnterKey}
       onBlur={submitToSettings}
       onChange={handleTyping}
-      disabled={!hasLock}
     />
   ) : (
     <p>{inputValue}</p>

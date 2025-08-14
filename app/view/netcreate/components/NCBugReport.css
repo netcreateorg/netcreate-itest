@@ -1,0 +1,23 @@
+#popover.NCBugReport {
+  width: 300px;
+  height: max-content;
+  top: inherit;
+  bottom: 0;
+  left: 0;
+  background-color: #fcc;
+}
+#popover.NCBugReport .popover-content {
+  flex-direction: column;
+  font-size: var(--font-size-xs);
+}
+#popover.NCBugReport .key-value-pair {
+  display: grid;
+  grid-template-columns: 100px auto;
+  column-gap: 0.5rem;
+}
+#popover.NCBugReport .key-value-pair label {
+  text-align: right;
+}
+#popover.NCBugReport .key-value-pair label::after {
+  content: ':';
+}

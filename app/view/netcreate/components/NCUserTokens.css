@@ -12,6 +12,8 @@
 }
 #NCUserTokens input:read-only {
   color: var(--clr-system);
+  background-color: transparent;
+  border: none;
   user-select: none;
 }
 #NCUserTokens fieldset {

@@ -93,7 +93,10 @@ function m_UpdateNodes(nodes) {
     const isSecondarySelected = SELECTION.selectedSecondary === n.id;
     const isFound = foundNodes.includes(n.id);
     // FIXME: Just copy over relevant attributes, don't copy the whole object!!!!
-    n.color = COLORMAP.nodeColorMap[n.type];
+    // Use default blank color if it's available
+    const normalizedType =
+      n.type === undefined && COLORMAP.nodeColorMap[''] ? '' : n.type;
+    n.color = COLORMAP.nodeColorMap[normalizedType];
     n.opacity = n.filteredTransparency;
     n.size = Math.min(TEMPLATE.nodeSizeDefault + n.degrees, TEMPLATE.nodeSizeMax);
     n.selected = false;

@@ -185,6 +185,9 @@ function NCUserTokens() {
           Generate Tokens
         </button>
         <div></div>
+        {/* Hide the "Shareable" functionality.  Joshua requested #427.
+            `secretKey` now requires validation so shareable tokens are
+            possible with a valid secretKey -- no need for extra shareable
         <fieldset>
           <legend>Advanced Options</legend>
           {!state.templateSalt && (
@@ -204,7 +207,7 @@ function NCUserTokens() {
             Shareable -- Make tokens usable for ANY graph without a template
             secretKey.
           </label>
-        </fieldset>
+        </fieldset> */}
       </div>
       <br />
       <label htmlFor="tokenDisplay">Copy and share these tokens.</label>
