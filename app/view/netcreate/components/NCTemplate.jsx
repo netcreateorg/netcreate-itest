@@ -4,15 +4,10 @@
   NC Template Editor View
   (replaces `Template.jsx`)
 
-  Displays a variety of tools to edit templates:
-  * Edit Node Types
-  * Edit Edge Types
-  * Download Current Template
-  * Create New Template
-  * Import Template from File
-
-  This is displayed on the More.jsx component/panel but can be moved
-  anywhere.
+  UI for importing and exprting templates.
+  Template editting is done either:
+  - via Settings panel
+  - manually
 
   Templates can only be edited if:
   * There are no nodes or edges being edited
@@ -33,7 +28,6 @@ const UNISYS = require('unisys/client');
 const { EDITORTYPE } = require('system/util/enum');
 const TEMPLATE_MGR = require('../template-editor-mgr');
 const LOCKMGR = require('../lock-mgr');
-const SCHEMA = require('../template-schema');
 const DATASTORE = require('system/datastore');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -46,29 +40,15 @@ class NCTemplate extends UNISYS.Component {
   constructor(props) {
     super(props);
     this.state = {
-      disableEdit: false,
-      isBeingEdited: false,
-      editScope: undefined, // Determines whether the user is tring to edit the
-      // template's root (everything in the template),
-      // or just focused on a subsection: nodeTypeOptions,
-      // edgeTypeOptions
       tomlfile: undefined,
       tomlfileStatus: '',
       tomlfileErrors: undefined,
       tomlfilename: 'loading...'
     };
     this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
-    this.loadEditor = this.loadEditor.bind(this);
-    this.disableOrigLabelFields = this.disableOrigLabelFields.bind(this);
-    this.releaseOpenEditor = this.releaseOpenEditor.bind(this);
-    this.onNewTemplate = this.onNewTemplate.bind(this);
-    this.onCurrentTemplateLoad = this.onCurrentTemplateLoad.bind(this);
-    this.onEditNodeTypes = this.onEditNodeTypes.bind(this);
-    this.onEditEdgeTypes = this.onEditEdgeTypes.bind(this);
     this.onTOMLfileSelect = this.onTOMLfileSelect.bind(this);
     this.onDownloadTemplate = this.onDownloadTemplate.bind(this);
     this.onSaveChanges = this.onSaveChanges.bind(this);
-    this.onCancelEdit = this.onCancelEdit.bind(this);
 
     this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
@@ -82,7 +62,6 @@ class NCTemplate extends UNISYS.Component {
   }
 
   componentWillUnmount() {
-    this.releaseOpenEditor();
     this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
@@ -90,109 +69,11 @@ class NCTemplate extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   urstate_LOCKSTATE(LOCKSTATE) {
     // someone else might be editing a template or importing or editing node or edge
-    const disableEdit =
-      LOCKSTATE.templateBeingEdited ||
-      LOCKSTATE.importActive ||
-      LOCKSTATE.nodeOrEdgeBeingEdited;
-    this.setState({ disableEdit });
   }
 
   /// METHODS /////////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  /**
-   * Was Load JSON Editor
-   * -- If schema is not defined, the default schema is used
-   * -- If startval is not defined, an empty template created from the default
-   *    schema is used.
-   * @param {object} parms { schema, startval }
-   * @param {function} cb - Callback function
-   */
-  loadEditor(parms, cb) {
-    LOCKMGR.RequestEditLock(EDITORTYPE.TEMPLATE).then(data => {
-      console.error('NCTemplate.loadEditor NOT IMPLEMENTED', data);
-    });
-  }
 
-  // When editing Node or Edge Type Options, the original label field should be
-  // disabled so they can't be edited
-  // ClassName added in template-schema.GetTypeEditorSchema()
-  disableOrigLabelFields() {
-    const origLabelFields = document.getElementsByClassName('disabledField');
-    // origLabelFields is a HTMLCollection, not an array
-    // FISHY FIX...is the use of arrow function here correct? The arrow function
-    // arg 'f' is shadowing the 'const f' in the for...of...
-    for (const f of origLabelFields) f => f.setAttribute('disabled', 'disabled');
-  }
-
-  releaseOpenEditor() {
-    LOCKMGR.RequestEditUnlock(EDITORTYPE.TEMPLATE);
-  }
-
-  onNewTemplate() {
-    this.setState({ editScope: 'root', isBeingEdited: true });
-    this.loadEditor(); // new blank template with default schema
-  }
-
-  onCurrentTemplateLoad(e) {
-    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
-      .then(result => {
-        this.setState({ editScope: 'root', isBeingEdited: true });
-        this.loadEditor({ startval: result.template });
-      });
-  }
-
-  onEditNodeTypes() {
-    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
-    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
-      .then(result => {
-        const schemaNodeTypeOptions = SCHEMA.NODETYPEOPTIONS;
-        // Wrap options in custom Schema to show Delete management UI
-        const nodeTypeEditorSchema =
-          SCHEMA.GetTypeEditorSchema(schemaNodeTypeOptions);
-        const startval = { options: result.template.nodeDefs.type.options };
-        this.setState({ editScope: 'nodeTypeOptions', isBeingEdited: true });
-        this.loadEditor(
-          {
-            schema: nodeTypeEditorSchema,
-            startval
-          },
-          () => {
-            this.disableOrigLabelFields();
-            // HACK: After a row is added, we need to also disable the newly added
-            // "Label" field -- the new label should be added in the "Change To" field
-            EDITOR.on('addRow', editor => {
-              this.disableOrigLabelFields();
-            });
-          }
-        );
-      });
-  }
-
-  onEditEdgeTypes() {
-    // REVIEW: Once this is working we'll need to use lock-mgr to manage locking
-    this.AppCall('EDIT_CURRENT_TEMPLATE') // nc-logic
-      .then(result => {
-        const schemaEdgeTypeOptions = SCHEMA.EDGETYPEOPTIONS;
-        // Wrap options in custom Schema to show Delete management UI
-        const edgeTypeEditorSchema =
-          SCHEMA.GetTypeEditorSchema(schemaEdgeTypeOptions);
-        const startval = { options: result.template.edgeDefs.type.options };
-        this.setState({ editScope: 'edgeTypeOptions', isBeingEdited: true });
-        this.loadEditor(
-          {
-            schema: edgeTypeEditorSchema,
-            startval
-          },
-          () => {
-            this.disableOrigLabelFields();
-            // HACK: After a row is added, we need to also disable the newly added
-            // "Label" field -- the new label should be added in the "Change To" field
-            EDITOR.on('addRow', editor => {
-              this.disableOrigLabelFields();
-            });
-          }
-        );
-      });
   }
 
   onTOMLfileSelect(e) {
@@ -209,7 +90,6 @@ class NCTemplate extends UNISYS.Component {
           tomlfileStatus: 'Invalid template file!!!',
           tomlfileErrors: errorMsg
         });
-        this.releaseOpenEditor();
       }
     });
   }
@@ -224,34 +104,23 @@ class NCTemplate extends UNISYS.Component {
         alert(result.info);
       } else {
         alert(`Template Saved: ${templateJSON.name}`);
-        this.setState({ isBeingEdited: false });
       }
-      this.releaseOpenEditor();
     });
-  }
-
-  onCancelEdit() {
-    this.setState({ isBeingEdited: false });
-    this.releaseOpenEditor();
   }
 
   /// REACT LIFECYCLE METHODS ///////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   render() {
     const {
-      disableEdit,
-      isBeingEdited,
-      tomlfile,
       tomlfileStatus,
       tomlfileErrors,
       tomlfilename
     } = this.state;
-    let editorjsx;
+    let mgrJSX;
 
-    if (disableEdit && !isBeingEdited) {
       // Node or Edge is being edited, show disabled message
-      editorjsx = (
-        <div>
+      mgrJSX = (
+        <div style={{ color: `var(--clr-warning)` }}>
           <p>
             <i>
               Templates cannot be edited while someone is editing a node, edge, or
@@ -264,49 +133,32 @@ class NCTemplate extends UNISYS.Component {
         </div>
       );
     } else {
-      // OK to Edit, show edit buttons
-      editorjsx = (
-        <div hidden={isBeingEdited}>
-          <div>
-            <div style={{ color: 'red' }}>
-              [Edit Node Types] and [Edit Edge Types] are currently disabled because
-              JSON Editor has been deprecated. Stay tuned for return of that
-              functionality.
-            </div>
-            <hr />
-            <p>ADVANCED USERS ONLY</p>
-            <p></p>
-            <i className="small text-muted">
-              Import TOML template (replace existing template)
-            </i>
+      // OK to Edit, show Import/Download Buttons
+      mgrJSX = (
+        <div>
+          <p>ADVANCED USERS ONLY</p>
+          <p></p>
+          <i className="small text-muted">
+            Import TOML template (replace existing template)
+          </i>
+          <br />
+          <label>
+            <input
+              type="file"
+              accept="text/toml"
+              id="tomlfileInput"
+              onChange={this.onTOMLfileSelect}
+            />
+            &nbsp;<i>{tomlfileStatus}</i>
             <br />
-            <label>
-              <input
-                type="file"
-                accept="text/toml"
-                id="tomlfileInput"
-                onChange={this.onTOMLfileSelect}
-              />
-              &nbsp;<i>{tomlfileStatus}</i>
-              <br />
-              {tomlfileErrors && (
-                <span style={{ color: 'red' }}>{tomlfileErrors}</span>
-              )}
-            </label>
-            <p></p>
-            <i className="small text-muted">Download Current Template</i>
-            <br />
-            <button size="sm" onClick={this.onDownloadTemplate}>
-              Download Current Template
-            </button>
-            <br />
-            <hr />
-            <div style={{ color: 'red' }}>
-              [Create New Template] is disabled because JSON Editor has been
-              deprecated. Stay tuned for return of that functionality.
-            </div>
-            <p></p>
-          </div>
+            {tomlfileErrors && <span style={{ color: 'red' }}>{tomlfileErrors}</span>}
+          </label>
+          <p></p>
+          <i className="small text-muted">Download Current Template</i>
+          <br />
+          <button size="sm" onClick={this.onDownloadTemplate}>
+            Download Current Template
+          </button>
         </div>
       );
     }
@@ -325,18 +177,7 @@ class NCTemplate extends UNISYS.Component {
           <label>Current Template File Name:</label> <code>{tomlfilename}</code>
         </p>
         <hr />
-        {editorjsx}
-        <div hidden={!isBeingEdited}>
-          <button onClick={this.onCancelEdit} size="sm">
-            Cancel
-          </button>
-          &nbsp;
-          <button onClick={this.onSaveChanges} size="sm" color="primary">
-            Save Changes
-          </button>
-          <hr />
-        </div>
-        <div id="editor" hidden={!isBeingEdited}></div>
+        {mgrJSX}
       </div>
     );
   }
