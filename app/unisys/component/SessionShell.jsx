@@ -124,6 +124,7 @@ const INVALID = {
 class SessionShell extends UNISYS.Component {
   constructor() {
     super();
+    this.getDecodedToken = this.getDecodedToken.bind(this);
     this.renderLogin = this.renderLogin.bind(this);
     this.renderLoggedIn = this.renderLoggedIn.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -136,8 +137,7 @@ class SessionShell extends UNISYS.Component {
       hashedId: null,
       subId: null,
       groupId: null,
-      isValid: false,
-      templateSalt: undefined // this is set in componentDidMount()
+      isValid: false
     };
     this.previousIsValid = false; // to track changes in loggedIn status
 
@@ -151,6 +151,14 @@ class SessionShell extends UNISYS.Component {
     //   decoded.isValid = false;
     //   this.SetAppState("SESSION", decoded);
     // });
+  }
+
+  /// PRIVATE FUNCTIONS //////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  getDecodedToken(token) {
+    const TEMPLATE = this.AppState('TEMPLATE');
+    const templateSalt = TEMPLATE && TEMPLATE.secretKey;
+    return SESSION.DecodeToken(token, templateSalt);
   }
 
   /// ROUTE RENDER FUNCTIONS ////////////////////////////////////////////////////
@@ -347,10 +355,7 @@ class SessionShell extends UNISYS.Component {
 
     const { routeProps } = SETTINGS.GetRouteInfoFromURL();
     let { token } = routeProps;
-    const TEMPLATE = this.AppState('TEMPLATE');
-    const templateSalt = TEMPLATE && TEMPLATE.secretKey;
-    this.setState({ templateSalt });
-    const decoded = SESSION.DecodeToken(token, templateSalt) || {};
+    const decoded = this.getDecodedToken(token) || {};
     this.SetAppState('SESSION', decoded);
     this.previousIsValid = decoded.isValid;
   }
@@ -363,7 +368,7 @@ class SessionShell extends UNISYS.Component {
     let { token } = routeProps;
 
     if (!token) return; // don't bother to check if this was a result of changes from the form
-    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
+    const decoded = this.getDecodedToken(token) || {};
     if (decoded.isValid !== this.previousIsValid) {
       this.SetAppState('SESSION', decoded);
       this.previousIsValid = decoded.isValid;
@@ -374,7 +379,7 @@ class SessionShell extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   handleChange(event) {
     let token = event.target.value;
-    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
+    const decoded = this.getDecodedToken(token) || {};
     let { classId, projId, hashedId, subId, groupId } = decoded;
     this.setState(decoded);
   }
@@ -413,7 +418,7 @@ class SessionShell extends UNISYS.Component {
     if (!token) return this.renderLogin();
 
     // try to decode token
-    let decoded = SESSION.DecodeToken(token, this.state.templateSalt);
+    const decoded = this.getDecodedToken(token) || {};
     if (decoded.isValid) {
       return this.renderLoggedIn(decoded);
     } else {
