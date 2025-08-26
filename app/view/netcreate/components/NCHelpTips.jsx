@@ -3,7 +3,8 @@
 
   ## OVERVIEW
 
-    Vocabulary displays a list of common terms
+    Tips is some basic advice for how to look around the network, intended for
+    teachers to suggest kids look here and try the steps if they forget
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
