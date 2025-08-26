@@ -1032,7 +1032,7 @@ function m_SetMatchingNodesByLabel(str = '', yes = {}, no = {}) {
   let returnMatches = [];
 
   // Escape special regex characters in the search string and remove diacritics
-  str = RemoveDiacriticMarks(str.trim());
+  str = UTILS.RemoveDiacriticMarks(str.trim());
   str = u_EscapeRegexChars(str); // Escape special regex characters
 
   if (str === '') return undefined;
