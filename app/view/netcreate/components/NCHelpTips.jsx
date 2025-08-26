@@ -23,8 +23,10 @@ function NCTips() {
   return (
     <div id="NCTips">
       <dl>
-        <dt>Look around</dt>
-        <dd>No really. </dd>
+        <dt>Coming soon</dt>
+        <dd>
+          This is a placeholder for a "how to look at your network" page coming soon.
+        </dd>
       </dl>
     </div>
   );
