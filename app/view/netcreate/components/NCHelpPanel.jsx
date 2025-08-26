@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
 import NCHelpVocabulary from './NCHelpVocabulary';
 import NCHelpText from './NCHelpText';
+import NCHelpTips from './NCHelpTips';
 import URPopover from './URPopover';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -22,7 +23,8 @@ const UDATA = UNISYS.NewDataLink(UDATAOwner);
 const DBG = false;
 const VIEWS = {
   help: 'Help',
-  vocabulary: 'Vocabulary'
+  vocabulary: 'Vocabulary',
+  tips: 'Tips'
 };
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
@@ -59,8 +61,10 @@ function NCHelpPanel() {
   let jsx;
   if (openTab === 'help') {
     jsx = <NCHelpText />;
-  } else {
+  } else if (openTab === 'vocabulary') {
     jsx = <NCHelpVocabulary />;
+  } else {
+    jsx = <NCHelpTips />;
   }
 
   if (!isOpen) return null;
