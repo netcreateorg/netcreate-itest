@@ -185,8 +185,7 @@ var TEMPLATE = null; // template definition for prompts
 /** Used by LOADASSETS and RELOAD_DB to reload NCDATA from the database.
  */
 function m_PromiseLoadDB() {
-  return DATASTORE.PromiseD3Data().then(data => {
-    if (DBG) console.log(PR, 'DATASTORE returned data', data);
+  return DATASTORE.PromiseDataset().then(data => {
     m_MigrateData(data.d3data);
     UTILS.RecalculateAllEdgeSizes(data.d3data);
     UTILS.RecalculateAllNodeDegrees(data.d3data);
@@ -201,14 +200,17 @@ function m_PromiseLoadDB() {
 
 /// UNISYS LIFECYCLE HOOKS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** LOADASSETS fires before react components are loaded
-    see client-lifecycle.js for description
+/** LOADASSETS fires before react components are loaded.
+ *  This hook will return one of three promises:
+ *  1. loading cached data from local storage (default not used ever)
+ *  2. loading data from the saved static files
+ *  3. loading data from the server (very bottom)
  */
 MOD.Hook('LOADASSETS', () => {
   if (UNISYS.IsStandaloneMode()) {
-    // STANDALONE MODE
-    // Load read-only database from exported db file.
-
+    //
+    // STANDALONE OPTION 1 - use browser cache
+    // not generally used, see hardcoded USE_CACHE flag below
     const USE_CACHE = false;
     if (USE_CACHE) {
       console.warn(PR, "STANDALONE MODE: 'LOADASSETS' using browser cache");
@@ -227,15 +229,16 @@ MOD.Hook('LOADASSETS', () => {
         resolve();
       });
     }
-    // don't use cache, but instead try loading standalone files
-    console.warn(
-      PR,
-      "STANDALONE MODE: 'LOADASSETS' is using files (USE_CACHE=false)"
-    );
+    //
+    // STANDALONE OPTION 2 - load from static files on web server
     // added by Joshua to check for alternative datasets in the folder
+    console.warn(PR, "STANDALONE MODE: 'LOADASSETS' loading file from webserver");
     let urlParams = new URLSearchParams(window.location.search);
     let dataset = urlParams.get('dataset');
+    // brunch-config 'package' writes standalone-db.json as fallback
+    // as well as the [dataset]-db.json file
     if (dataset === null) dataset = 'standalone';
+    // retrieve
     return new Promise(resolve => {
       (async () => {
         let p1 = await DATASTORE.PromiseJSONFile('data/' + dataset + '-db.json').then(
@@ -261,8 +264,11 @@ MOD.Hook('LOADASSETS', () => {
       })();
     });
   }
+  //
+  // NETWORK OPTION - if got this far, then we're NOT in standalone mode
+  // and do the normal load from the database
   return Promise.all([m_PromiseLoadDB()]);
-}); // loadassets
+}); // end LOADASSETS HOOK
 
 /// UNISYS LIFECYCLE HOOKS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -851,7 +857,7 @@ MOD.Hook('APP_READY', function (info) {
       'COMMENT_UPDATE',
       'COMMENTS_UPDATE',
       'READBY_UPDATE',
-      'EDIT_PERMISSIONS_UPDATE',
+      'CLI_UPDATE_LOCKSTATE',
       'NET_TEMPLATE_UPDATE'
     ]).then(d => {
       clearTimeout(timeout);
@@ -1313,53 +1319,6 @@ JSCLI.AddFunction(function ncNodeColorMap() {
 JSCLI.AddFunction(function ncDumpData() {
   console.log('NCDATA', NCDATA);
   return `ncDumpData: ${JSON.stringify(NCDATA)}`;
-});
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Command: Token Generator
- */
-/// ncMakeSharedTokens is a variant on ncMakeTokens
-/// This command skips `dataset` so tokens can be shared across graphs.
-/// Use ncMakeSharedTokens instead of ncMakeTokens to create shared tokens
-JSCLI.AddFunction(function ncMakeSharedTokens(clsId, projId, numGroups) {
-  return ncMakeTokens(clsId, projId, undefined, numGroups);
-});
-/// `datatset` is not being used but is retained for backwards compatibility
-JSCLI.AddFunction(function ncMakeTokens(clsId, projId, dataset, numGroups) {
-  // type checking
-  if (typeof clsId !== 'string')
-    return 'args: str classId, str projId, str dataset, int numGroups';
-  if (typeof projId !== 'string')
-    return 'args: str classId, str projId, str dataset, int numGroups';
-
-  // 2024/08 Make 'dataset' optional so tokens can be shared across graphs
-  // `dataset` can still be defined, but it is now optional and does not return an error
-  // if (typeof dataset !== 'string')
-  //   return 'args: str classId, str projId, str dataset, int numGroups';
-
-  if (clsId.length > 12) return 'classId arg1 should be 12 chars or less';
-  if (projId.length > 12) return 'classId arg1 should be 12 chars or less';
-  if (!Number.isInteger(numGroups)) return 'numGroups arg3 must be integer';
-  if (numGroups < 1) return 'numGroups arg3 must be positive integer';
-  // let's do this!
-  let out = `\nTOKEN LIST for class '${clsId}' project '${projId}'\n\n`;
-  let pad = String(numGroups).length;
-  for (let i = 1; i <= numGroups; i++) {
-    let id = String(i);
-    id = id.padStart(pad, '0');
-    out += `group ${id}\t${SESSION.MakeToken(clsId, projId, i, dataset)}\n`;
-  }
-  if (window && window.location) {
-    let ubits = new URL(window.location);
-    let hash = ubits.hash.split('/')[0];
-    let url = `${ubits.protocol}//${ubits.host}/${hash}`;
-    out += `\nexample url: ${SETTINGS.ServerAppURL()}/edit/${SESSION.MakeToken(
-      clsId,
-      projId,
-      1
-    )}\n`;
-  }
-  console.log(out);
-  return '';
 });
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

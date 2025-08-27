@@ -1,6 +1,6 @@
 ## PROJECT SUMMARY
 
-NetCreate 2018 is a network graph analysis tool for researching reading comprehension in the digital humanities classroom. See the [NetCreate Wiki](https://github.com/netcreateorg/netcreate-2018/wiki) for additional documentation.
+Net.Create is a network graph analysis tool for researching reading comprehension in the digital humanities classroom. See the [NetCreate Wiki](https://github.com/netcreateorg/netcreate-itest/wiki) for additional documentation.
 
 
 
@@ -15,6 +15,7 @@ If you use or refer to Net.Create in a publication, we ask that you cite it. The
 ## QUICK INSTALLATION
 
 The Wiki has [detailed instructions](https://github.com/netcreateorg/netcreate-itest/wiki/Installation-Guide). In general, you'll need to install the prerequisite `Git` and `NodeJS` (as of 12/23/2023 the officially supported version of Node is version 18.18.0) command line utilities to your computer and use a `terminal` program to issue the following commands to install from the Internet.
+
 
 ### 1. First Install
 
@@ -38,6 +39,7 @@ The first time you run Net.Create, you also need to create a `net-create.config`
 
 This will start up the app server. View the webapp by visiting `localhost:3000`. The IP address of the server is reported in console if you need to test from remote computer.
 
+
 ### 2. Subsequent Runs
 
 After you've installed Net.Create, you can just run this script whenever you want to start the app:
@@ -49,14 +51,25 @@ npm run dev
 This will load the dataset defined and set by the `nc.js` command during first install. 
 To change the default dataset, use the `./nc.js --dataset=projectname` command.
 
-### 3. Generating Logins
 
-Run NetCreate server and browse to the web app. Enter the console and type `ncMakeTokens('class','prj','demo',5);` to generate 5 login tokens.
+### 3. Accessing Admin Settings
 
-To access the Import/Export and Template Editor, you will need to enable admin mode in one of two ways:
+You will need to be an admin in order to do the following:
+* Change the admin password
+* Change the secret key used to generate unique user login tokens
+* Update the template
+* Import templates, nodes, and edges
 
-* use `localhost:3000` instead of the ip address.
-* if on a remote, login with a login token and append `?admin=true` to the end of the URL (e.g. `192.168.1.100:3000/#/edit/TEST-TEST-GXK?admin=true`)
+Go to the Advanced Panel (vertical `...` menu in the upper right) to enter the admin password.
+
+(NOTE the old methods of using `localhost` and `?admin=true` are now deprecated and no longer work.)
+
+
+### 4. Generating Logins
+
+Use the Advanced Panel to generate user tokens.
+You will need to log in as an administrator to manage tokens.
+
 
 ## NPM SCRIPTS
 
@@ -74,18 +87,11 @@ You will be using these commands most frequently:
 
 **How to access Net.Create as a client:** After starting the Net.Create server, you'll see a set of command line responses. One of those is labeled "CLIENTS" and has an IP address that clients can paste into their browser window's address field to access the main Net.Create server.
 
-**How to add/change node/edge entries in Net.Create:** Net.Create defaults to a view-only state. In order to make any additions/changes to the Net.Create database, each client needs an access token entered in the "Login" field in the upper left-hand corner of the Net.Create window. See `ncMakeTokens` below in "Support Operations".
+**How to add/change node/edge entries in Net.Create:** Net.Create defaults to a view-only state. In order to make any additions/changes to the Net.Create database, each client needs an access token entered in the "Login" field in the upper left-hand corner of the Net.Create window.  Tokens can be created by logging in as an admin and visiting the Advanced Panel. 
 
 **How to change node/edge types and select a different project:** Two files in the /build/runtime folder hold both data (netcreate.loki) and template (netcreate.template). You can copy and rename these file pairs (i.e. netcreate.template/loki -> mynetwork.template/loki) and then use that to run the server (`./nc.js --dataset=mynetwork`).
 
 ## SUPPORT OPERATIONS
-
-To generate **access keys** for groups, there is a utility accessible from the **javascript console** of a browser that's running the NetCreate app. 
-
-* Open the javascript console (in MacOS Chrome, COMMAND-OPTION-J will open it)
-* Type `ncMakeTokens('<class>','<project>',10)` to create 10 **group access tokens** that can be used to connect to the application. `<class>` and `<project>` are short strings used to uniquely identify each class and project. The access tokens are case-insensitive and 
-* The group access tokens can be generated ahead-of-time and assigned during class. If you need more access tokens, you can easily increase the number. These tokens will be used to tag every logged action performed by connected computers.
-* Students within a group and append a string of the form `-ID<#>`, where `<#>` is a positive integer to uniquely identify their computer. They can tell the teacher which ID they used.
 
 To **erase the database**, another javascript console command `ncEmptyDatabase()` will erase the server database. You may have to issue the command twice for it to take hold. Then refresh the browser and see if the database was erased.
 
@@ -109,38 +115,8 @@ This is currently tagged v1.5.0, but in fact, this is the developer's "NetCreate
 Note: 
 
 * The default branch is **dev**, not master. 
+* There is a new branch `deploy-terraform` that is used for deploying and redeploying code to DigitalOcean droplets.  Droplets might be created at any point in time, so the `deploy-terraform` branch must always be working and error free.  Do NOT merge into `deploy-terraform` until the code has been throroughly tested or you may break an existing droplet.
 * When creating pull requests in GitHub, make sure that it's referring to _this repository_ and the the parent repository
-
-## QUICK INSTALL AND RUN
-
-### First Install
-
-```
-nvm use
-npm ci
-# create default netcreate.config file
-./nc.js --dataset=testproject
-```
-
-This will start up the app server. View the webapp by visiting `localhost:3000`. The IP address of the server is reported in console if you need to test from remote computer.
-
-### Subsequent Runs
-
-```
-npm run dev
-```
-
-This will load the dataset defined and set by the `nc.js` command during first install. 
-To change the default dataset, use the `./nc.js --dataset=projectname` command.
-
-### Generating Logins
-
-Run NetCreate server and browse to the web app. Enter the console and type `ncMakeTokens('class','prj','testproject',5);` to generate 5 login tokens.
-
-To access the Import/Export and Template Editor, you will need to enable admin mode in one of two ways:
-
-* use `localhost:3000` instead of the ip address.
-* if on a remote, login with a login token and append `?admin=true` to the end of the URL (e.g. `192.168.1.100:3000/#/edit/TEST-TEST-GXK?admin=true`)
 
 
 ## NETCREATE-ITEST (2.0) TARGET FEATURES

@@ -140,11 +140,11 @@ const HumanDateShortCache = new Map();
 
 /// FUNCTIONAL COMPONENT DECLARATION //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function URTable({ isOpen, data, columns }) {
+function URTable({ isOpen, data, columns, defaultSortIdx = 0 }) {
   const [_tabledata, setTableData] = useState([]);
   const [_columndefs, setColumnDefs] = useState([]);
   const [_columnWidths, setColumnWidths] = useState([]);
-  const [_sortColumnIdx, setSortColumnIdx] = useState(0);
+  const [_sortColumnIdx, setSortColumnIdx] = useState(defaultSortIdx);
   const [_sortOrder, setSortOrder] = useState(0);
   const [_previousColSortOrder, setPreviousColSortOrder] = useState({});
 
@@ -533,7 +533,7 @@ function URTable({ isOpen, data, columns }) {
                 className={_sortColumnIdx === idx ? 'selected' : ''}
                 width={`${_columnWidths[idx]}`}
               >
-                <div onClick={e => ui_SetSelectedColumn(e, idx)}>
+                <div onClick={e => ui_SetSelectedColumn(e, idx)} title={coldef.title}>
                   {coldef.title}&nbsp;
                   {jsx_SortBtn(coldef, idx)}
                 </div>

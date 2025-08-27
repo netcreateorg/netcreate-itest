@@ -3,7 +3,7 @@
   --bg-thead-clr: #fdfdff;
   --bg-selected-clr: #eef;
   --bg-hover-clr: #ddf;
-  --tabletip-hover-clr: #ccf;
+  --tabletip-hover-clr: var(--clr-bg);
   /* layout */
   --padding-horizontal: 5px;
   --row-height: 1em;
@@ -18,17 +18,29 @@
   /* top: 0; */
   /* z-index: 1; for some reason EdgeTable can't set z to 1 or thead will cover tabletip */
 }
+.URTable th,
+.URTable td {
+  border-bottom: 1px solid var(--clr-system-fadedmost);
+}
 .URTable th {
-  padding: 0 var(--padding-horizontal);
-  border-right: 1px solid #999;
+  height: 2rem; /* keep header height consistent, max of 2 lines */
+  padding: 2px var(--padding-horizontal);
+  /* border-right: 1px solid #999; */
   background-color: var(--bg-thead-clr);
   top: 0;
   position: -webkit-sticky;
   position: sticky; /* needed for resizing columns */
+  text-align: left;
   z-index: 1; /* for some reason EdgeTable requires this or body cells will cover td */
 }
-.URTable th.selected {
-  background-color: var(--bg-selected-clr);
+.URTable th.selected,
+.URTable th.selected:hover {
+  color: var(--clr-cat-fg);
+  background-color: var(--clr-cat-bg);
+}
+.URTable th > div {
+  max-height: 2rem; /* keep header height consistent, max of 2 lines */
+  overflow: hidden;
 }
 .URTable thead,
 .URTable thead > tr,
@@ -42,7 +54,8 @@
   display: none;
 }
 .URTable th:hover {
-  background-color: var(--bg-hover-clr);
+  color: inherit;
+  background-color: var(--clr-bg);
   cursor: default;
 }
 .URTable th:hover span {
@@ -60,7 +73,7 @@
 }
 
 .URTable tr:hover {
-  background-color: var(--bg-hover-clr);
+  background-color: var(--clr-bg);
 }
 .URTable td {
   padding: 0 var(--padding-horizontal);
@@ -121,13 +134,13 @@
 .URTable .tabletip p {
   margin: 0; /* override markdown text spacing */
 }
-.URTable td:hover {
+.URTable tr td:hover {
   overflow: visible;
   background-color: var(--tabletip-hover-clr);
   position: relative;
   z-index: 200;
 }
-.URTable td:hover .tabletip .tabletip-text {
+.URTable tr td:hover .tabletip .tabletip-text {
   visibility: visible;
   opacity: 1;
   z-index: 200;
@@ -135,17 +148,17 @@
 .URTable td:hover .tabletip .tabletip-text a {
   color: #ccf;
 }
-.URTable td:hover .tabletip .tabletip-text img {
+.URTable tr td:hover .tabletip .tabletip-text img {
   max-width: 300px;
   max-height: 300px;
 }
-.URTable td:hover .tabletip-source {
+.URTable tr td:hover .tabletip-source {
   position: relative;
   padding-top: var(--padding-horizontal);
   padding-right: var(--padding-horizontal); /* gap next column */
   padding-bottom: var(--padding-horizontal);
   background-color: var(--tabletip-hover-clr);
 }
-.URTable td:hover .tabletip-source p {
+.URTable tr td:hover .tabletip-source p {
   background-color: var(--tabletip-hover-clr); /* override markdown p */
 }

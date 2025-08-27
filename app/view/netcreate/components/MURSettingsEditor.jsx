@@ -1,144 +1,128 @@
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   MUR Property Editor Panel
-  (test replacement `NCTemplate.jsx`)
-
-  Requires that init.jsx has called UR.ViewLib.DeclareComponents() to make
-  custom web components available _before_ React renders anything.
+  (replacement for deprecated `NCTemplate.jsx`)
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const { ConsoleStyler } = require('ursys-min');
 const RSB = require('./react-settings-bridge');
-const PropertyGroup = require('./MURPropertyGroup');
-const { diff } = require('deep-object-diff');
+// components
+const CompositeGroup = require('./MURCompositeGroup');
+const { SettingsContext } = RSB; // import SettingsContext from the bridge
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const PR = ConsoleStyler('SetEdit', 'TagBlue');
+const PR = ConsoleStyler('SEdit', 'TagBlue');
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a react context object, providing access to the values prop of the
- *  SettingsProvider. It has to be defined within the React App root */
-const SettingsContext = RSB.GetSettingsContext(); // get the settings context
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MURSettingsEditor() {
-  const api = RSB.useSettings();
-  const [oldState, saveOldState] = React.useState(api.lastSettingsUpdate);
-  const [showToDo, setShowToDo] = React.useState(true);
+  /// SETUP ///
 
-  function saveChanges() {
-    saveOldState(api.lastSettingsUpdate);
-    LOG(...PR('would save changes'));
-  }
+  const initialState = { template: RSB.GetTemplate() };
+  const [hasLock, setHasLock] = React.useState(!RSB.IsTemplateLocked());
+  const [draft, dispatch] = React.useReducer(RSB.Dispatch, initialState);
+  const value = { hasLock, draft, dispatch };
+
+  /// LOCKING ///
+
+  React.useEffect(() => {
+    (async () => {
+      if (await RSB.LockTemplate()) {
+        setHasLock(true);
+        LOG(...PR('Locking template on mount'));
+      } else {
+        setHasLock(false);
+        LOG(...PR('Failed to lock template on mount'));
+      }
+    })();
+    return () => RSB.ReleaseTemplate();
+  }, []); // empty dependency array means this runs once on mount
+
+  /// HANDLERS ///
 
   function revertChanges() {
-    LOG(...PR('would revert changes'));
+    dispatch({ op: 'revert' });
   }
 
-  const propDefs = RSB.GetPropertyDefs();
-  const metaDefs = RSB.GetMetaDefs();
-  const { opBtnStyle, modColor } = RSB.GetStyles();
+  function submitChanges() {
+    dispatch({ op: 'submit', saveFunction: RSB.PersistTemplate });
+  }
 
-  const mod = api.lastSettingsUpdate !== oldState;
+  /// RENDER PREP ///
+
+  const { opBtnStyle, modColor } = RSB.GetStyles();
+  const mod = draft.isDirty;
   const backgroundColor = mod ? modColor : 'white';
   const color = mod ? 'black' : 'gray';
   const btnStyle = { ...opBtnStyle, backgroundColor, color };
-  const toDoList = (
-    <div>
-      <ul>
-        <li>graph name</li>
-        <li>graph description</li>
-        <li>secret key (for tokens)</li>
-        <li>admin password</li>
-        <li>
-          Node Definitions
-          <ul>
-            <li>
-              Node Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>Info -- label, type, hide</li>
-            <li>InfoSource -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Edge Definitions
-          <ul>
-            <li>
-              Edge Type
-              <ul>
-                <li>1: [label, color]</li>
-                <li>2: [label, color]</li>
-                <li>...7</li>
-              </ul>
-            </li>
-            <li>Notes -- label, type, hide</li>
-            <li>InfoOrigin -- label, type, hide</li>
-            <li>Citation -- label, type, hide</li>
-            <li>Category -- label, type, hide</li>
-          </ul>
-        </li>
-        <li>
-          Comment Types
-          <ul>
-            <li>slug</li>
-            <li>label</li>
-            <li>
-              prompts
-              <ul>
-                <li>1: [format, prompt, help, feedback]</li>
-                <li>2: [format, prompt, help, feedback]</li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <p>NOTES: </p>
-      <ul>
-        <li>
-          `isProvenance` will place a field in the Proveannce tab. But we do not
-          expect teachers to need to change that.
-        </li>
-        <li>
-          Ideally teachers can add and remove new Node and Edge field definitions,
-          rather merely re-purposing existing fields. e.g. they might add an Event
-          Date field.
-        </li>
-      </ul>
+
+  /// RENDER ///
+
+  // save, revert, toggle
+  const ButtonBar = hasLock ? (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}
+    >
+      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
+        Cancel Settings Changes
+      </button>
+      <button style={btnStyle} onClick={submitChanges} disabled={!mod}>
+        Save Settings Changes
+      </button>
     </div>
+  ) : (
+    <p style={{ color: 'red', fontWeight: 'bold' }}>
+      Template is locked by another user.
+    </p>
   );
 
+  // note: template global settings not grouped, so prepend as special case group=""
+  const GroupList = [
+    <CompositeGroup propDef="nodeDefs" open={false} key="nodeDefs" />,
+    <CompositeGroup propDef="edgeDefs" open={false} key="edgeDefs" />
+    // <CompositeGroup propDef="commentTypes" open={true} key="commentTypes" />
+  ];
+  GroupList.unshift(<CompositeGroup propDef="" open={false} key="global-settings" />);
+  // HACK there is a check for global commentTypes in MURCompositeGroup
+
   return (
-    <SettingsContext.Provider value={api} modified={mod}>
-      <button style={btnStyle} onClick={saveChanges} disabled={!mod}>
-        Save Changes
-      </button>
-      &nbsp;
-      <button style={btnStyle} onClick={revertChanges} disabled={!mod}>
-        Revert Changes
-      </button>
-      <button style={btnStyle} onClick={() => setShowToDo(!showToDo)}>
-        {showToDo ? 'ShowWIP' : 'ShowToDo'}
-      </button>
-      {!showToDo &&
-        Object.keys(propDefs).map(gn => (
-          <PropertyGroup
-            groupDef={{ [gn]: propDefs[gn] }}
-            metaDef={{ [gn]: metaDefs[gn] }}
-            key={gn}
-          />
-        ))}
-      {showToDo && toDoList}
+    <SettingsContext.Provider value={value}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%'
+        }}
+      >
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            padding: '0.5rem 0 0.5rem 0',
+            borderBottom: '1px solid #ccc'
+          }}
+        >
+          {ButtonBar}
+        </div>
+        <div
+          style={{
+            flex: 1,
+            overflow: 'auto'
+          }}
+        >
+          {GroupList}
+        </div>
+      </div>
     </SettingsContext.Provider>
   );
 }

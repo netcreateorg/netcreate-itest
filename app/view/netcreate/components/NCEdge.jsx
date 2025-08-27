@@ -35,6 +35,7 @@ const LOCKMGR = require('../lock-mgr');
 const CMTMGR = require('../comment-mgr');
 const NCLOGIC = require('../nc-logic');
 const NCUI = require('../nc-ui');
+const UTILS = require('../nc-utils');
 const NCAutoSuggest = require('./NCAutoSuggest');
 const NCDialog = require('./NCDialog');
 const NCDialogCitation = require('./NCDialogCitation');
@@ -667,7 +668,10 @@ class NCEdge extends UNISYS.Component {
    */
   LookupBackgroundColor(type) {
     const COLORMAP = this.AppState('COLORMAP');
-    const uBackgroundColor = COLORMAP.edgeColorMap[type] || '#555555';
+    // Use empty string as fallback for undefined type if an empty type has been defined
+    const normalizedType =
+      type === undefined && COLORMAP.edgeColorMap[''] ? '' : type;
+    const uBackgroundColor = COLORMAP.edgeColorMap[normalizedType] || '#555555';
     return uBackgroundColor;
   }
   LookupSourceTargetNodeColor({ dSourceNode, dTargetNode } = this.state) {
@@ -909,7 +913,7 @@ class NCEdge extends UNISYS.Component {
       type,
       isAdmin
     } = this.state;
-    const bgcolor = uBackgroundColor + '66'; // hack opacity
+    const bgcolor = UTILS.hex2rgba(uBackgroundColor, 0.5); // hack opacity
     const TEMPLATE = this.AppState('TEMPLATE');
     const defs = TEMPLATE.edgeDefs;
     const uShowCitationButton = TEMPLATE.citation && !TEMPLATE.citation.hidden;
@@ -933,8 +937,9 @@ class NCEdge extends UNISYS.Component {
         >
           {/* BUILT-IN - - - - - - - - - - - - - - - - - */}
           <div className="titlebar" style={{ marginBottom: '3px' }}>
-            <div className="nodenumber">EDGE {id} </div>
-            <div></div>
+            <div className="nodelabel">
+              <div className="nodenumber">EDGE #{id} </div>
+            </div>
             <URCommentVBtn cref={collection_ref} key={collection_ref} />
           </div>
           <div className="formview">
@@ -1041,7 +1046,7 @@ class NCEdge extends UNISYS.Component {
       dSourceNode,
       dTargetNode
     } = this.state;
-    const bgcolor = uBackgroundColor + '99'; // hack opacity
+    const bgcolor = UTILS.hex2rgba(uBackgroundColor, 0.6); // hack opacity
     const defs = this.AppState('TEMPLATE').edgeDefs;
     const AskNodeDialog = uNewNodeLabel ? (
       <NCDialog

@@ -107,14 +107,13 @@ module.exports = {
     styles: {
       /// also include these css files in the stylesheets joinTo
     },
-    globals: {
-    }
+    globals: {}
   },
   hooks: {
     onCompile(generatedFiles, changedAssets) {
       if (FIRST_RUN) {
         // u_hack_mapfiles(); // try to override map files (doesn't work really)
-        console.log(`\n--- compilation complete - appserver is online ---\n`);
+        console.log(`\n--- starting compilation - please stand by ---\n`);
         // setup CHOKIDAR to watch for changes in the _ur_addons subdirectories except _dist
         // since brunch can't be configured to watch them
         const DIR_A = PATH.join(__dirname, '_mur');
@@ -190,12 +189,13 @@ module.exports = {
         preCompile() {
           // These files will eventually be copied over to public by brunch
           // save json of database to public/data
-          UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
-          UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
 
-          // // save json of template to public/data
-          // UDB.WriteTemplateJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-template.json`);
-          // UDB.WriteTemplateJSON(`${__dirname}/app-data/standalone-template.json`);
+          // If dataset has not been defined (e.g. on a new install), UDB.WriteDbJSON will fail silently
+          // This insures that `npm run package` will not result in an error condition
+          if (NC_CONFIG.dataset !== 'undefined') {
+            UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
+          }
+          UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
 
           // save TOML of template to public/data
           UDB.CloneTemplateTOML(
@@ -234,12 +234,10 @@ module.exports = {
         preCompile() {
           // These files will eventually be copied over to public by brunch
           // save json of database to public/data
-          UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
+          if (NC_CONFIG.dataset !== 'undefined') {
+            UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
+          }
           UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
-
-          // // save json of template to public/data
-          // UDB.WriteTemplateJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-template.json`);
-          // UDB.WriteTemplateJSON(`${__dirname}/app-data/standalone-template.json`);
 
           // save TOML of template to public/data
           UDB.CloneTemplateTOML(

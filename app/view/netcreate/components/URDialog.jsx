@@ -53,7 +53,7 @@ function URDialog({ info }) {
     isOpen && (
       <div id="urdialog">
         <div className="screen"></div>
-        <Draggable>
+        <Draggable cancel="input, textarea, select, button, .no-drag">
           <div className="dialogwindow">
             <div className="dialogmessage">{message}</div>
             <div className="dialogcontrolbar">

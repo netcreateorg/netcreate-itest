@@ -9,12 +9,10 @@
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// ben's comment manager
 export * as COMMENT from './comment/ac-comment.ts';
-/// sri's web components
-export * as ViewLib from './viewlib/index.ts';
 /// interop with NetCreate
 export * as NCI from './nc-client-interop.ts';
 /// settings client
-export * as Settings from './mur-settings-client.ts';
+export * as Settings from './nc-settings-client.ts';
 /// data normalization
 export * as DataNorm from '../common/util-data-norm.ts';
 

@@ -62,12 +62,12 @@ SESUTIL.DecodeToken = function (token, templateSalt) {
     salt = `${classId}${projId}${templateSalt}`;
   } else {
     salt = `${classId}${projId}`; // skips `dataset`
-    console.warn('"salt" is not defined.  Using only classId and projId.');
+    console.log('NOTE: "salt" is not defined.  Using only classId and projId.');
   }
 
   if (DBG)
     console.warn(
-      'commen-session ignoring "dataset" to allow decoding of shared tokens'
+      'common-session ignoring "dataset" to allow decoding of shared tokens'
     );
   try {
     let hashids = new HashIds(salt, HASH_MINLEN, HASH_ABET);

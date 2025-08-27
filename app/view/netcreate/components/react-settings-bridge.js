@@ -1,21 +1,362 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   React Settings Bridge
-  bridges the difference legacy netcreate modules and new settings manager
+  bridges the difference legacy netcreate modules and typescript modules
+  in the MUR subsystem (part of our long-term migration strategy)
+
+  TEMPLATE API
+
+  In NetCreate, AppState('TEMPLATE') is a settings object that is persisted
+  to disk. It is more than just a template, despite its name. It also contains
+  various definitions for UI and data construction.
+
+  STYLING OBJECTS
+
+  Provides css-in-js styling objects for use in the MUR components that have
+  been converted to (ugh) React
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 const React = require('react');
 const { Settings, ConsoleStyler } = require('ursys-min');
 const UNISYS = require('unisys/client');
+const DATASTORE = require('system/datastore');
+const LOCKMGR = require('../lock-mgr');
 
 /// RUNTIME UNISYS HOOKS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('SettingClient', 'TagBlue');
+const PR = ConsoleStyler('SetBridge', 'TagBlue');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// UNISYS data system
 const MOD = UNISYS.NewModule(module.id);
+const UDATA = UNISYS.NewDataLink(MOD);
+
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** quote a string or return as-is number */
+function $(strOrNum) {
+  return typeof strOrNum === 'string' ? `'${strOrNum}'` : strOrNum;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** extended typeof to handle arrays */
+function u_typeof(obj) {
+  if (Array.isArray(obj)) {
+    return `array`;
+  }
+  return typeof obj;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return true if the object is a simple value type */
+const value_types = ['string', 'number', 'boolean'];
+function is_valueType(obj) {
+  const type = u_typeof(obj);
+  return value_types.includes(type);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return by value for simple types, or clone of object for complex types */
+function u_clone(obj) {
+  if (is_valueType(obj)) return obj; // simple value type, return as-is
+  if (Array.isArray(obj)) return [...obj]; // clone array
+  if (typeof obj === 'object') return { ...obj }; // clone object
+  throw Error(`u_clone: unsupported type ${u_typeof(obj)}`);
+}
+
+/// DISPATCHER API ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// REACT: This is how React components can access the value of
+/// <SettingsContext.Provider value={value}> through useContext(SettingsContext)
+const SettingsContext = React.createContext({ origin: 'react-settings-bridge' });
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: used by MURSettingsEditor useReducer, which returns [state, dispatch]
+ *  during construction. See nc-settings-client.ts for more info. Returns
+ *  a new state object as required by React's useReducer. */
+function Dispatch(state, action) {
+  return Settings.Dispatch(state, action);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Get the current template from the UDATA AppState */
+function GetTemplate() {
+  const template = UDATA.AppState('TEMPLATE');
+  return template;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: invokes SRV_TEMPLATE_SAVE to save template to the server. The server
+ *  will send NET_TEMPLATE_UPDATE to all clients with the updated template */
+function PersistTemplate(templateObj) {
+  return DATASTORE.SaveTemplateFile(templateObj);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: splits a propDef string into groupName and propName */
+function DecodePropDef(propDef) {
+  return Settings.DecodePropDef(propDef);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: create a propDef string from groupName and propName */
+function EncodePropDef(groupName, propName, propField) {
+  return Settings.EncodePropDef(groupName, propName, propField);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API CRITICAL HELPER: Given a settings object and propDef, return all
+ *  UI-relevant data scoped to that propDef. This data will be specific to the
+ *  type of control */
+function GetDataForProp(template, propDef) {
+  const fn = 'GetDataForProp:';
+
+  /// FIRST: BASIC DEFENSIVE CHECKS ///
+
+  if (typeof template !== 'object')
+    throw Error(`${fn} arg1 must be an object based on a template.toml file`);
+  if (typeof propDef !== 'string') throw Error(`${fn} arg2 must be a propDef string`);
+  //
+  let [groupName, propName, propField, index] = DecodePropDef(propDef); // throws error if not valid
+  //
+  if (propName !== undefined && typeof propName !== 'string')
+    return { error: `${fn} invalid propName (string required)` };
+  //
+  if (typeof template._ui !== 'object')
+    return { error: `${fn} t_ui _ui is not available` };
+
+  // got this far, we have a valid template and template._ui
+  let t_ui = template._ui; // _ui is the metadata source
+  let sourceMeta, sourceData;
+
+  const strIndex = index !== undefined ? `[${index}]` : '';
+  // LOG(...PR(propDef, `= ${groupName}.${propName}.${propField} ${strIndex}`));
+
+  /// CASE 0: GROUP NAME IS '', i.e. a global setting ///
+
+  if (groupName === '' && propName === undefined) {
+    // return filtered metadata containing only global properties plus _groupMeta
+    const { globalsList } = GetUISettingsList(t_ui);
+    sourceMeta = {};
+    globalsList.forEach(p => (sourceMeta[p] = u_clone(t_ui[p])));
+    // Include _groupMeta for root-level group metadata
+    if (t_ui._groupMeta) {
+      sourceMeta._groupMeta = u_clone(t_ui._groupMeta);
+    }
+    sourceData = template;
+    return {
+      groupName: '',
+      propName: undefined,
+      propField: undefined,
+      sourceMeta,
+      sourceData
+    };
+  }
+
+  /// CASE 1: NO GROUP NAME, ONLY PROP NAME AVAILABLE ///
+
+  if (groupName === undefined || groupName === '') {
+    if (!template[propName])
+      return { error: `(1) no value for ${propName} (${propDef})` };
+    // has metadata
+    if (t_ui[propName] !== undefined) {
+      sourceMeta = u_clone(t_ui[propName]);
+      if (index !== undefined) {
+        sourceData = template[propName] && template[propName][index];
+        sourceMeta._controlDef = 'CommentType';
+      } else {
+        sourceData = template[propName];
+      }
+      return {
+        groupName,
+        propName,
+        propField,
+        sourceMeta,
+        sourceData
+      };
+    }
+    // no metadata for this prop, return error
+    return {
+      groupName: undefined,
+      propName,
+      error: `no UI data for ${propDef}`
+    };
+  }
+
+  /// CASE 2: THREE-LEVEL COMPOSITE FIELD (GROUP.PROP.FIELD) ///
+
+  if (propField !== undefined) {
+    // if there's a propfield, then check for array
+    if (t_ui[groupName] === undefined)
+      return { error: `(2) no UI metadata for group ${groupName} (${propDef})` };
+    if (t_ui[groupName][propName] === undefined)
+      return {
+        error: `(2) group ${groupName} no metadata for ${propName} (${propDef})`
+      };
+    if (t_ui[groupName][propName][propField] === undefined)
+      return {
+        error: `(2) composite ${groupName}.${propName} no metadata for field ${propField} (${propDef})`
+      };
+
+    if (Number.isInteger(index)) {
+      // find sourceData
+      sourceData =
+        template[groupName] &&
+        template[groupName][propName] &&
+        template[groupName][propName][propField]
+          ? template[groupName][propName][propField][index]
+          : undefined;
+      // find sourceMeta
+    } else {
+      // find sourceData
+      sourceData =
+        template[groupName] && template[groupName][propName]
+          ? template[groupName][propName][propField]
+          : undefined;
+    }
+
+    sourceMeta = u_clone(t_ui[groupName][propName][propField]);
+
+    // handle indexed array access
+    return {
+      groupName,
+      propName,
+      propField,
+      sourceMeta,
+      sourceData
+    };
+  }
+
+  /// CASE 3: TWO-LEVEL GROUP NAME AND PROP NAME AVAILABLE ///
+
+  t_ui = t_ui[groupName][propName];
+  if (t_ui === undefined)
+    return {
+      error: `(3) group ${groupName} no metadata for ${propName} (${propDef})`
+    };
+  // if got this far, t_ui now has a object keys for each type of
+  // "editable setting" which can have multiple properties:
+  //   setting nodeDefs.id = { type, displayLabel, help, hidden, includeInGraphTooltip }
+  // and each key in the id setting look like this:
+  //   displayLabel = { _control, labelKey, helpKey }
+  sourceMeta = u_clone(t_ui);
+  // handle indexed array access
+  if (index !== undefined) {
+    sourceData =
+      template[groupName][propName] && template[groupName][propName][index];
+  } else {
+    sourceData = template[groupName][propName];
+  }
+  return {
+    groupName,
+    propName,
+    propField,
+    sourceMeta,
+    sourceData
+  };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API CRITICAL HELPER - given a uiDef, return the data found in
+ *  template._ui_def[uiDef]. Used to look up things like _controlDef which
+ *  is used in components like in_array (but not in_colorgroup, which can use
+ *  the hardcoded expectation of what its sourceData is shaped like */
+function GetUIDefForType(template, uiDef) {
+  const fn = 'GetUIDefForType';
+  if (!template || typeof template !== 'object')
+    throw Error(`${fn}: template must be an object`);
+  if (!template._ui_defs || typeof template._ui_defs !== 'object')
+    throw Error(`${fn}: template._ui_defs missing or not an object`);
+  if (!uiDef || typeof uiDef !== 'string')
+    throw Error(`${fn}: uiDef must be a string`);
+  return template._ui_defs[uiDef];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: Shallow check that this is a UI object, not group of UIObjects */
+function IsUIObj(uobj) {
+  // either a property or property in a group
+  if (uobj === undefined || typeof uobj !== 'object')
+    throw Error('uobj must be an object');
+  if (typeof uobj._control !== 'string')
+    throw Error('uobj._control is missing or not string');
+  if (Object.keys(uobj).length === 0) return false; // empty object
+  return uobj._control !== 'in_composite'; // not a in_composite control
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: Shallow check that this is a UI group */
+function IsUIGroup(uobj) {
+  // a group is an object with properties, not a property itself
+  if (uobj === undefined || typeof uobj !== 'object')
+    throw Error('uobj must be an object');
+  if (Object.keys(uobj).length === 0) return false; // empty group
+  return uobj._control === 'in_composite';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API HELPER: Given a uiMeta object, return a list of global settings and
+ *  a list of groups found without further decoding the group properties.*/
+function GetUISettingsList(uiMeta) {
+  if (uiMeta === undefined || typeof uiMeta !== 'object')
+    return { error: 'uiMeta is not an object' };
+  if (Object.keys(uiMeta).length === 0) return { error: 'uiMeta is empty' };
+  const globalsList = [];
+  const groupList = [];
+  const unknownList = [];
+  Object.keys(uiMeta).forEach(uiKey => {
+    try {
+      if (uiKey.startsWith('_')) return; // skip internal keys
+      const entry = uiMeta[uiKey];
+      if (IsUIObj(entry)) globalsList.push(uiKey);
+      else if (IsUIGroup(entry)) groupList.push(uiKey);
+      else unknownList.push(`${uiKey} = ${JSON.stringify(entry)}`);
+      // LOG(...PR(`GetUISettingsList: processed ${uiKey}`, entry));
+    } catch (err) {
+      LOG(`%c${err}`, 'color:red', `for entry '${uiKey}'`, uiMeta[uiKey]);
+    }
+  });
+  if (DBG && unknownList.length > 0) {
+    LOG(...PR(`GetUISettingsList: non-UI objs found`), unknownList);
+  }
+  return { globalsList, groupList, unknownList };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Check if there are any pending changes in the settings object,
+ *  (the TEMPLATE AppState) which is maintained by an immer draft.
+ *  This flag is is true while the dispatched state has a non-null
+ *  pending property (this is a copy of TEMPLATE). */
+function HasPendingChanges() {
+  return Settings.HasPendingChanges();
+}
+
+/// LOCKING ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let m_client_has_lock = false; // true if we have a lock on the template
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Get the current lock state of the settings object, which covers
+ *  more than just the template. See IsTemplateLocked() for specifics */
+function GetLockState() {
+  return UDATA.AppState('LOCKSTATE') || { error: 'AppState LOCKSTATE undefined' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Check if the template should be considered "locked" based on the
+ *  the flags that are set by various components in NetCreate.*/
+function IsTemplateLocked(lockState = GetLockState()) {
+  const { templateBeingEdited } = lockState;
+  const { importActive, nodeOrEdgeBeingEdited } = lockState;
+  return templateBeingEdited || importActive || nodeOrEdgeBeingEdited;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Call when opening MURSettingsEditor.LockManager sets AppState
+ *  for LOCKSTATE. Return true if successful lock */
+async function LockTemplate() {
+  const lockState = await LOCKMGR.RequestTemplateLock();
+  const { success, error, lockedBy } = lockState;
+  if (error) return false;
+  if (success) return true;
+  throw Error('LockTemplate: unexpected lock state');
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Call when closing MURSettingsEditor. Naively assume it worked, because
+ *  the entire locking architecture is a mess and we don't have a way to
+ *  reliably detect lock authority. */
+async function ReleaseTemplate() {
+  const lockState = await LOCKMGR.RequestTemplateUnlock();
+  const { success, error } = lockState;
+  if (error) return false;
+  if (success) return true;
+  throw Error('UnlockTemplate: unexpected lock state');
+}
 
 /// SETTINGS CHANGE SUBSCRIPTION //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,82 +374,6 @@ function Unsubscribe(event, changeHandler) {
   Settings.Unsubscribe(event, changeHandler);
 }
 
-/// REACT SETTINGS API ////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: PropertyDefs define the type and default value of a property, but not
- *  the value itself. */
-function GetPropertyDefs() {
-  return Settings.Get('PropertyDefs');
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: MetaDefs define metadata for a property's UI representation */
-function GetMetaDefs() {
-  return Settings.Get('MetaDefs');
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update a property in the settings object.
- *  @param string dotProp - 'group.prop'
- *  @param any value - new value for the property */
-async function UpdateProperty(dotProp, value) {
-  const opResult = await Settings.UpdateProperty(dotProp, value);
-  if (opResult.status === 'ok') return opResult;
-  throw Error(`Failed to update ${dotProp} with value ${value}`);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Update a group in the settings object.
- *  @param string groupName - 'group'
- *  @param object propObj - { prop: value, prop2: value2 } */
-async function UpdateGroup(groupName, propObj) {
-  const opResult = await Settings.UpdateGroup(groupName, propObj);
-  if (opResult.status === 'ok') return opResult;
-  throw Error(`Failed to update group ${groupName} with properties ${propObj}`);
-}
-
-/// DECODERS //////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Return the name of the single key in an object, undefined
- *  otherwise */
-function GetSingularKey(obj) {
-  const groupList = Object.keys(obj).filter(key => !key.startsWith('_'));
-  if (groupList.length !== 1) return;
-  return groupList[0];
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Dereference groupObj, returning groupName and properties list */
-function DerefGroupDef(groupObj) {
-  const groupName = GetSingularKey(groupObj);
-  if (groupName === undefined) return { error: 'groupObj must have a single key' };
-  const properties = groupObj[groupName];
-  const deref = { groupName, properties };
-  //
-  return deref; // { groupname, properties:{[propName]:{ definition props }} }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: Dereference metaObj, returning just the properites for the */
-function DerefSingularMetaDef(metaObj) {
-  const groupName = GetSingularKey(metaObj);
-  if (groupName === undefined) return { error: 'metaObj must have a single key' };
-  const deref = metaObj[groupName];
-  //
-  return deref; // { metadata props }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** UTILITY: promote a named key as the direct value of a property,
- *  converting { group:{prop:{value:1}} } to { group: {prop:1} } for using
- *  in a settings values structure */
-function FlattenPropertyDefs(propDefs, key = 'value') {
-  const flat = {};
-  Object.keys(propDefs).forEach(groupName => {
-    flat[groupName] = {};
-    const group = propDefs[groupName];
-    Object.keys(group).forEach(propName => {
-      const propDef = group[propName];
-      flat[groupName][propName] = propDef[key];
-    });
-  });
-  return flat;
-}
-
 /// SHARED STYLING OBJECTS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const padding = '0.2rem 0.4rem';
@@ -118,7 +383,7 @@ const modColor = '#ffff00a0';
 // itemGrid is for the container of a label and input
 const itemGrid = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(200px,max-content) auto',
+  gridTemplateColumns: 'minmax(0, 200px) 1fr',
   alignItems: 'baseline',
   margin
 };
@@ -131,7 +396,7 @@ const popupStyle = {
   backgroundColor: 'gray',
   color: 'white',
   padding,
-  zIndex: 1000,
+  zIndex: 10000,
   maxWidth: '20rem',
   display: 'none'
 };
@@ -150,76 +415,43 @@ function GetStyles() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EventTargetOffsetStyle(event) {
   const rect = event.target.getBoundingClientRect();
+  const advPanel = document.querySelector('#popover');
+  const advRect = advPanel
+    ? advPanel.getBoundingClientRect()
+    : { left: '0px', top: '0px' };
   return {
-    left: `${rect.left + window.scrollX}px`,
-    top: `${rect.top + window.scrollY + rect.height + 2}px`
-  };
-}
-
-/// CUSTOM HOOK FOR SETTINGS CONTEXT //////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** React Hook to manage settings context. The original reference
- *  implementation is in mur-settings-context */
-function useSettings(initialSettings = {}) {
-  //
-  const [lastSettingsUpdate, _updateSettings] = React.useState({});
-
-  /** universal get settings */
-  const get = dotProp => Settings.Get(dotProp);
-
-  /** update property via settings manager, then trigger rerender */
-  const updateProperty = async (dotProp, value) => {
-    const opResult = await Settings.UpdateProperty(dotProp, value);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateProperty: ${error}`);
-      return false; // indicate failure
-    }
-    _updateSettings(opResult); // trigger a rerender
-    return true;
-  };
-
-  /** update group of properties via settings manager, then trigger rerender */
-  const updateGroup = async (groupName, propObj) => {
-    const opResult = await Settings.UpdateGroup(groupName, propObj);
-    const { error, changed } = opResult;
-    if (error) {
-      console.error(`updateGroup: ${error}`);
-      return false;
-    }
-    _updateSettings(opResult); // trigger a rerender
-    return true;
-  };
-
-  return {
-    // to trigger rerender
-    lastSettingsUpdate,
-    // api
-    get,
-    updateProperty,
-    updateGroup
+    left: `${rect.left - advRect.left}px`,
+    top: `${rect.top - advRect.top + rect.height + 4}px`
   };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
-  GetPropertyDefs,
-  GetMetaDefs,
-  //
-  DerefGroupDef,
-  DerefSingularMetaDef,
-  FlattenPropertyDefs,
-  //
-  UpdateProperty,
-  UpdateGroup,
-  //
-  Subscribe,
-  Unsubscribe,
-  //
+  // React Context
+  SettingsContext, // used by MURSettingsEditor to provide Provider
+  // Template Settings API
+  Dispatch, // state, action
+  GetTemplate, // use UDATA.AppState('TEMPLATE') to return the template
+  PersistTemplate, // dataObj => { template: dataObj }
+  GetDataForProp, // template, propDef => { groupName, propName, sourceMeta, sourceData }
+  GetUISettingsList, // uiMeta => { globalsList, groupSettings }
+  GetUIDefForType, // template, uiDef => template._ui_defs[uiDef]
+  HasPendingChanges, // return true if there are pending changes
+  // Locking API
+  GetLockState, // ()=>AppState('LOCKSTATE')
+  IsTemplateLocked, // return true if template considered "locked"
+  LockTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
+  ReleaseTemplate, // ()=> { templateBeingEdited, importActive, nodeOrEdgeBeingEdited }
+  // PropDef and MetaDef helpers
+  DecodePropDef, // 'group.prop' => { groupName, propName }
+  EncodePropDef, // { groupName, propName } => 'group.prop'
+  IsUIObj, // uobj => true if it has a type
+  IsUIGroup, // uobj => true if it has properties
+  // Styling API
   GetStyles,
   EventTargetOffsetStyle,
-  //
-  GetSettingsContext: Settings.GetSettingsContext,
-  useSettings // locally-defined to match react version/instance
+  // Use these with React useEffect mount/unmount
+  Subscribe,
+  Unsubscribe
 };
