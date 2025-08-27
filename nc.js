@@ -2,7 +2,6 @@
 const shell = require('shelljs');
 let argv = require('minimist')(process.argv.slice(2));
 let dataset = argv['dataset'];
-let googlea = argv['googlea'];
 let port = argv['port'];
 let netport = argv['netport'];
 let ip = argv['ip'];
@@ -42,18 +41,6 @@ if (dataset === undefined || dataset === '') {
     the syntax is './nc.js --dataset=tacitus'\n
     `);
   shell.exit();
-}
-
-// google analytics
-if (googlea === undefined || googlea === '') {
-  shell.echo(`
-    2. Google Analytics will not be used.
-       Use the flag --googlea=XXXX to load google analyics for ID XXXX.`);
-  googlea = 0;
-} else {
-  shell.echo(`
-    2. Using Google Analyics with:${googlea}.
-       If you want to disable google analytics, leave this flag off or set to 0.`);
 }
 
 // port
@@ -99,7 +86,6 @@ let script = `
 const NC_CONFIG = {
   dataset: "${dataset}",
   port: "${port}",${netportDef}${ipDef}
-  googlea: "${googlea}"
 };
 if (typeof process === "object") module.exports = NC_CONFIG;
 if (typeof window === "object") window.NC_CONFIG = NC_CONFIG;
