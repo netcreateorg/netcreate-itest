@@ -90,11 +90,21 @@ function DeriveInfoOriginString(author, ms) {
   return `Created by ${author} on ${new Date(ms).toLocaleString()}`;
 }
 
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API METHOD
+ *  Removes diacritic marks for comparison purposes
+ *  @param {string} stringToProcess
+ */
+function RemoveDiacriticMarks(stringToProcess) {
+  return stringToProcess.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 /// MODULE EXPORTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
   GenerateUUID,
   RecalculateAllNodeDegrees,
   RecalculateAllEdgeSizes,
-  DeriveInfoOriginString
+  DeriveInfoOriginString,
+  RemoveDiacriticMarks
 };
