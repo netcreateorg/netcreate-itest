@@ -4,6 +4,16 @@
   padding: 10px 20px;
 }
 
+#NCTips details {
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#NCTips summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
 /* tabpanel --------------------------------------------------------------- */
 #NCTabPanel {
   display: flex;

@@ -22,12 +22,16 @@ function NCTips() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   return (
     <div id="NCTips">
-      <dl>
-        <dt>Coming soon</dt>
-        <dd>
-          This is a placeholder for a "how to look at your network" page coming soon.
-        </dd>
-      </dl>
+      This is a placeholder...
+      <br></br> <br></br>
+      <details>
+        <summary>Look for large nodes</summary>
+        They indicate important entites that likely impact many other elements
+      </details>
+      <details>
+        <summary>Try moving nodes around</summary>
+        This can help make the importance of different connections visible ...
+      </details>
     </div>
   );
 }
