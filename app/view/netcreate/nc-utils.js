@@ -120,6 +120,15 @@ function hex2rgba(hex, alpha = 1) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API METHOD
+ *  Removes diacritic marks for comparison purposes
+ *  @param {string} stringToProcess
+ */
+function RemoveDiacriticMarks(stringToProcess) {
+  return stringToProcess.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 /// MODULE EXPORTS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module.exports = {
@@ -127,5 +136,6 @@ module.exports = {
   RecalculateAllNodeDegrees,
   RecalculateAllEdgeSizes,
   DeriveInfoOriginString,
-  hex2rgba
+  hex2rgba,
+  RemoveDiacriticMarks
 };
