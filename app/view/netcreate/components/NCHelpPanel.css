@@ -5,13 +5,17 @@
 }
 
 #NCTips details {
-  padding-left: 1rem;
   margin-bottom: 0.5rem;
 }
 
+/* Style only the summary — no indent */
 #NCTips summary {
   cursor: pointer;
   font-weight: bold;
+}
+
+#NCTips details p {
+  padding-left: 1rem;
 }
 
 /* tabpanel --------------------------------------------------------------- */

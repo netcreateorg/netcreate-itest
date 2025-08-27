@@ -26,11 +26,11 @@ function NCTips() {
       <br></br> <br></br>
       <details>
         <summary>Look for large nodes</summary>
-        They indicate important entites that likely impact many other elements
+        <p>They indicate important entites that likely impact many other elements</p>
       </details>
       <details>
         <summary>Try moving nodes around</summary>
-        This can help make the importance of different connections visible ...
+        <p>This can help make the importance of different connections visible ...</p>
       </details>
     </div>
   );
