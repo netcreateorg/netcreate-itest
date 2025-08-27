@@ -25,6 +25,13 @@ function NCTips() {
       This is a placeholder...
       <br></br> <br></br>
       <details>
+        <summary>Check the source!</summary>
+        <p>
+          Look at the network citation for some background, and the provenance of
+          different nodes and edges. Does it seem biased? Other things?
+        </p>
+      </details>
+      <details>
         <summary>Look for large nodes</summary>
         <p>They indicate important entites that likely impact many other elements</p>
       </details>
@@ -33,9 +40,13 @@ function NCTips() {
         <p>
           This can help make the importance of different connections visible ...
           <details>
-            <summary>Nested thing ... </summary>
+            <summary>Does a lot move? </summary>
+            <p>This node might have a big influence!</p>
+          </details>
+          <details>
+            <summary>Very little moves? </summary>
             <p>
-              This can help make the importance of different connections visible ...
+              Maybe there are other big nodes with a lot of influence? Let's look.
             </p>
           </details>
         </p>
