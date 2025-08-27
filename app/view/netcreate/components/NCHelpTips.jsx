@@ -30,7 +30,15 @@ function NCTips() {
       </details>
       <details>
         <summary>Try moving nodes around</summary>
-        <p>This can help make the importance of different connections visible ...</p>
+        <p>
+          This can help make the importance of different connections visible ...
+          <details>
+            <summary>Nested thing ... </summary>
+            <p>
+              This can help make the importance of different connections visible ...
+            </p>
+          </details>
+        </p>
       </details>
     </div>
   );
