@@ -1,7 +1,7 @@
 name = "Untitled Project"
 description = "No Description"
 secretKey = "exp626"
-adminPassword = "danishpowers"
+adminPassword = "ncpower"
 requireLogin = false
 hideDeleteNodeButton = false
 allowLoggedInUserToImport = false
@@ -97,6 +97,14 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 options = { _control = "in_colorgroup",_controlDef = "NodeType", label = "Node Types", help = "Define custom Node Types" }
 
 [_ui.nodeDefs.description]
+_control = "in_composite"
+displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
+help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
+hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
+includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
+
+[_ui.nodeDefs.someimage]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -397,9 +405,18 @@ includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
+[nodeDefs.someimage]
+type = "string"
+displayLabel = "Image"
+exportLabel = "Image"
+help = "An image that is related to the node"
+includeInGraphTooltip = true
+isProvenance = false
+hidden = false
+
 [nodeDefs.othertext]
 type = "string"
-displayLabel = "OtherText"
+displayLabel = "Other Text"
 exportLabel = "OtherText"
 help = "General purpose notes text field"
 includeInGraphTooltip = true
@@ -408,8 +425,8 @@ hidden = false
 
 [nodeDefs.sometype]
 type = "select"
-displayLabel = "SomeType"
-exportLabel = "SomeType"
+displayLabel = "Some Type"
+exportLabel = "Some Type"
 help = "Select a category"
 includeInGraphTooltip = true
 isProvenance = false
@@ -421,7 +438,7 @@ hidden = false
 
 [nodeDefs.somenumber]
 type = "number"
-displayLabel = "SomeNumber"
+displayLabel = "Some Number"
 exportLabel = "SomeNumber"
 help = "Some number comparison"
 includeInGraphTooltip = true
@@ -569,8 +586,8 @@ hidden = false
 
 [edgeDefs.sometype]
 type = "select"
-displayLabel = "SomeType"
-exportLabel = "SomeType"
+displayLabel = "Some Type"
+exportLabel = "Some Type"
 help = "Type of edge connection"
 isProvenance = false
 hidden = false
@@ -598,7 +615,7 @@ hidden = false
 [edgeDefs.othertext]
 type = "string"
 displayLabel = "Other Text"
-exportLabel = "Other Text"
+exportLabel = "OtherText"
 help = "Additional information about the connection"
 isProvenance = false
 hidden = false
