@@ -104,7 +104,7 @@ help = { _control = "in_string", label = "Help Text", help = "Help text shown to
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 
-[_ui.nodeDefs.someimage]
+[_ui.nodeDefs.image]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
@@ -158,6 +158,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.created]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -165,6 +166,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.createdBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -172,6 +174,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.updated]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -179,6 +182,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.updatedBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -186,6 +190,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.degrees]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -193,6 +198,7 @@ includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Too
 [_ui.nodeDefs.revision]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
@@ -203,6 +209,7 @@ _control = "in_composite"
 [_ui.edgeDefs.id]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -210,6 +217,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.source]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -217,6 +225,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.target]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -224,6 +233,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.type]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -232,6 +242,7 @@ options = { _control = "in_colorgroup", label = "Edge Types", help = "Define cus
 [_ui.edgeDefs.description]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -239,6 +250,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.sometype]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -247,6 +259,7 @@ options = { _control = "in_colorgroup", label = "Edge Types", help = "Define cus
 [_ui.edgeDefs.citation]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -254,6 +267,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.infoOrigin]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -261,6 +275,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.othertext]
 _control = "in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -268,30 +283,35 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.created]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.createdBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.updated]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.updatedBy]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
 [_ui.edgeDefs.weight]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 isRequired = { _control = "in_boolean", label = "Is Required", help = "Whether this field is required" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
@@ -300,6 +320,7 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 [_ui.edgeDefs.revision]
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
+exportLabel = { _control = "in_string", label = "Label for Export", help = "Label used when exporting data" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
 includeInGraphTooltip = { _control = "in_boolean", label = "Include In Graph Tooltip?", help = "display additional info" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
@@ -359,7 +380,7 @@ hidden = false
 [nodeDefs.type]
 type = "select"
 displayLabel = "Type"
-exportLabel = "NodeType"
+exportLabel = "Node Type"
 help = "Select a category"
 includeInGraphTooltip = true
 isProvenance = false
@@ -405,8 +426,8 @@ includeInGraphTooltip = true
 isProvenance = false
 hidden = false
 
-[nodeDefs.someimage]
-type = "string"
+[nodeDefs.image]
+type = "markdown"
 displayLabel = "Image"
 exportLabel = "Image"
 help = "An image that is related to the node"
@@ -417,7 +438,7 @@ hidden = false
 [nodeDefs.othertext]
 type = "string"
 displayLabel = "Other Text"
-exportLabel = "OtherText"
+exportLabel = "Other Text"
 help = "General purpose notes text field"
 includeInGraphTooltip = true
 isProvenance = false
@@ -439,7 +460,7 @@ hidden = false
 [nodeDefs.somenumber]
 type = "number"
 displayLabel = "Some Number"
-exportLabel = "SomeNumber"
+exportLabel = "Some Number"
 help = "Some number comparison"
 includeInGraphTooltip = true
 isProvenance = false
@@ -457,7 +478,7 @@ hidden = false
 [nodeDefs.infoOrigin]
 type = "infoOrigin"
 displayLabel = "Info Source"
-exportLabel = "InfoSource"
+exportLabel = "Info Source"
 help = "Who created this?  (aka Source)"
 includeInGraphTooltip = true
 isProvenance = true
@@ -474,8 +495,8 @@ hidden = false
 [nodeDefs.createdBy]
 type = "string"
 displayLabel = "Created By"
-help = "Author who created the node"
 exportLabel = "Created By"
+help = "Author who created the node"
 includeInGraphTooltip = true
 hidden = false
 
@@ -516,7 +537,7 @@ hidden = true
 
 [edgeDefs.id]
 type = "number"
-displayLabel = "Id"
+displayLabel = "ID"
 exportLabel = "ID"
 help = "System-generated unique id number"
 isProvenance = false
@@ -540,7 +561,7 @@ hidden = false
 [edgeDefs.type]
 type = "select"
 displayLabel = "Type"
-exportLabel = "EdgeType"
+exportLabel = "Edge Type"
 help = "Type of edge connection"
 isProvenance = false
 hidden = false
@@ -607,7 +628,7 @@ hidden = false
 [edgeDefs.infoOrigin]
 type = "infoOrigin"
 displayLabel = "Info Source"
-exportLabel = "InfoSource"
+exportLabel = "Info Source"
 help = "Who created this?  (aka Source)"
 isProvenance = true
 hidden = false
@@ -615,7 +636,7 @@ hidden = false
 [edgeDefs.othertext]
 type = "string"
 displayLabel = "Other Text"
-exportLabel = "OtherText"
+exportLabel = "Other Text"
 help = "Additional information about the connection"
 isProvenance = false
 hidden = false
