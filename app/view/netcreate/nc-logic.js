@@ -333,16 +333,6 @@ MOD.Hook('INITIALIZE', () => {
         let color = '#0000DD';
         nodes.forEach(node => {
           UNISYS.Log('select node', node.id, node.label);
-          let googlea = NC_CONFIG.googlea;
-
-          if (googlea != '0') {
-            ga('send', {
-              hitType: 'event',
-              eventCategory: 'Node',
-              eventAction: '' + node.label,
-              eventLabel: '' + window.location
-            });
-          }
         });
       }
     }
