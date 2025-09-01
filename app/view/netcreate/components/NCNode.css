@@ -140,10 +140,13 @@
   display: flex;
   gap: 0.5rem;
   margin: 0 0.5rem;
-}
-.nccomponent .warning {
   padding-left: 2px;
 }
+.nccomponent .message.warning {
+  display: flex;
+  flex-direction: column;
+}
+
 .nccomponent .help {
   font-size: 10px;
   font-style: italic;
