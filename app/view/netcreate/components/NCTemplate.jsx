@@ -21,13 +21,14 @@
 
     Template data is loaded by `server-database` DB.InitializeDataset call.
 
+    templateIsBeingEditedByMe is used to by NCAdvancedPanel to coordinate the
+    lock/unlock template editting across all the NCAdvancedPanel
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
 const UNISYS = require('unisys/client');
-const { EDITORTYPE } = require('system/util/enum');
 const TEMPLATE_MGR = require('../template-editor-mgr');
-const LOCKMGR = require('../lock-mgr');
 const DATASTORE = require('system/datastore');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -45,39 +46,25 @@ class NCTemplate extends UNISYS.Component {
       tomlfileErrors: undefined,
       tomlfilename: 'loading...'
     };
-    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.onTOMLfileSelect = this.onTOMLfileSelect.bind(this);
     this.onDownloadTemplate = this.onDownloadTemplate.bind(this);
     this.onSaveChanges = this.onSaveChanges.bind(this);
-
-    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   } // constructor
 
   componentDidMount() {
-    const LOCKSTATE = this.AppState('LOCKSTATE');
-    this.urstate_LOCKSTATE(LOCKSTATE);
+    // Display template filename
     DATASTORE.GetTemplateTOMLFileName().then(result => {
       this.setState({ tomlfilename: result.filename });
     });
   }
 
-  componentWillUnmount() {
-    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
-  }
-
-  /// UI EVENT HANDLERS /////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  urstate_LOCKSTATE(LOCKSTATE) {
-    // someone else might be editing a template or importing or editing node or edge
-  }
+  componentWillUnmount() {}
 
   /// METHODS /////////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  }
-
   onTOMLfileSelect(e) {
-    // import
+    // import template file
     const tomlfile = e.target.files[0];
     TEMPLATE_MGR.ValidateTOMLFile({ tomlfile }).then(result => {
       if (result.isValid) {
@@ -111,15 +98,13 @@ class NCTemplate extends UNISYS.Component {
   /// REACT LIFECYCLE METHODS ///////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   render() {
-    const {
-      tomlfileStatus,
-      tomlfileErrors,
-      tomlfilename
-    } = this.state;
-    let mgrJSX;
+    const { tomlfileStatus, tomlfileErrors, tomlfilename } = this.state;
+    const { templateIsBeingEditedByMe } = this.props;
+    let jsx;
 
+    if (!templateIsBeingEditedByMe) {
       // Node or Edge is being edited, show disabled message
-      mgrJSX = (
+      jsx = (
         <div style={{ color: `var(--clr-warning)` }}>
           <p>
             <i>
@@ -134,7 +119,7 @@ class NCTemplate extends UNISYS.Component {
       );
     } else {
       // OK to Edit, show Import/Download Buttons
-      mgrJSX = (
+      jsx = (
         <div>
           <p>ADVANCED USERS ONLY</p>
           <p></p>
@@ -172,12 +157,12 @@ class NCTemplate extends UNISYS.Component {
           padding: '10px 20px'
         }}
       >
-        <h4>Template Editor</h4>
+        <h4>Template File Manager</h4>
         <p>
           <label>Current Template File Name:</label> <code>{tomlfilename}</code>
         </p>
         <hr />
-        {mgrJSX}
+        {jsx}
       </div>
     );
   }

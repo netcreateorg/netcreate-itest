@@ -29,8 +29,10 @@
 
   ## USAGE
 
-    <NCImportExport isAdmin={isAdmin} />
+    <NCImportExport isAdmin={isAdmin} templateIsBeingEditedByMe={templateIsBeingEditedByMe} />
 
+  templateIsBeingEditedByMe is used to by NCAdvancedPanel to coordinate the
+  lock/unlock template editting across all the NCAdvancedPanel
 
   `importexport-mgr.js` (IMPORTEXPORT) handles all of the business logic for
   importing and exporting.  See that file for details.
@@ -38,7 +40,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const SETTINGS = require('settings');
 const NetMessage = require('unisys/common-netmessage-class');
 
 const UNISYS = require('unisys/client');
@@ -67,7 +68,6 @@ class NCImportExport extends UNISYS.Component {
     super(props);
     const TEMPLATE = this.AppState('TEMPLATE');
     this.state = {
-      isExpanded: true,
       preventImport: false, // an external source has disabled import for us
       importIsActive: false, // internal source: keeps track of whether THIS panel has valid import files selected
       nodefileStatus: NODEFILESTATUS_DEFAULT,
@@ -98,13 +98,15 @@ class NCImportExport extends UNISYS.Component {
   } // constructor
 
   componentDidMount() {
+    // Update Lockstate on mount
+    const LOCKSTATE = this.AppState('LOCKSTATE');
+    this.urstate_LOCKSTATE(LOCKSTATE);
     this.updateEditState();
     window.addEventListener('beforeunload', this.checkUnload);
     window.addEventListener('unload', this.doUnload);
   }
 
   componentWillUnmount() {
-    this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     window.removeEventListener('beforeunload', this.checkUnload);
     window.removeEventListener('unload', this.doUnload);
@@ -130,8 +132,10 @@ class NCImportExport extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   urstate_LOCKSTATE(LOCKSTATE) {
     const { importIsActive } = this.state;
+    // always set preventImport even if you're not an admin in case admin status changes
     if (!importIsActive) {
       const preventImport =
+        !this.props.templateIsBeingEditedByMe ||
         LOCKSTATE.templateBeingEdited ||
         LOCKSTATE.importActive ||
         LOCKSTATE.nodeOrEdgeBeingEdited ||
@@ -141,8 +145,6 @@ class NCImportExport extends UNISYS.Component {
   }
 
   updateEditState() {
-    // disable edit if someone else is editing a template, node, or edge
-    this.urstate_LOCKSTATE(this.AppState('LOCKSTATE'));
     // REVIEW: Reduce setState calls?
     DATASTORE.PromiseCalculateMaxNodeId().then(data => {
       this.setState({ nextNodeId: data + 1 });
@@ -292,7 +294,7 @@ class NCImportExport extends UNISYS.Component {
       edgeValidationMsgs,
       okToImport
     } = this.state;
-    const { isAdmin } = this.props;
+    const { isAdmin, templateIsBeingEditedByMe } = this.props;
 
     // Set Import Permissions
     // -- Admins can always import
@@ -317,10 +319,10 @@ class NCImportExport extends UNISYS.Component {
     );
 
     let importjsx;
-    if (preventImport && !importIsActive) {
+    if (isAdmin && preventImport && !importIsActive && !templateIsBeingEditedByMe) {
       importjsx = (
         <div className="panel">
-          <p>
+          <p style={{ color: `var(--clr-warning)` }}>
             <i>
               You cannot import data while someone is editing a node, edge, or
               template, or in standalone view.

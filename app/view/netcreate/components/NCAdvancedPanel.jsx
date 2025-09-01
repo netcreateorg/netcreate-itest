@@ -46,6 +46,13 @@
 
   The lock is released automatically when the user is done editing or if they navigate away from the template.
 
+  Conditions:
+  - Anyone is editing a Node or Edge
+  - I am an admin, or someone else is an admin and
+    - has the import/export panel open
+    - has the template panel open
+    - has the settings panel open
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import React, { useState, useEffect } from 'react';
@@ -55,6 +62,7 @@ import NCTemplate from './NCTemplate';
 import NCUserTokens from './NCUserTokens';
 import MURSettingEditor from './MURSettingsEditor';
 import URPopover from './URPopover';
+const RSB = require('./react-settings-bridge');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,12 +71,8 @@ const UDATAOwner = { name: 'NCAdvancedPanel' };
 const UDATA = UNISYS.NewDataLink(UDATAOwner);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
+const PR = 'NCAdvancedPanel';
 const TABS = {
-  EXPORT: {
-    id: 'export',
-    label: 'Export',
-    adminRequired: false
-  },
   IMPORT_EXPORT: {
     id: 'importexport',
     label: 'Import/Export',
@@ -99,31 +103,30 @@ function NCAdvancedPanel() {
   const [openTab, setOpenTab] = useState(TABS.IMPORT_EXPORT.id);
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
+  const [templateIsBeingEditedByMe, setTemplateIsBeingEditedByMe] = useState(false);
 
   useEffect(() => {
-    const PERMISSIONS = UDATA.AppState('PERMISSIONS');
-    UDATA.SetAppState('PERMISSIONS', {
-      ...PERMISSIONS,
-      isAdmin: hasAdminPermissions
-    });
-
     UDATA.OnAppStateChange('PANELSTATE', evt_ToggleAdvanced);
-    assessAdminPrivileges();
+    updateMyLockState();
     return () => {
       UDATA.AppStateChangeOff('PANELSTATE', evt_ToggleAdvanced);
     };
   }, []);
 
   useEffect(() => {
-    assessAdminPrivileges();
-  }, [password]);
+    updateMyLockState();
+  }, [password, openTab]);
 
+  /// UTILITY METHODS ///////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function evt_ToggleAdvanced(PANELSTATE) {
-    setIsOpen(PANELSTATE.advancedIsOpen);
+  function isTemplate(tabID) {
+    // Only UserTokens is not a template
+    return [TABS.IMPORT_EXPORT.id, TABS.TEMPLATE.id, TABS.SETTINGS.id].includes(
+      tabID
+    );
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  function assessAdminPrivileges() {
+  async function updateMyLockState() {
     const TEMPLATE = UDATA.AppState('TEMPLATE');
     if (TEMPLATE && TEMPLATE.adminPassword === undefined)
       console.warn(
@@ -132,10 +135,73 @@ function NCAdvancedPanel() {
     const isAdmin =
       TEMPLATE && TEMPLATE.adminPassword && TEMPLATE.adminPassword === password;
 
-    setHasAdminPermissions(isAdmin);
+    // if I'm an admin, then consider locking
+    if (isAdmin) {
+      if (!RSB.IsTemplateLocked()) {
+        // if the template is not locked, then consider locking it
+        // if the openTab is a template
+        if (isTemplate(openTab)) {
+          // try to lock it
+          if (await RSB.LockTemplate()) {
+            // successful lock
+            if (DBG) console.log(`%c ${PR}...... template locked`, 'color: red');
+            setTemplateIsBeingEditedByMe(true);
+          } else {
+            if (DBG)
+              console.log(
+                `%c ${PR}...... lock failed, already locked`,
+                'color: orange'
+              );
+          }
+        }
+      } else {
+        // template is already locked, then consider unlocking it
+        if (DBG)
+          console.log(
+            `%c ${PR}...... template is already locked, unlock?`,
+            'color: gray'
+          );
 
+        // if I'm the one with the lock
+        // and the openTab is NOT a template, then unlock it
+        if (templateIsBeingEditedByMe && !isTemplate(openTab)) {
+          if (DBG)
+            console.log(`%c ${PR}...... releasing template lock`, 'color: green');
+          RSB.ReleaseTemplate();
+          setTemplateIsBeingEditedByMe(false);
+        } else {
+          if (DBG)
+            console.log(`%c ${PR}...... template already locked`, 'color: gray');
+        }
+      }
+    } else {
+      // if I'm no longer an admin but have the lock, then unlock it
+      if (templateIsBeingEditedByMe) {
+        if (DBG)
+          console.log(`%c ${PR}...... releasing template lock`, 'color: green');
+        RSB.ReleaseTemplate();
+        setTemplateIsBeingEditedByMe(false);
+      } else {
+        if (DBG)
+          console.log(
+            `%c ${PR}...... not admin, no lock, not doing anything`,
+            'color: gray'
+          );
+      }
+    }
+
+    // update hasAdminPermissions state only if it's changed
+    if (isAdmin !== hasAdminPermissions) setHasAdminPermissions(isAdmin);
+    // update PERMISSIONS state only if it's changed
     const PERMISSIONS = UDATA.AppState('PERMISSIONS');
-    UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
+    if (isAdmin !== PERMISSIONS.isAdmin)
+      UDATA.SetAppState('PERMISSIONS', { ...PERMISSIONS, isAdmin });
+  }
+
+  /// UI EVENT HANDLERS /////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  function evt_ToggleAdvanced(PANELSTATE) {
+    setIsOpen(PANELSTATE.advancedIsOpen);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_CloseAdvanced() {
@@ -166,18 +232,24 @@ function NCAdvancedPanel() {
   let jsx;
   switch (openTab) {
     case TABS.TEMPLATE.id:
-      jsx = <NCTemplate />;
+      jsx = <NCTemplate templateIsBeingEditedByMe={templateIsBeingEditedByMe} />;
       break;
     case TABS.USER_TOKENS.id:
       jsx = <NCUserTokens />;
       break;
     case TABS.SETTINGS.id:
-      jsx = <MURSettingEditor />;
+      jsx = (
+        <MURSettingEditor templateIsBeingEditedByMe={templateIsBeingEditedByMe} />
+      );
       break;
     case TABS.IMPORT_EXPORT.id:
-    case TABS.EXPORT.id:
     default:
-      jsx = <NCImportExport isAdmin={hasAdminPermissions} />;
+      jsx = (
+        <NCImportExport
+          isAdmin={hasAdminPermissions}
+          templateIsBeingEditedByMe={templateIsBeingEditedByMe}
+        />
+      );
       break;
   }
 
