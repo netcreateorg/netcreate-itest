@@ -285,7 +285,6 @@ hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info
 _control = "// in_composite"
 displayLabel = { _control = "in_string", label = "Label for Display", help = "Used as the label shown in the interface" }
 help = { _control = "in_string", label = "Help Text", help = "Help text shown to users" }
-isRequired = { _control = "in_boolean", label = "Is Required", help = "Whether this field is required" }
 isProvenance = { _control = "in_boolean", label = "Is Provenance", help = "Whether this field tracks data provenance" }
 hidden = { _control = "in_boolean", label = "Hide Field", help = "hide this info" }
 
@@ -637,7 +636,6 @@ defaultValue = 1
 displayLabel = "Weight"
 exportLabel = "Weight"
 help = "Weight of edge"
-isRequired = true
 isProvenance = false
 hidden = false
 
