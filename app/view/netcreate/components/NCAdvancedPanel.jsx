@@ -36,6 +36,16 @@
   form will turn into a "Reset Password"
 
 
+  ### Template Lock
+
+  The template lock is a mechanism that prevents multiple users from editing the same template simultaneously.
+  When a user wants to edit a template, they must first acquire a lock on it. If the lock is successful, they can proceed with editing.
+  If the lock fails, it means another user is already editing the template.
+
+  Templates are also locked when a user is editing a node or edge to prevent accidental overwrites.
+
+  The lock is released automatically when the user is done editing or if they navigate away from the template.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import React, { useState, useEffect } from 'react';
@@ -86,7 +96,7 @@ const TABS = {
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState('importexport');
+  const [openTab, setOpenTab] = useState(TABS.IMPORT_EXPORT.id);
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
 
@@ -143,11 +153,11 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_PasswordClear() {
-    setOpenTab('export'); // Revert to default export tab
+    setOpenTab(TABS.IMPORT_EXPORT.id); // Revert to default export tab
     setPassword('');
   }
 
-  // COMPONENT RENDER ////////////////////////////////////////////////////////
+  /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   const activeTabs = Object.values(TABS).filter(tab =>
     hasAdminPermissions ? tab.adminRequired : !tab.adminRequired
@@ -173,21 +183,21 @@ function NCAdvancedPanel() {
 
   if (!isOpen) return null;
 
-  let adminStatus;
+  let adminStatusJsx;
   if (hasAdminPermissions === undefined) {
     // Admin Mode is disabled because the adminPassword has not been defined
-    adminStatus = <span>Admin Mode Disabled</span>;
+    adminStatusJsx = <span>Admin Mode Disabled</span>;
     console.log(`NOTE: "adminPassword" is not set (premature mount?)`);
   } else if (hasAdminPermissions === false)
     // Admin Mode is disabled, show password
-    adminStatus = (
+    adminStatusJsx = (
       <label>
         admin: <input type="password" id="password" onChange={ui_PasswordChange} />
       </label>
     );
   else if (hasAdminPermissions === true)
     // Admin Mode is enabled, show "Reset Password" button
-    adminStatus = (
+    adminStatusJsx = (
       <button type="button" onClick={ui_PasswordClear}>
         Admin Logout
       </button>
@@ -214,7 +224,7 @@ function NCAdvancedPanel() {
 
         <div className="tabpanels">{jsx}</div>
 
-        <div className="footer">{adminStatus}</div>
+        <div className="footer">{adminStatusJsx}</div>
       </div>
     </URPopover>
   );
