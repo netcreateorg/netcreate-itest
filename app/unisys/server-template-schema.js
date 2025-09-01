@@ -351,7 +351,6 @@ const EDGES_SCHEMA20 = {
     displayLabel: 'string',
     exportLabel: 'string',
     help: 'string',
-    isRequired: 'boolean',
     isProvenance: 'boolean',
     hidden: 'boolean'
   },

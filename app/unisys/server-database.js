@@ -305,8 +305,6 @@ DB.PKT_GetDataset = function (pkt) {
         edges.length
       } edges)`
     );
-  m_MigrateNodes(nodes);
-  m_MigrateEdges(edges);
   LOGGER.WriteRLog(pkt.InfoObj(), `getdatabase`);
   return { d3data: { nodes, edges }, template: TEMPLATE, comments, readby };
 };
@@ -1638,49 +1636,6 @@ DB.ReleaseEditLock = pkt => {
 };
 
 /// HELPER UTILITIES FOR LOADING DATA /////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Migrates old network data to new formats based on the template defintion.
- *  This will automatically migrate any field/property that is marked `isRequired`
- *  and has a `defaultValue` defined.
- *
- *  The basic check is this:
- *  1. If the TEMPLATE property `isRequired`
- *  2. ...and the TEMPLATE propert has `defaultValue` defined
- *  2. ...and the node/edge property is currently undefined or ``
- *  3. ...then we set the property to the defaultValue
- *
- *  The key parameters:
- *    property.isRequired
- *    property.defaultValue
- *
- *  If `isRequired` or `defaultValue` is not defined on the property, we skip migration.
- *
- *  REVIEW: We might consider also adding type coercion. */
-function m_MigrateNodes(nodes) {
-  // modifies `nodes` by reference
-  // Migrate v1.4 to v2.0
-  for (const [propertyName, property] of Object.entries(TEMPLATE.nodeDefs)) {
-    if (property.isRequired && property.defaultValue !== undefined) {
-      nodes.forEach(n => {
-        if (n[propertyName] === undefined || n[propertyName] === '')
-          n[propertyName] = property.defaultValue;
-      });
-    }
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_MigrateEdges(edges) {
-  // modifies `edges` by reference
-  // Migrate v1.4 to v2.0
-  for (const [propertyName, property] of Object.entries(TEMPLATE.edgeDefs)) {
-    if (property.isRequired && property.defaultValue !== undefined) {
-      edges.forEach(e => {
-        if (e[propertyName] === undefined || e[propertyName] === '')
-          e[propertyName] = property.defaultValue;
-      });
-    }
-  }
-}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// utility function for cleaning nodes with numeric id property
 function m_CleanObjID(prompt, obj) {
