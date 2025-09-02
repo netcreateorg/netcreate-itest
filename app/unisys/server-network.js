@@ -48,7 +48,7 @@ let FIRST_CONNECTION = false; // first connection flag
 /// API MEHTHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var UNET = {};
-const SERVER_UADDR = NetMessage.DefaultServerUADDR(); // is 'SVR_01'
+const SERVER_UADDR = NetMessage.DefaultServerUADDR(); // is 'SRV_01'
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Initialize() is called by brunch-server.js to define the default UNISYS
  *  network values, so it can embed them in the index.ejs file for webapps */

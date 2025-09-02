@@ -207,7 +207,7 @@ class NetMessage {
     // is this packet originating from server to a remote?
     if (
       this.s_uaddr === NetMessage.DefaultServerUADDR() &&
-      !this.msg.startsWith('SVR_')
+      !this.msg.startsWith('SRV_')
     ) {
       return this.s_uaddr;
     }
@@ -439,7 +439,7 @@ NetMessage.SocketUADDR = function () {
 /** Return a default server UADDR
  */
 NetMessage.DefaultServerUADDR = function () {
-  return 'SVR_01';
+  return 'SRV_01';
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Return current SessionID string
