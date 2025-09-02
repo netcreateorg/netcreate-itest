@@ -347,6 +347,14 @@ class NetMessage {
     this.SocketSend(socket);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** Utility to check whether a transaction packet has a valid resolver
+   *  function */
+  HasTransactionHash() {
+    const hash = m_GetHashKey(this);
+    var resolverFunc = m_transactions[hash];
+    return typeof resolverFunc === 'function';
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** If this is a transaction packet that is returned, then execute the stored
       resolver function from the promise stored in m_transactions, which will
       then trigger .then() following any calls
@@ -357,9 +365,10 @@ class NetMessage {
     var resolverFunc = m_transactions[hash];
     if (dbg) console.log(PR, 'CompleteTransaction', hash);
     if (typeof resolverFunc !== 'function') {
-      throw Error(
-        `transaction [${hash}] resolverFunction is type ${typeof resolverFunc}`
-      );
+      const trf = typeof resolverFunc;
+      console.warn(`critical error:`);
+      console.warn(`bad resolverFunction for hash [${hash}] (type ${trf})`);
+      console.log(JSON.stringify(this));
     } else {
       resolverFunc(this.data);
       Reflect.deleteProperty(m_transactions[hash]);

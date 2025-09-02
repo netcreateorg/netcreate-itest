@@ -297,9 +297,14 @@ async function m_HandleMessage(socket, pkt) {
   // is this a returning packet that was forwarded?
   if (pkt.IsOwnResponse()) {
     // console.log(PR,`-- ${pkt.Message()} completing transaction ${pkt.seqlog.join(':')}`);
-    pkt.CompleteTransaction();
+    if (pkt.HasTransactionHash()) pkt.CompleteTransaction();
+    else {
+      LOGGER.WriteRLog(`ERROR: Packet ${pkt.id} '${pkt.msg}' transaction error`);
+      LOGGER.WriteRLog(pkt.JSON());
+    }
     return;
   }
+
   // console.log(PR,`packet source incoming ${pkt.SourceAddress()}-${pkt.Message()}`);
   // (1) first check if this is a server handler
   let promises = m_PromiseServerHandlers(pkt);
