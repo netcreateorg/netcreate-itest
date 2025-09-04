@@ -48,7 +48,7 @@ let FIRST_CONNECTION = false; // first connection flag
 /// API MEHTHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var UNET = {};
-const SERVER_UADDR = NetMessage.DefaultServerUADDR(); // is 'SVR_01'
+const SERVER_UADDR = NetMessage.DefaultServerUADDR(); // is 'SRV_01'
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Initialize() is called by brunch-server.js to define the default UNISYS
  *  network values, so it can embed them in the index.ejs file for webapps */
@@ -297,9 +297,14 @@ async function m_HandleMessage(socket, pkt) {
   // is this a returning packet that was forwarded?
   if (pkt.IsOwnResponse()) {
     // console.log(PR,`-- ${pkt.Message()} completing transaction ${pkt.seqlog.join(':')}`);
-    pkt.CompleteTransaction();
+    if (pkt.HasTransactionHash()) pkt.CompleteTransaction();
+    else {
+      LOGGER.WriteRLog(`ERROR: Packet ${pkt.id} '${pkt.msg}' transaction error`);
+      LOGGER.WriteRLog(pkt.JSON());
+    }
     return;
   }
+
   // console.log(PR,`packet source incoming ${pkt.SourceAddress()}-${pkt.Message()}`);
   // (1) first check if this is a server handler
   let promises = m_PromiseServerHandlers(pkt);
