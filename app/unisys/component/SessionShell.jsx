@@ -404,7 +404,8 @@ class SessionShell extends UNISYS.Component {
 
     // if standalone mode, no login possible
     if (UNISYS.IsStandaloneMode()) {
-      const { prompt, timestamp } = window.NC_UNISYS.standalone;
+      // gracefully handle crash -- if app crashes, try to show the prompt
+      const { prompt, timestamp } = window.NC_UNISYS.standalone || {};
       return (
         <div style={NAV_LOGIN_STYLE}>
           <label style={LABEL_STYLE}>{prompt}</label>

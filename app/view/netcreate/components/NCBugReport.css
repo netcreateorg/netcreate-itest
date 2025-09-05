@@ -17,6 +17,7 @@
 }
 #popover.NCBugReport .key-value-pair label {
   text-align: right;
+  color: var(--clr-system);
 }
 #popover.NCBugReport .key-value-pair label::after {
   content: ':';
