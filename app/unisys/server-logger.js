@@ -64,13 +64,21 @@ FSE.ensureDir(dir, function (err) {
 
   // Show Research Log Field Names
   const fieldnames = [
-    'Date', 'Time', 'NetName', 'Addr', 'Token', 'Action', 'DataID', 'DataDetail'
+    'Date',
+    'Time',
+    'NetName',
+    'Addr',
+    'Token',
+    'Action',
+    'DataID',
+    'DataDetail'
   ];
   let fields = fieldnames.join(LOG_DELIMITER);
   fields += '\n';
   fs_log.write(fields);
 
-  LogResearchLine({},
+  LogResearchLine(
+    {},
     `NETCREATE APPSERVER SESSION LOG for ${str_DateStamp()} ${str_TimeStamp()}`
   );
   LogResearchLine(
@@ -198,13 +206,13 @@ LOG.Write = LogLine;
  */
 LOG.WriteRLog = function (info = { uaddr: '', group: '' }, ...args) {
   LogResearchLine(info, ...args);
-}
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get current log filename
  */
-LOG.GetCurrentLogFilename = function() {
+LOG.GetCurrentLogFilename = function () {
   return current_log_filename;
-}
+};
 
 /// EXPORT MODULE DEFINITION //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
