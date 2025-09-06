@@ -17,6 +17,7 @@ const PATH = require('path');
 const FSE = require('fs-extra');
 ///
 const NC_CONFIG = require('../../app-config/netcreate-config');
+const GIT_INFO = require('../../app-config/git-info');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,6 +72,14 @@ FSE.ensureDir(dir, function (err) {
 
   LogResearchLine({},
     `NETCREATE APPSERVER SESSION LOG for ${str_DateStamp()} ${str_TimeStamp()}`
+  );
+  LogResearchLine(
+    {},
+    `Git Branch: ${GIT_INFO.branch} ${GIT_INFO.isDirty ? '(modified)' : ''}`
+  );
+  LogResearchLine(
+    {},
+    `Git Commit: ${GIT_INFO.shortCommit} - ${GIT_INFO.commitMessage}`
   );
   LogResearchLine({}, '---');
 });
