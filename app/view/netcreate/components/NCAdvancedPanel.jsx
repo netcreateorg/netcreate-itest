@@ -115,7 +115,7 @@ function NCAdvancedPanel() {
 
   useEffect(() => {
     updateMyLockState();
-  }, [password, openTab]);
+  }, [password, openTab, isOpen]);
 
   /// UTILITY METHODS ///////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
