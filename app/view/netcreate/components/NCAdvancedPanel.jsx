@@ -205,6 +205,11 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_CloseAdvanced() {
+    if (templateIsBeingEditedByMe) {
+      if (DBG) console.log(`%c ${PR}...... releasing template lock`, 'color: green');
+      RSB.ReleaseTemplate();
+      setTemplateIsBeingEditedByMe(false);
+    }
     const PANELSTATE = UDATA.AppState('PANELSTATE');
     UDATA.SetAppState('PANELSTATE', { ...PANELSTATE, advancedIsOpen: false });
   }
