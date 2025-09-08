@@ -57,7 +57,8 @@
 
 import React, { useState, useEffect } from 'react';
 import UNISYS from 'unisys/client';
-import NCImportExport from './NCImportExport';
+import NCExport from './NCExport';
+import NCImport from './NCImport';
 import NCTemplate from './NCTemplate';
 import NCUserTokens from './NCUserTokens';
 import MURSettingEditor from './MURSettingsEditor';
