@@ -73,9 +73,14 @@ const UDATA = UNISYS.NewDataLink(UDATAOwner);
 const DBG = false;
 const PR = 'NCAdvancedPanel';
 const TABS = {
-  IMPORT_EXPORT: {
-    id: 'importexport',
-    label: 'Import/Export',
+  EXPORT: {
+    id: 'export',
+    label: 'Export',
+    adminRequired: false
+  },
+  IMPORT: {
+    id: 'import',
+    label: 'Import',
     adminRequired: true
   },
   TEMPLATE: {
@@ -100,7 +105,7 @@ const TABS = {
 /// export a class object for consumption by brunch/require
 function NCAdvancedPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const [openTab, setOpenTab] = useState(TABS.IMPORT_EXPORT.id);
+  const [openTab, setOpenTab] = useState(TABS.EXPORT.id);
   const [password, setPassword] = useState('');
   const [hasAdminPermissions, setHasAdminPermissions] = useState(undefined);
   const [templateIsBeingEditedByMe, setTemplateIsBeingEditedByMe] = useState(false);
@@ -121,9 +126,7 @@ function NCAdvancedPanel() {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function isTemplate(tabID) {
     // Only UserTokens is not a template
-    return [TABS.IMPORT_EXPORT.id, TABS.TEMPLATE.id, TABS.SETTINGS.id].includes(
-      tabID
-    );
+    return [TABS.IMPORT.id, TABS.TEMPLATE.id, TABS.SETTINGS.id].includes(tabID);
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   async function updateMyLockState() {
@@ -224,14 +227,15 @@ function NCAdvancedPanel() {
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_PasswordClear() {
-    setOpenTab(TABS.IMPORT_EXPORT.id); // Revert to default export tab
+    setOpenTab(TABS.EXPORT.id); // Revert to default export tab
     setPassword('');
   }
 
   /// COMPONENT RENDER ////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   const activeTabs = Object.values(TABS).filter(tab =>
-    hasAdminPermissions ? tab.adminRequired : !tab.adminRequired
+    // if hasAdminPermissions, you can view ALL
+    hasAdminPermissions ? true : !tab.adminRequired
   );
 
   let jsx;
@@ -247,14 +251,17 @@ function NCAdvancedPanel() {
         <MURSettingEditor templateIsBeingEditedByMe={templateIsBeingEditedByMe} />
       );
       break;
-    case TABS.IMPORT_EXPORT.id:
-    default:
+    case TABS.IMPORT.id:
       jsx = (
-        <NCImportExport
+        <NCImport
           isAdmin={hasAdminPermissions}
           templateIsBeingEditedByMe={templateIsBeingEditedByMe}
         />
       );
+      break;
+    case TABS.EXPORT.id:
+    default:
+      jsx = <NCExport />;
       break;
   }
 

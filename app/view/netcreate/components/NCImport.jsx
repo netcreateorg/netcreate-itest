@@ -51,7 +51,7 @@ const IMPORTEXPORT = require('../importexport-mgr');
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = 'ImportExport';
+const PR = 'NCImport';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const NODEFILESTATUS_DEFAULT = 'Select a node .csv file to import';
 const EDGEFILESTATUS_DEFAULT = 'Select an edge .csv file to import';
@@ -63,7 +63,7 @@ const IMPORTTYPE = {
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
-class NCImportExport extends UNISYS.Component {
+class NCImport extends UNISYS.Component {
   constructor(props) {
     super(props);
     const TEMPLATE = this.AppState('TEMPLATE');
@@ -84,8 +84,6 @@ class NCImportExport extends UNISYS.Component {
     this.doUnload = this.doUnload.bind(this);
     this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.updateEditState = this.updateEditState.bind(this);
-    this.onNodesExportSelect = this.onNodesExportSelect.bind(this);
-    this.onEdgesExportSelect = this.onEdgesExportSelect.bind(this);
     this.onNodeImportFileSelect = this.onNodeImportFileSelect.bind(this);
     this.onEdgeImportFileSelect = this.onEdgeImportFileSelect.bind(this);
     this.clearNodefileSelect = this.clearNodefileSelect.bind(this);
@@ -154,12 +152,6 @@ class NCImportExport extends UNISYS.Component {
     });
   }
 
-  onNodesExportSelect() {
-    IMPORTEXPORT.ExportNodes();
-  }
-  onEdgesExportSelect() {
-    IMPORTEXPORT.ExportEdges();
-  }
 
   onNodeImportFileSelect(e) {
     const nodefile = e.target.files[0];
@@ -303,20 +295,6 @@ class NCImportExport extends UNISYS.Component {
     const importDisabled = !(isAdmin || (allowLoggedInUserToImport && isLoggedIn));
     const importBtnDisabled = !okToImport;
 
-    const exportjsx = (
-      <div className="panel">
-        <h1>Export Data</h1>
-        <p className="system">Export data in .csv format.</p>
-        <div className="buttonbar">
-          <button className="small" type="button" onClick={this.onNodesExportSelect}>
-            Export Nodes
-          </button>
-          <button className="small" type="button" onClick={this.onEdgesExportSelect}>
-            Export Edges
-          </button>
-        </div>
-      </div>
-    );
 
     let importjsx;
     if (isAdmin && preventImport && !importIsActive && !templateIsBeingEditedByMe) {
@@ -496,7 +474,6 @@ class NCImportExport extends UNISYS.Component {
 
     return (
       <div className="NCImportExport">
-        {exportjsx}
         {importjsx}
         {unlockAlljsx}
       </div>
@@ -506,4 +483,4 @@ class NCImportExport extends UNISYS.Component {
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = NCImportExport;
+module.exports = NCImport;
