@@ -126,6 +126,7 @@ function hex2rgba(hex, alpha = 1) {
  *  @param {string} stringToProcess
  */
 function RemoveDiacriticMarks(stringToProcess) {
+  if (!stringToProcess) return '';
   return stringToProcess.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
