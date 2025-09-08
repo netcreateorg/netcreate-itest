@@ -164,6 +164,7 @@ class NCNode extends UNISYS.Component {
   ///
   ResetState() {
     const TEMPLATE = this.AppState('TEMPLATE');
+    const PERMISSIONS = this.AppState('PERMISSIONS');
     this.setState({
       // NODE DEFS
       id: null,
@@ -181,7 +182,7 @@ class NCNode extends UNISYS.Component {
       edges: [], // selected nodes' edges not ALL edges
       // SYSTEM STATE
       // isLoggedIn: false, // don't clear session state!
-      isAdmin: false,
+      isAdmin: PERMISSIONS.isAdmin,
       previousState: {},
       // UI State
       uEditBtnDisable: false,
