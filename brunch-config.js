@@ -192,7 +192,7 @@ module.exports = {
 
           // If dataset has not been defined (e.g. on a new install), UDB.WriteDbJSON will fail silently
           // This insures that `npm run package` will not result in an error condition
-          if (NC_CONFIG.dataset !== 'undefined') {
+          if (NC_CONFIG.dataset !== undefined) {
             UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
           }
           UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
@@ -234,7 +234,7 @@ module.exports = {
         preCompile() {
           // These files will eventually be copied over to public by brunch
           // save json of database to public/data
-          if (NC_CONFIG.dataset !== 'undefined') {
+          if (NC_CONFIG.dataset !== undefined) {
             UDB.WriteDbJSON(`${__dirname}/app-data/${NC_CONFIG.dataset}-db.json`);
           }
           UDB.WriteDbJSON(`${__dirname}/app-data/standalone-db.json`);
