@@ -1357,13 +1357,28 @@ DB.WriteDbJSON = function (filePath) {
     autoloadCallback: () => {
       if (typeof filePath === 'string') {
         if (DBG) console.log(PR, `writing { nodes, edges } to '${filePath}'`);
-        let nodes = db.getCollection('nodes').chain().data({ removeMeta: false });
-        let edges = db.getCollection('edges').chain().data({ removeMeta: false });
-        const comments = db
-          .getCollection('comments')
-          .chain()
-          .data({ removeMeta: false });
-        const readby = db.getCollection('readby').chain().data({ removeMeta: false });
+
+        // Check if collections exist before trying to access them
+        let nodesCollection = db.getCollection('nodes');
+        let edgesCollection = db.getCollection('edges');
+        let commentsCollection = db.getCollection('comments');
+        let readbyCollection = db.getCollection('readby');
+
+        let nodes = nodesCollection
+          ? nodesCollection.chain().data({ removeMeta: false })
+          : [];
+        let edges = edgesCollection
+          ? edgesCollection.chain().data({ removeMeta: false })
+          : [];
+        let comments = commentsCollection
+          ? commentsCollection.chain().data({
+              removeMeta: false
+            })
+          : [];
+        let readby = readbyCollection
+          ? readbyCollection.chain().data({ removeMeta: false })
+          : [];
+
         let data = { nodes, edges, comments, readby };
         let json = JSON.stringify(data);
         if (DBG) console.log(PR, `ensuring DIR ${PATH.dirname(filePath)}`);
