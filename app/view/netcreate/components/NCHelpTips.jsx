@@ -29,7 +29,7 @@ function NCTips() {
 			<ul>
 			<li>Who created this, and what might they have been focused on?</li>
 			<li>How does this change how we think about this data?</li>
-        </ul>
+      </ul>
       </details>
       <details>
         <summary><h2>Look for large and small nodes</h2></summary>
@@ -42,8 +42,7 @@ function NCTips() {
       <details>
         <summary><h2>Try moving nodes around</h2></summary>
         <p>
-          Click on a node and drag it around. (This can help make the importance of different connections visible.)
-          <ul>
+          Click on a node and drag it around. (This can help make the importance of different connections visible.)</p>
           <details>
             <summary>Does a lot move? </summary>
             <p>This node might have a lot of influence on other nodes in this network</p>
@@ -54,8 +53,6 @@ function NCTips() {
               Maybe there are other big nodes with a lot of influence "anchoring" the other nodes in the network in place against the influence of the node you're dragging.
             </p>
           </details>
-          </ul>
-        </p>
       </details>
       <details>
         <summary><h2>Look at detailed data for the nodes/edges</h2></summary>
