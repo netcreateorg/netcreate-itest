@@ -4,8 +4,22 @@
   padding: 10px 20px;
 }
 
+#NCTips details > summary {
+    list-style-type: '▶️';
+}
+
+#NCTips details[open] > summary {
+    list-style-type: '🔽';
+}
+
 #NCTips details {
-  margin-bottom: 0.5rem;
+    border-bottom: 1px solid gray;
+    border-radius: 0.2rem;
+    padding: 0.5rem;
+}
+
+#NCTips details[open] > summary {
+    margin-bottom: 0.5rem;
 }
 
 /* Style only the summary — no indent */
@@ -14,8 +28,12 @@
   font-weight: bold;
 }
 
-#NCTips details p {
+#NCTips details p, #NCTips details ul {
   padding-left: 1rem;
+}
+
+#NCTips details ul {
+  padding-left: 2rem;
 }
 
 /* tabpanel --------------------------------------------------------------- */
@@ -51,16 +69,23 @@
 }
 
 #NCTabPanel h1 {
+  font-weight: var(--font-weight-bold);
+  margin-block-start: 1rem;
+}
+
+#NCTabPanel h1:first-child {
+  margin-block-start: 0;
+}
+
+#NCTabPanel h2 {
   font-size: var(--font-size-reduced);
   font-weight: var(--font-weight-bold);
   margin-block-start: 1rem;
 }
-#NCTabPanel h1:first-child {
-  margin-block-start: 0;
-}
+
 #NCTabPanel ul {
   margin: 0;
-  padding: 0 0 0 20px;
+  padding: 0 0 .1rem .1rem;
 }
 #NCTabPanel li {
   margin: 0;
