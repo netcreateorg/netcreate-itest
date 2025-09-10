@@ -29,8 +29,10 @@
 
   ## USAGE
 
-    <NCImportExport isAdmin={isAdmin} />
+    <NCImportExport isAdmin={isAdmin} templateIsBeingEditedByMe={templateIsBeingEditedByMe} />
 
+  templateIsBeingEditedByMe is used to by NCAdvancedPanel to coordinate the
+  lock/unlock template editting across all the NCAdvancedPanel
 
   `importexport-mgr.js` (IMPORTEXPORT) handles all of the business logic for
   importing and exporting.  See that file for details.
@@ -38,7 +40,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const React = require('react');
-const SETTINGS = require('settings');
 const NetMessage = require('unisys/common-netmessage-class');
 
 const UNISYS = require('unisys/client');
@@ -50,7 +51,7 @@ const IMPORTEXPORT = require('../importexport-mgr');
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = 'ImportExport';
+const PR = 'NCImport';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const NODEFILESTATUS_DEFAULT = 'Select a node .csv file to import';
 const EDGEFILESTATUS_DEFAULT = 'Select an edge .csv file to import';
@@ -62,12 +63,11 @@ const IMPORTTYPE = {
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// export a class object for consumption by brunch/require
-class NCImportExport extends UNISYS.Component {
+class NCImport extends UNISYS.Component {
   constructor(props) {
     super(props);
     const TEMPLATE = this.AppState('TEMPLATE');
     this.state = {
-      isExpanded: true,
       preventImport: false, // an external source has disabled import for us
       importIsActive: false, // internal source: keeps track of whether THIS panel has valid import files selected
       nodefileStatus: NODEFILESTATUS_DEFAULT,
@@ -84,8 +84,6 @@ class NCImportExport extends UNISYS.Component {
     this.doUnload = this.doUnload.bind(this);
     this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.updateEditState = this.updateEditState.bind(this);
-    this.onNodesExportSelect = this.onNodesExportSelect.bind(this);
-    this.onEdgesExportSelect = this.onEdgesExportSelect.bind(this);
     this.onNodeImportFileSelect = this.onNodeImportFileSelect.bind(this);
     this.onEdgeImportFileSelect = this.onEdgeImportFileSelect.bind(this);
     this.clearNodefileSelect = this.clearNodefileSelect.bind(this);
@@ -98,13 +96,15 @@ class NCImportExport extends UNISYS.Component {
   } // constructor
 
   componentDidMount() {
+    // Update Lockstate on mount
+    const LOCKSTATE = this.AppState('LOCKSTATE');
+    this.urstate_LOCKSTATE(LOCKSTATE);
     this.updateEditState();
     window.addEventListener('beforeunload', this.checkUnload);
     window.addEventListener('unload', this.doUnload);
   }
 
   componentWillUnmount() {
-    this.NetSend('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.IMPORTER });
     this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
     window.removeEventListener('beforeunload', this.checkUnload);
     window.removeEventListener('unload', this.doUnload);
@@ -130,8 +130,10 @@ class NCImportExport extends UNISYS.Component {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   urstate_LOCKSTATE(LOCKSTATE) {
     const { importIsActive } = this.state;
+    // always set preventImport even if you're not an admin in case admin status changes
     if (!importIsActive) {
       const preventImport =
+        !this.props.templateIsBeingEditedByMe ||
         LOCKSTATE.templateBeingEdited ||
         LOCKSTATE.importActive ||
         LOCKSTATE.nodeOrEdgeBeingEdited ||
@@ -141,8 +143,6 @@ class NCImportExport extends UNISYS.Component {
   }
 
   updateEditState() {
-    // disable edit if someone else is editing a template, node, or edge
-    this.urstate_LOCKSTATE(this.AppState('LOCKSTATE'));
     // REVIEW: Reduce setState calls?
     DATASTORE.PromiseCalculateMaxNodeId().then(data => {
       this.setState({ nextNodeId: data + 1 });
@@ -152,12 +152,6 @@ class NCImportExport extends UNISYS.Component {
     });
   }
 
-  onNodesExportSelect() {
-    IMPORTEXPORT.ExportNodes();
-  }
-  onEdgesExportSelect() {
-    IMPORTEXPORT.ExportEdges();
-  }
 
   onNodeImportFileSelect(e) {
     const nodefile = e.target.files[0];
@@ -292,7 +286,7 @@ class NCImportExport extends UNISYS.Component {
       edgeValidationMsgs,
       okToImport
     } = this.state;
-    const { isAdmin } = this.props;
+    const { isAdmin, templateIsBeingEditedByMe } = this.props;
 
     // Set Import Permissions
     // -- Admins can always import
@@ -301,26 +295,12 @@ class NCImportExport extends UNISYS.Component {
     const importDisabled = !(isAdmin || (allowLoggedInUserToImport && isLoggedIn));
     const importBtnDisabled = !okToImport;
 
-    const exportjsx = (
-      <div className="panel">
-        <h1>Export Data</h1>
-        <p className="system">Export data in .csv format.</p>
-        <div className="buttonbar">
-          <button className="small" type="button" onClick={this.onNodesExportSelect}>
-            Export Nodes
-          </button>
-          <button className="small" type="button" onClick={this.onEdgesExportSelect}>
-            Export Edges
-          </button>
-        </div>
-      </div>
-    );
 
     let importjsx;
-    if (preventImport && !importIsActive) {
+    if (isAdmin && preventImport && !importIsActive && !templateIsBeingEditedByMe) {
       importjsx = (
         <div className="panel">
-          <p>
+          <p style={{ color: `var(--clr-warning)` }}>
             <i>
               You cannot import data while someone is editing a node, edge, or
               template, or in standalone view.
@@ -494,7 +474,6 @@ class NCImportExport extends UNISYS.Component {
 
     return (
       <div className="NCImportExport">
-        {exportjsx}
         {importjsx}
         {unlockAlljsx}
       </div>
@@ -504,4 +483,4 @@ class NCImportExport extends UNISYS.Component {
 
 /// EXPORT REACT COMPONENT ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = NCImportExport;
+module.exports = NCImport;

@@ -305,8 +305,6 @@ DB.PKT_GetDataset = function (pkt) {
         edges.length
       } edges)`
     );
-  m_MigrateNodes(nodes);
-  m_MigrateEdges(edges);
   LOGGER.WriteRLog(pkt.InfoObj(), `getdatabase`);
   return { d3data: { nodes, edges }, template: TEMPLATE, comments, readby };
 };
@@ -1387,19 +1385,28 @@ DB.WriteDbJSON = function (filePath) {
 DB.PKT_RequestLockTemplate = pkt => {
   if (m_template_locked_by === undefined) return { error: 'template not yet loaded' };
   const uaddr = pkt.s_uaddr;
-  if (m_template_locked_by.size > 0) {
+  // if node or edge is being edited, template is also locked
+  if (
+    m_template_locked_by.size > 0 ||
+    m_open_editors.includes(EDITORTYPE.NODE, EDITORTYPE.EDGE)
+  ) {
     const uaddrs = [...m_template_locked_by.keys()];
-    if (uaddrs.includes(pkt.s_uaddr)) return { success: true, uaddr: pkt.s_uaddr };
-    else
+    if (uaddrs.includes(pkt.s_uaddr)) {
+      return { success: true, uaddr: pkt.s_uaddr };
+    } else {
       return {
         error: `template already locked by ${uaddrs}`,
         lockedBy: uaddrs,
         uaddr
       };
+    }
   }
   // if we're not locked, lock it!
   m_template_locked_by.add(uaddr);
-  console.log(PR, `${uaddr} locked template`);
+
+  // also update m_open_editors too prevent Node/Edit edits
+  m_open_editors.push(EDITORTYPE.TEMPLATE);
+
   return { success: true, uaddr };
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1410,7 +1417,10 @@ DB.PKT_RequestUnlockTemplate = pkt => {
   const uaddr = pkt.s_uaddr;
   if (m_template_locked_by.has(uaddr)) {
     m_template_locked_by.delete(uaddr);
-    console.log(PR, `${uaddr} unlocked template`);
+
+    // also update m_open_editors too prevent Node/Edit edits
+    m_open_editors = m_open_editors.filter(editor => editor !== EDITORTYPE.TEMPLATE);
+
     return { success: true, uaddr };
   }
   const uaddrs = [...m_template_locked_by.keys()];
@@ -1571,32 +1581,35 @@ DB.GetEditStatus = pkt => {
   //   [...m_locked_comments.values()].find(
   //     comment_uaddr => comment_uaddr === my_uaddr
   //   ) || false; // returns `false` if not found -- necessary otherwise `commentBeingEditedByMe` is removed and not updated
-  return {
+  const result = {
     templateBeingEdited,
     importActive,
     nodeOrEdgeBeingEdited,
     // commentBeingEditedByMe, // NOT IMPLEMENTED
     lockedNodes: [...m_locked_nodes.keys()],
     lockedEdges: [...m_locked_edges.keys()],
-    lockedComments: [...m_locked_comments.keys()]
+    lockedComments: [...m_locked_comments.keys()],
+    lockedTemplates: [...m_template_locked_by.values()]
   };
+  return result;
 };
 /**
  * Register a template, import, node or edge as being actively edited.
  * @param {Object} pkt
  * @param {string} pkt.editor - 'template', 'importer', 'node', 'edge', or 'comment'
- * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean }
+ * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean, lockedTemplates: array }
  */
 DB.RequestEditLock = pkt => {
-  m_open_editors.push(pkt.Data().editor);
-  console.log(PR, `RequestEditLock: ${pkt.Data().editor} added to open editors`);
+  if (pkt.Data().editor) {
+    m_open_editors.push(pkt.Data().editor);
+  }
   return DB.GetEditStatus(pkt);
 };
 /**
  * Deregister a import, node or edge as being actively edited.
  * @param {Object} pkt
  * @param {string} pkt.editor - 'template', 'importer', 'node', 'edge', or 'comment'
- * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean }
+ * @returns { templateBeingEdited: boolean, importActive: boolean, nodeOrEdgeBeingEdited: boolean, commentBeingEdited: boolean, lockedTemplates: array }
  * NOTE: 'template' is no longer handled here
  */
 DB.ReleaseEditLock = pkt => {
@@ -1623,49 +1636,6 @@ DB.ReleaseEditLock = pkt => {
 };
 
 /// HELPER UTILITIES FOR LOADING DATA /////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Migrates old network data to new formats based on the template defintion.
- *  This will automatically migrate any field/property that is marked `isRequired`
- *  and has a `defaultValue` defined.
- *
- *  The basic check is this:
- *  1. If the TEMPLATE property `isRequired`
- *  2. ...and the TEMPLATE propert has `defaultValue` defined
- *  2. ...and the node/edge property is currently undefined or ``
- *  3. ...then we set the property to the defaultValue
- *
- *  The key parameters:
- *    property.isRequired
- *    property.defaultValue
- *
- *  If `isRequired` or `defaultValue` is not defined on the property, we skip migration.
- *
- *  REVIEW: We might consider also adding type coercion. */
-function m_MigrateNodes(nodes) {
-  // modifies `nodes` by reference
-  // Migrate v1.4 to v2.0
-  for (const [propertyName, property] of Object.entries(TEMPLATE.nodeDefs)) {
-    if (property.isRequired && property.defaultValue !== undefined) {
-      nodes.forEach(n => {
-        if (n[propertyName] === undefined || n[propertyName] === '')
-          n[propertyName] = property.defaultValue;
-      });
-    }
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_MigrateEdges(edges) {
-  // modifies `edges` by reference
-  // Migrate v1.4 to v2.0
-  for (const [propertyName, property] of Object.entries(TEMPLATE.edgeDefs)) {
-    if (property.isRequired && property.defaultValue !== undefined) {
-      edges.forEach(e => {
-        if (e[propertyName] === undefined || e[propertyName] === '')
-          e[propertyName] = property.defaultValue;
-      });
-    }
-  }
-}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// utility function for cleaning nodes with numeric id property
 function m_CleanObjID(prompt, obj) {

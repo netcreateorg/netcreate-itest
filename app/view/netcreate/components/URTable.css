@@ -31,7 +31,7 @@
   position: -webkit-sticky;
   position: sticky; /* needed for resizing columns */
   text-align: left;
-  z-index: 1; /* for some reason EdgeTable requires this or body cells will cover td */
+  z-index: 300; /* higher than hovered td z-index (200) to stay on top */
 }
 .URTable th.selected,
 .URTable th.selected:hover {

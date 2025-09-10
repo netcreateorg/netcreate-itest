@@ -333,16 +333,6 @@ MOD.Hook('INITIALIZE', () => {
         let color = '#0000DD';
         nodes.forEach(node => {
           UNISYS.Log('select node', node.id, node.label);
-          let googlea = NC_CONFIG.googlea;
-
-          if (googlea != '0') {
-            ga('send', {
-              hitType: 'event',
-              eventCategory: 'Node',
-              eventAction: '' + node.label,
-              eventLabel: '' + window.location
-            });
-          }
         });
       }
     }
@@ -1018,10 +1008,16 @@ MOD.FindMatchingNodesByLabel = label => {
 };
 function m_FindMatchingNodesByLabel(str = '') {
   if (!str) return [];
+  // Normalize and remove diacritics from input
+  str = UTILS.RemoveDiacriticMarks(str);
   str = u_EscapeRegexChars(str.trim());
   if (str === '') return [];
   const regex = new RegExp(/*'^'+*/ str, 'i');
-  return NCDATA.nodes.filter(node => regex.test(node.label));
+  return NCDATA.nodes.filter(node => {
+    // Normalize and remove diacritics from node label
+    const label = UTILS.RemoveDiacriticMarks(node.label);
+    return regex.test(label);
+  });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Set nodes that PARTIALLY match 'str' to 'yes' props.
@@ -1030,7 +1026,11 @@ function m_FindMatchingNodesByLabel(str = '') {
  */
 function m_SetMatchingNodesByLabel(str = '', yes = {}, no = {}) {
   let returnMatches = [];
-  str = u_EscapeRegexChars(str.trim());
+
+  // Escape special regex characters in the search string and remove diacritics
+  str = UTILS.RemoveDiacriticMarks(str.trim());
+  str = u_EscapeRegexChars(str); // Escape special regex characters
+
   if (str === '') return undefined;
   const regex = new RegExp(/*'^'+*/ str, 'i');
   NCDATA.nodes.forEach(node => {
