@@ -10,7 +10,9 @@
       2001  NCDialog .screen ==========
       2000  comment-bar
       1500  FiltersPanel
-       110  URTable col-mgr Button
+       310  URTable col-mgr Button
+       300  URTable th hover
+       200  URTable td hover
        101  URTable tabletip
        100  Node/EdgeTable thead
         15  NCAutoSuggest .matchlist
