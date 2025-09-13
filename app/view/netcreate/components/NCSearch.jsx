@@ -42,7 +42,6 @@ class NCSearch extends UNISYS.Component {
     }; // initialized on componentDidMount and clearSelection
 
     this.UpdateSession = this.UpdateSession.bind(this);
-    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.UIOnChange = this.UIOnChange.bind(this);
     this.UIOnSelect = this.UIOnSelect.bind(this);
     this.UINewNode = this.UINewNode.bind(this);
@@ -50,12 +49,10 @@ class NCSearch extends UNISYS.Component {
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
     this.OnAppStateChange('SESSION', this.UpdateSession);
-    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
     this.AppStateChangeOff('SESSION', this.UpdateSession);
-    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /**
