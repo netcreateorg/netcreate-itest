@@ -132,7 +132,7 @@ function ColorGroup(props) {
   const renderColorItems = () => {
     let items = [];
     const colorItems = sourceData.map((item, index) => {
-      const itemHash = btoa(`${item.color}-${item.label}`);
+      const itemHash = btoa(encodeURIComponent(`${item.color}-${item.label}`));
       const itemKey = `${index}-${itemHash}`;
       const itemPropDef = `${propDef}[${index}]`;
       items.push(item);

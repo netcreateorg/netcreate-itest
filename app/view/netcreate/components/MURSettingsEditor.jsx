@@ -20,7 +20,7 @@ const LOG = console.log.bind(console);
 
 /// REACT COMPONENT ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function MURSettingsEditor() {
+function MURSettingsEditor({ templateIsBeingEditedByMe }) {
   /// SETUP ///
 
   const initialState = { template: RSB.GetTemplate() };
@@ -30,17 +30,32 @@ function MURSettingsEditor() {
 
   /// LOCKING ///
 
+  React.useEffect(() => {}, []); // empty dependency array means this runs once on mount
+
   React.useEffect(() => {
+    // Sri's original approach where template locking was handled by
+    // the MURSettingsEditor.  In order to coordinate locking across
+    // the other advanced panels, we're moving the lock request
+    // to NCAdvancedPanel otherwise selecting Import/Export or
+    // Template panel will asynchronously release the lock.
+    //
+    // (async () => {
+    //   if (await RSB.LockTemplate()) {
+    //     setHasLock(true);
+    //     LOG(...PR('Locking template on mount'));
+    //   } else {
+    //     setHasLock(false);
+    //     LOG(...PR('Failed to lock template on mount'));
+    //   }
+    // })();
+    // return () => RSB.ReleaseTemplate();
+
     (async () => {
-      if (await RSB.LockTemplate()) {
+      // if templateIsBeingEditedByMe && the template is locked, then actviate hasLock
+      if (!hasLock && RSB.IsTemplateLocked() && templateIsBeingEditedByMe) {
         setHasLock(true);
-        LOG(...PR('Locking template on mount'));
-      } else {
-        setHasLock(false);
-        LOG(...PR('Failed to lock template on mount'));
       }
     })();
-    return () => RSB.ReleaseTemplate();
   }, []); // empty dependency array means this runs once on mount
 
   /// HANDLERS ///

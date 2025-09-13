@@ -290,7 +290,7 @@ class NetCreate extends UNISYS.Component {
         <div id="dialog-container"></div>
         <NCHelpPanel />
         <NCAdvancedPanel />
-        <NCBugReport />
+        <NCBugReport hidden={this.state.isConnected} />
       </main>
     ); // end return
   } // end render()

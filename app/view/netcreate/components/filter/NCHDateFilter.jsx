@@ -90,7 +90,11 @@ function NCHDateFilter({
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function urmsg_ClearFilters() {
-    setState(prevState => ({ ...prevState, inputval: '' }));
+    setState(prevState => ({
+      ...prevState,
+      operator: FILTER.OPERATORS.NO_OP.key,
+      inputval: ''
+    }));
   }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   function ui_OnChangeOperator(event) {

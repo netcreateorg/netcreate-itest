@@ -543,7 +543,6 @@ function m_MatchString(needle, haystack, contains = true) {
 }
 function m_MatchStringSnippet(needle, haystack, contains = true) {
   // Normalize and strip diacritics
-
   needle = UTILS.RemoveDiacriticMarks(needle);
   haystack = UTILS.RemoveDiacriticMarks(haystack);
 

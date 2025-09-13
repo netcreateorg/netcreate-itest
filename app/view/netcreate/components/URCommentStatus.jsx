@@ -243,7 +243,6 @@ function URCommentStatus(props) {
         hasUnreadComments={countRepliesToMe > 0}
         hasReadComments={countRepliesToMe === 0}
         selected={false}
-        disabled // display only
         onClick={evt_ExpandPanel}
         ariaLabel={`Unread replies to me (${countRepliesToMe})`}
       />
@@ -258,7 +257,6 @@ function URCommentStatus(props) {
         hasUnreadComments={countUnread > 0}
         hasReadComments={countUnread === 0}
         selected={false}
-        disabled // display only
         onClick={evt_ExpandPanel}
         ariaLabel={`Unread comments (${countUnread})`}
       />
