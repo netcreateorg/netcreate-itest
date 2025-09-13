@@ -36,13 +36,11 @@ class NCSearch extends UNISYS.Component {
 
     this.state = {
       isLoggedIn: false,
-      uNodeOrEdgeBeingEdited: false,
       uIsLockedByComment: false,
       value: ''
     }; // initialized on componentDidMount and clearSelection
 
     this.UpdateSession = this.UpdateSession.bind(this);
-    this.urstate_LOCKSTATE = this.urstate_LOCKSTATE.bind(this);
     this.UIOnChange = this.UIOnChange.bind(this);
     this.UIOnSelect = this.UIOnSelect.bind(this);
     this.UINewNode = this.UINewNode.bind(this);
@@ -50,12 +48,10 @@ class NCSearch extends UNISYS.Component {
     /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// REGISTER LISTENERS
     this.OnAppStateChange('SESSION', this.UpdateSession);
-    this.OnAppStateChange('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   componentWillUnmount() {
     this.AppStateChangeOff('SESSION', this.UpdateSession);
-    this.AppStateChangeOff('LOCKSTATE', this.urstate_LOCKSTATE);
   }
 
   /**
@@ -71,15 +67,6 @@ class NCSearch extends UNISYS.Component {
     this.setState({ isLoggedIn: decoded.isValid });
   }
 
-  urstate_LOCKSTATE(LOCKSTATE) {
-    this.setState({
-      uNodeOrEdgeBeingEdited: LOCKSTATE.nodeOrEdgeBeingEdited
-    });
-    // DEPRECATED -- comment editing lock state is only relevant if you are editing your own comment
-    //   this.setState({
-    //   // uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe  // NOT IMPLEMENTED
-    // });
-  }
 
   /**
    * The callback function (cb) is used to restore the selection point
@@ -126,10 +113,9 @@ class NCSearch extends UNISYS.Component {
   /// MAIN RENDER
   ///
   render() {
-    const { value, isLoggedIn, uNodeOrEdgeBeingEdited, uIsLockedByComment } =
-      this.state;
+    const { value, isLoggedIn, uIsLockedByComment } = this.state;
     const newNodeBtnHidden = !isLoggedIn || uIsLockedByComment;
-    const newNodeBtnDisabled = value === '' || uNodeOrEdgeBeingEdited;
+    const newNodeBtnDisabled = value === '';
     const key = 'search'; // used for search/source/target, placeholder for search
     return (
       <div className="--NCSearch ncsearch">
