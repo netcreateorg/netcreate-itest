@@ -164,6 +164,7 @@ class NCNode extends UNISYS.Component {
   ///
   ResetState() {
     const TEMPLATE = this.AppState('TEMPLATE');
+    const PERMISSIONS = this.AppState('PERMISSIONS');
     this.setState({
       // NODE DEFS
       id: null,
@@ -181,7 +182,7 @@ class NCNode extends UNISYS.Component {
       edges: [], // selected nodes' edges not ALL edges
       // SYSTEM STATE
       // isLoggedIn: false, // don't clear session state!
-      isAdmin: false,
+      isAdmin: PERMISSIONS.isAdmin,
       previousState: {},
       // UI State
       uEditBtnDisable: false,
@@ -232,15 +233,18 @@ class NCNode extends UNISYS.Component {
    * SessionShell.componentWillMount()
    */
   urstate_SESSION(decoded) {
+    if (DBG) console.log(PR, 'urstate_SESSION', decoded);
     this.urstate_LOCKSTATE();
   }
 
   urstate_LOCKSTATE() {
+    if (DBG) console.log(PR, 'urstate_LOCKSTATE');
     const permissionsState = this.DerivePermissions(this.state.id);
     this.setState({ ...permissionsState });
   }
 
   urstate_PERMISSIONS(PERMISSIONS) {
+    if (DBG) console.log(PR, 'urstate_PERMISSIONS', PERMISSIONS);
     this.setState({ isAdmin: PERMISSIONS.isAdmin });
   }
 
@@ -248,6 +252,7 @@ class NCNode extends UNISYS.Component {
       Called by NCDATA AppState updates
   */
   urstate_NCDATA(data) {
+    if (DBG) console.log(PR, 'urstate_NCDATA', data);
     // If NCDATA is updated, reload the node AND the edges b/c db has changed
     const updatedNode = data.nodes.find(n => n.id === this.state.id);
     this.LoadNode(updatedNode);
@@ -295,11 +300,11 @@ class NCNode extends UNISYS.Component {
     if (isLoggedIn) uEditBtnHide = false;
     if (uIsLockedByDB) {
       uEditBtnDisable = true;
-      uEditLockMessage += TEMPLATE.nodeIsLockedMessage;
+      uEditLockMessage += TEMPLATE.nodeIsLockedMessage + ' ';
     }
     if (uIsLockedByTemplate) {
       uEditBtnDisable = true;
-      uEditLockMessage += TEMPLATE.templateIsLockedMessage;
+      uEditLockMessage += TEMPLATE.templateIsLockedMessage + ' ';
     }
     if (uIsLockedByImport) {
       uEditBtnDisable = true;
@@ -330,6 +335,7 @@ class NCNode extends UNISYS.Component {
     this.ResetState();
   }
   urstate_SELECTION(data) {
+    if (DBG) console.log(PR, 'urstate_SELECTION', data);
     if (!data.nodes) return; // SELECTION cleared?
     const node = data.nodes[0]; // select the first node
     this.LoadNode(node);
@@ -915,7 +921,7 @@ class NCNode extends UNISYS.Component {
                 </div>
               )}
               {isDuplicate && (
-                <div className="message warning">
+                <div className="warning">
                   <img src={`images/icn_caution.svg`} />
                   <span>{duplicateWarning}</span>
                 </div>

@@ -168,11 +168,23 @@ UNISYS.RegisterHandlers = () => {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   UNET.HandleMessage('SRV_REQ_TEMPLATE_LOCK', function (pkt) {
     const lockResult = UDB.PKT_RequestLockTemplate(pkt);
+
+    // update open editors
+    pkt.editor = EDITORTYPE.TEMPLATE;
+    const editStatus = UDB.RequestEditLock(pkt); // Broadcast Lock State
+    UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus);
+
     return lockResult;
   });
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   UNET.HandleMessage('SRV_REQ_TEMPLATE_UNLOCK', function (pkt) {
     const unlockResult = UDB.PKT_RequestUnlockTemplate(pkt);
+
+    // update open editors
+    pkt.editor = EDITORTYPE.TEMPLATE;
+    const editStatus = UDB.ReleaseEditLock(pkt);
+    UNET.NetSend('CLI_UPDATE_LOCKSTATE', editStatus); // Broadcast Lock State
+
     return unlockResult;
   });
 

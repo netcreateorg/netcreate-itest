@@ -36,6 +36,7 @@ class NCSearch extends UNISYS.Component {
 
     this.state = {
       isLoggedIn: false,
+      uIsLockedByTemplate: false,
       uIsLockedByComment: false,
       value: ''
     }; // initialized on componentDidMount and clearSelection
@@ -67,6 +68,15 @@ class NCSearch extends UNISYS.Component {
     this.setState({ isLoggedIn: decoded.isValid });
   }
 
+  urstate_LOCKSTATE(LOCKSTATE) {
+    this.setState({
+      uIsLockedByTemplate: LOCKSTATE.templateBeingEdited
+    });
+    // DEPRECATED -- comment editing lock state is only relevant if you are editing your own comment
+    //   this.setState({
+    //   // uIsLockedByComment: LOCKSTATE.commentBeingEditedByMe  // NOT IMPLEMENTED
+    // });
+  }
 
   /**
    * The callback function (cb) is used to restore the selection point
@@ -113,9 +123,9 @@ class NCSearch extends UNISYS.Component {
   /// MAIN RENDER
   ///
   render() {
-    const { value, isLoggedIn, uIsLockedByComment } = this.state;
+    const { value, isLoggedIn, uIsLockedByTemplate, uIsLockedByComment } = this.state;
     const newNodeBtnHidden = !isLoggedIn || uIsLockedByComment;
-    const newNodeBtnDisabled = value === '';
+    const newNodeBtnDisabled = value === '' || uIsLockedByTemplate;
     const key = 'search'; // used for search/source/target, placeholder for search
     return (
       <div className="--NCSearch ncsearch">

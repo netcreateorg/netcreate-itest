@@ -27,7 +27,7 @@
 #NCNodeTable .colmgr-btn,
 #NCEdgeTable .colmgr-btn {
   position: fixed;
-  z-index: 110;
+  z-index: 310;
   margin: 5px;
 }
 #NCNodeTable button.icon.colmgr-btn,

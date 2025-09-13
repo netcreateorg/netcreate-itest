@@ -542,6 +542,10 @@ function m_MatchString(needle, haystack, contains = true) {
   return contains ? ResultsAND : !ResultsAND;
 }
 function m_MatchStringSnippet(needle, haystack, contains = true) {
+  // Normalize and strip diacritics
+  needle = UTILS.RemoveDiacriticMarks(needle);
+  haystack = UTILS.RemoveDiacriticMarks(haystack);
+
   const regex = new RegExp(/*'^'+*/ needle, 'i');
   let matches;
   if (needle === '') {

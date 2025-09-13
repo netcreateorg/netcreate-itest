@@ -1114,13 +1114,6 @@ MOD.TEMPLATE = {
               description: 'Show "weight" value in tooltip on graph',
               default: true
             },
-            'isRequired': {
-              type: 'boolean',
-              format: 'checkbox',
-              description:
-                'Make "weight" a required value.  When "true", "weight" will be set to `defaultValue` for all edges if "weight" was not previously defined.  Be sure to define `defaultValue`',
-              default: true
-            },
             'isProvenance': {
               type: 'boolean',
               format: 'checkbox',

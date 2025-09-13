@@ -134,6 +134,11 @@ function ColorInput(props) {
     const color = event.target.value;
     setInputColorValue(color);
     console.log(`Color change for ${propDef}:`, color);
+  };
+  // submitColorToSettings will close the color picker, so wait until
+  // onBlur to do that.
+  const handleColorSubmit = event => {
+    const color = event.target.value;
     submitColorToSettings(color);
   };
 
@@ -177,6 +182,7 @@ function ColorInput(props) {
           backgroundColor: bgColor
         }}
         onChange={handleColorChange}
+        onBlur={handleColorSubmit}
       />
       <input
         type="text"
