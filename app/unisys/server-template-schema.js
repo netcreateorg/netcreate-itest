@@ -135,61 +135,6 @@ const NODES_SCHEMA20 = {
     hidden: 'boolean',
     options: 'nodeType[]'
   },
-  description: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  othertext: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  sometype: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean',
-    options: 'nodeType[]'
-  },
-  somenumber: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  citation: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  infoOrigin: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    includeInGraphTooltip: 'boolean',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
   created: {
     type: 'string',
     displayLabel: 'string',
@@ -275,47 +220,6 @@ const EDGES_SCHEMA20 = {
     isProvenance: 'boolean',
     hidden: 'boolean',
     options: 'edgeType[]'
-  },
-  description: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  sometype: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean',
-    options: 'edgeType[]'
-  },
-  citation: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  infoOrigin: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
-  },
-  othertext: {
-    type: 'string',
-    displayLabel: 'string',
-    exportLabel: 'string',
-    help: 'string',
-    isProvenance: 'boolean',
-    hidden: 'boolean'
   },
   created: {
     type: 'string',
