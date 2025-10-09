@@ -140,12 +140,14 @@ const HumanDateShortCache = new Map();
 
 /// FUNCTIONAL COMPONENT DECLARATION //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function URTable({ isOpen, data, columns, defaultSortIdx = 0 }) {
+function URTable({ isOpen, data, columns, sortColumnData, sortOrder }) {
+  const sortColumnIdx = columns.findIndex(col => col.data === sortColumnData);
+
   const [_tabledata, setTableData] = useState([]);
   const [_columndefs, setColumnDefs] = useState([]);
   const [_columnWidths, setColumnWidths] = useState([]);
-  const [_sortColumnIdx, setSortColumnIdx] = useState(defaultSortIdx);
-  const [_sortOrder, setSortOrder] = useState(0);
+  const [_sortColumnIdx, setSortColumnIdx] = useState(sortColumnIdx);
+  const [_sortOrder, setSortOrder] = useState(sortOrder || 0);
   const [_previousColSortOrder, setPreviousColSortOrder] = useState({});
 
   const ref_Table = useRef(null);

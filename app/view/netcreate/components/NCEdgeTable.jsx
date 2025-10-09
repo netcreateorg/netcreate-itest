@@ -550,7 +550,7 @@ function NCEdgeTable({ isOpen }) {
         isOpen={isOpenRef.current}
         data={TABLEDATA}
         columns={VISIBLECOLUMNDEFS}
-        defaultSortIdx={1} // Default sort by source node label
+        sortColumnData="sourceDef"
       />
     </div>
   );
